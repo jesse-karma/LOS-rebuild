@@ -176,6 +176,91 @@ function fmtIdr(n: number): string {
   return new Intl.NumberFormat("id-ID").format(n);
 }
 
+// Starter rows the analyst never touched — dropped on save/submit.
+
+function contactIsBlank(c: SubmissionContactRow): boolean {
+  return (
+    !c.name.trim() &&
+    !c.role.trim() &&
+    !c.notesOnPerson.trim() &&
+    !c.slikFileUrl.trim() &&
+    !c.slikExecSummary.trim() &&
+    !c.isKeyPerson &&
+    c.uboExposure === 0
+  );
+}
+
+function disbursementIsBlank(d: SubmissionDisbursementRow): boolean {
+  return d.amount === 0 && !d.plannedDate;
+}
+
+function branchIsBlank(b: SubmissionBranchRow): boolean {
+  return !b.name.trim() && !b.area.trim() && !b.gmapsLink.trim() && !b.notes.trim();
+}
+
+function ptIsBlank(pt: SubmissionPTRow): boolean {
+  return (
+    !pt.name.trim() &&
+    !pt.bank.trim() &&
+    !pt.accountNumber.trim() &&
+    !pt.accountholderName.trim() &&
+    !pt.slikFileUrl.trim() &&
+    !pt.slikExecSummary.trim()
+  );
+}
+
+// Blank-row factories, shared by the [+] buttons and the starter rows.
+
+function blankContact(): SubmissionContactRow {
+  return {
+    id: newRowId(),
+    name: "",
+    role: "",
+    notesOnPerson: "",
+    isKeyPerson: false,
+    slikFileUrl: "",
+    slikExecSummary: "",
+    uboExposure: 0,
+  };
+}
+
+function blankDisbursement(): SubmissionDisbursementRow {
+  return { id: newRowId(), amount: 0, plannedDate: "" };
+}
+
+function blankBranch(): SubmissionBranchRow {
+  return { id: newRowId(), name: "", area: "", gmapsLink: "", notes: "", type: "Opening Branch" };
+}
+
+function blankPT(): SubmissionPTRow {
+  return {
+    id: newRowId(),
+    name: "",
+    bank: "",
+    accountNumber: "",
+    accountholderName: "",
+    slikFileUrl: "",
+    slikExecSummary: "",
+  };
+}
+
+/**
+ * Whenever the A&D sections are visible, each table keeps at least one starter
+ * row so analysts see the columns to fill, not just [+]. Untouched starter rows
+ * are stripped again on save/submit.
+ */
+function withStarterRows(f: SubmissionFormData): SubmissionFormData {
+  if (!isAssetAOrD(f.assetClass)) return f;
+  const next = { ...f };
+  if (next.kpContacts.length === 0) next.kpContacts = [blankContact()];
+  if (next.ptDetails.length === 0) next.ptDetails = [blankPT()];
+  if (next.approvalType !== "Plafond") {
+    if (next.disbursements.length === 0) next.disbursements = [blankDisbursement()];
+    if (next.branches.length === 0) next.branches = [blankBranch()];
+  }
+  return next;
+}
+
 interface Props {
   submission: StoredSubmission;
   /** True for a never-saved submission — lets the active profile pre-fill Primary Analyst. */
@@ -186,10 +271,14 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const router = useRouter();
   const { user } = useProfile();
   // Merge over defaults so drafts saved before new fields existed stay controlled.
-  const [form, setForm] = useState<SubmissionFormData>({
-    ...emptySubmissionForm(),
-    ...submission.form,
-  });
+  const [form, setForm] = useState<SubmissionFormData>(() =>
+    withStarterRows({
+      ...emptySubmissionForm(),
+      ...submission.form,
+      // A submission carries exactly one PT; older drafts may have stored more.
+      ptDetails: (submission.form.ptDetails ?? []).slice(0, 1),
+    })
+  );
   const [amountText, setAmountText] = useState(
     submission.form.requestedAmount ? formatAmountInput(String(submission.form.requestedAmount)) : ""
   );
@@ -215,6 +304,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const isProjectType = form.approvalType !== "Plafond";
   // The A&D spec sections (contacts, terms, PT, memos) only apply to Asset A / D submissions.
   const isAD = isAssetAOrD(form.assetClass);
+  /** Single PT per submission — the starter effect guarantees one exists for A/D. */
+  const ptDetail = form.ptDetails[0];
 
   // Dependent master-data option lists
   const approvalTypeOptions = approvalTypesForAssetClass(form.assetClass);
@@ -227,9 +318,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     requestedAmount: parseAmount(amountText),
     proposedTotalLimit: parseAmount(plafondTexts.total),
   });
-  const disbursementSum = form.disbursements.reduce((sum, d) => sum + d.amount, 0);
+  const filledDisbursements = form.disbursements.filter((d) => !disbursementIsBlank(d));
+  const disbursementSum = filledDisbursements.reduce((sum, d) => sum + d.amount, 0);
   const disbursementMismatch =
-    form.disbursements.length > 0 && disbursementSum !== parseAmount(amountText);
+    filledDisbursements.length > 0 && disbursementSum !== parseAmount(amountText);
 
   function set<K extends keyof SubmissionFormData>(key: K, value: SubmissionFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -244,7 +336,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       ) as ApprovalType;
       const allowedReturns = returnTypesForApprovalType(approvalType);
       const returnType = allowedReturns.includes(f.returnType) ? f.returnType : allowedReturns[0];
-      return { ...f, assetClass, approvalType, returnType };
+      return withStarterRows({ ...f, assetClass, approvalType, returnType });
     });
   }
 
@@ -252,7 +344,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     setForm((f) => {
       const allowedReturns = returnTypesForApprovalType(approvalType);
       const returnType = allowedReturns.includes(f.returnType) ? f.returnType : allowedReturns[0];
-      return { ...f, approvalType, returnType };
+      return withStarterRows({ ...f, approvalType, returnType });
     });
   }
 
@@ -279,54 +371,24 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   }
 
   function removeRow(key: "kpContacts" | "disbursements" | "branches" | "ptDetails", id: string) {
-    setForm((f) => ({
-      ...f,
-      [key]: (f[key] as Array<{ id: string }>).filter((row) => row.id !== id),
-    }));
+    setForm((f) =>
+      withStarterRows({
+        ...f,
+        [key]: (f[key] as Array<{ id: string }>).filter((row) => row.id !== id),
+      })
+    );
   }
 
   function addContact() {
-    const row: SubmissionContactRow = {
-      id: newRowId(),
-      name: "",
-      role: "",
-      notesOnPerson: "",
-      isKeyPerson: false,
-      slikFileUrl: "",
-      slikExecSummary: "",
-      uboExposure: 0,
-    };
-    setForm((f) => ({ ...f, kpContacts: [...f.kpContacts, row] }));
+    setForm((f) => ({ ...f, kpContacts: [...f.kpContacts, blankContact()] }));
   }
 
   function addDisbursement() {
-    const row: SubmissionDisbursementRow = { id: newRowId(), amount: 0, plannedDate: "" };
-    setForm((f) => ({ ...f, disbursements: [...f.disbursements, row] }));
+    setForm((f) => ({ ...f, disbursements: [...f.disbursements, blankDisbursement()] }));
   }
 
   function addBranch() {
-    const row: SubmissionBranchRow = {
-      id: newRowId(),
-      name: "",
-      area: "",
-      gmapsLink: "",
-      notes: "",
-      type: "Opening Branch",
-    };
-    setForm((f) => ({ ...f, branches: [...f.branches, row] }));
-  }
-
-  function addPT() {
-    const row: SubmissionPTRow = {
-      id: newRowId(),
-      name: "",
-      bank: "",
-      accountNumber: "",
-      accountholderName: "",
-      slikFileUrl: "",
-      slikExecSummary: "",
-    };
-    setForm((f) => ({ ...f, ptDetails: [...f.ptDetails, row] }));
+    setForm((f) => ({ ...f, branches: [...f.branches, blankBranch()] }));
   }
 
   function currentDraft(status: "draft" | "submitted"): StoredSubmission {
@@ -338,6 +400,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         ...form,
         // Spec S8: Submitted by is set on submission and cleared when pulled back to draft.
         submittedBy: status === "submitted" ? user.name : "",
+        kpContacts: form.kpContacts.filter((c) => !contactIsBlank(c)),
+        disbursements: form.disbursements.filter((d) => !disbursementIsBlank(d)),
+        branches: form.branches.filter((b) => !branchIsBlank(b)),
+        ptDetails: form.ptDetails.filter((pt) => !ptIsBlank(pt)),
         requestedAmount: parseAmount(amountText),
         proposedTotalLimit: parseAmount(plafondTexts.total),
         proposedPOSubLimit: parseAmount(plafondTexts.po),
@@ -693,8 +759,12 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
 
         {isAD && (
           <FormSection title="Karmapreneur Contacts">
-            {form.kpContacts.length > 0 && (
-              <EditTable
+            <p className="text-xs text-gray-500 mb-3">
+              List the people behind this Karmapreneur — owners, directors, and guarantors. Mark at
+              least one <strong className="text-gray-600">Key Person</strong>; key persons need a
+              SLIK file before IC approval.
+            </p>
+            <EditTable
                 headers={[
                   "#",
                   "Name",
@@ -732,6 +802,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         className={cellInputCls}
                         value={c.notesOnPerson}
                         onChange={(e) => updateRow("kpContacts", c.id, { notesOnPerson: e.target.value })}
+                        placeholder="e.g. Founder; runs day-to-day ops"
                       />
                     </td>
                     <td className="py-2 px-2 pt-3.5 text-center">
@@ -755,6 +826,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         className={cellInputCls}
                         value={c.slikExecSummary}
                         onChange={(e) => updateRow("kpContacts", c.id, { slikExecSummary: e.target.value })}
+                        placeholder="e.g. Kol 1, no arrears"
                       />
                     </td>
                     <td className="py-2 px-2 min-w-32">
@@ -765,6 +837,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         onChange={(e) =>
                           updateRow("kpContacts", c.id, { uboExposure: parseAmount(e.target.value) })
                         }
+                        placeholder="500.000.000"
                       />
                     </td>
                     <td className="py-2 px-2">
@@ -773,7 +846,6 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                   </tr>
                 ))}
               </EditTable>
-            )}
             <AddRowButton label="Add contact" onClick={addContact} />
             <p className="text-[10px] text-gray-400 mt-1">
               SLIK File URL is required before approval for key persons.
@@ -786,8 +858,11 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
               Disbursement Schedule
             </h3>
-            {form.disbursements.length > 0 && (
-              <EditTable
+            <p className="text-xs text-gray-500 mb-3">
+              How the requested amount is released in tranches — planned amounts should add up to
+              the Requested Amount.
+            </p>
+            <EditTable
                 headers={[
                   "#",
                   `Disbursement Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`,
@@ -807,6 +882,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         onChange={(e) =>
                           updateRow("disbursements", d.id, { amount: parseAmount(e.target.value) })
                         }
+                        placeholder="700.000.000"
                       />
                     </td>
                     <td className="py-2 px-2">
@@ -823,9 +899,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                   </tr>
                 ))}
               </EditTable>
-            )}
             <AddRowButton label="Add disbursement" onClick={addDisbursement} />
-            {form.disbursements.length > 0 && (
+            {filledDisbursements.length > 0 && (
               <p className="text-xs text-gray-500 mt-2">
                 Total planned: <span className="font-mono">{fmtIdr(disbursementSum)}</span>
               </p>
@@ -837,8 +912,11 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
               Branch Details
             </h3>
-            {form.branches.length > 0 && (
-              <EditTable
+            <p className="text-xs text-gray-500 mb-3">
+              Outlets this financing opens (Opening Branch) or whose revenue repays it (Accruing
+              Branch).
+            </p>
+            <EditTable
                 headers={["#", "Branch Name", "Branch Area", "Type", "Gmaps Link", "Notes", ""]}
                 minWidthCls="min-w-[760px]"
               >
@@ -850,6 +928,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         className={cellInputCls}
                         value={b.name}
                         onChange={(e) => updateRow("branches", b.id, { name: e.target.value })}
+                        placeholder="e.g. Kopi Tuku — Blok A"
                       />
                     </td>
                     <td className="py-2 px-2 min-w-28">
@@ -887,6 +966,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         className={cellInputCls}
                         value={b.notes}
                         onChange={(e) => updateRow("branches", b.id, { notes: e.target.value })}
+                        placeholder="e.g. 2nd outlet in the area"
                       />
                     </td>
                     <td className="py-2 px-2">
@@ -895,91 +975,72 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                   </tr>
                 ))}
               </EditTable>
-            )}
             <AddRowButton label="Add branch" onClick={addBranch} />
           </FormSection>
         )}
 
-        {isAD && (
+        {isAD && ptDetail && (
           <FormSection title="PT Details">
-            {form.ptDetails.length > 0 && (
-              <EditTable
-                headers={[
-                  "#",
-                  "PT Name",
-                  "Bank",
-                  "Account Number",
-                  "Accountholder Name",
-                  "SLIK-PT File URL",
-                  "SLIK-PT Exec Summary",
-                  "",
-                ]}
-                minWidthCls="min-w-[900px]"
-              >
-                {form.ptDetails.map((pt, i) => (
-                  <tr key={pt.id} className="align-top">
-                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
-                    <td className="py-2 px-2 min-w-40">
-                      <input
-                        className={cellInputCls}
-                        value={pt.name}
-                        onChange={(e) => updateRow("ptDetails", pt.id, { name: e.target.value })}
-                        placeholder="e.g. PT Tuku Sejahtera"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-24">
-                      <input
-                        className={cellInputCls}
-                        value={pt.bank}
-                        onChange={(e) => updateRow("ptDetails", pt.id, { bank: e.target.value })}
-                        placeholder="e.g. BCA"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-32">
-                      <input
-                        className={cellInputCls}
-                        inputMode="numeric"
-                        value={pt.accountNumber}
-                        onChange={(e) => updateRow("ptDetails", pt.id, { accountNumber: e.target.value })}
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-40">
-                      <input
-                        className={cellInputCls}
-                        value={pt.accountholderName}
-                        onChange={(e) =>
-                          updateRow("ptDetails", pt.id, { accountholderName: e.target.value })
-                        }
-                      />
-                      {pt.name.trim() &&
-                        pt.accountholderName.trim() &&
-                        pt.name.trim() !== pt.accountholderName.trim() && (
-                          <InlineWarning message="Mismatch on accountholder and PT names" />
-                        )}
-                    </td>
-                    <td className="py-2 px-2 min-w-40">
-                      <input
-                        className={cellInputCls}
-                        value={pt.slikFileUrl}
-                        onChange={(e) => updateRow("ptDetails", pt.id, { slikFileUrl: e.target.value })}
-                        placeholder="https://drive.google.com/…"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-40">
-                      <input
-                        className={cellInputCls}
-                        value={pt.slikExecSummary}
-                        onChange={(e) => updateRow("ptDetails", pt.id, { slikExecSummary: e.target.value })}
-                      />
-                    </td>
-                    <td className="py-2 px-2">
-                      <RemoveRowButton onClick={() => removeRow("ptDetails", pt.id)} />
-                    </td>
-                  </tr>
-                ))}
-              </EditTable>
-            )}
-            <AddRowButton label="Add PT" onClick={addPT} />
+            <p className="text-xs text-gray-500 mb-3">
+              The legal entity (PT) receiving the disbursement and its bank account. The
+              accountholder name should match the PT name — mismatches are flagged to IC.
+            </p>
+            <Field label="PT Name" source="free">
+              <input
+                className={inputCls}
+                value={ptDetail.name}
+                onChange={(e) => updateRow("ptDetails", ptDetail.id, { name: e.target.value })}
+                placeholder="e.g. PT Tuku Sejahtera"
+              />
+            </Field>
+            <Field label="Bank" source="free">
+              <input
+                className={inputCls}
+                value={ptDetail.bank}
+                onChange={(e) => updateRow("ptDetails", ptDetail.id, { bank: e.target.value })}
+                placeholder="e.g. BCA"
+              />
+            </Field>
+            <Field label="Account Number" source="free">
+              <input
+                className={inputCls}
+                inputMode="numeric"
+                value={ptDetail.accountNumber}
+                onChange={(e) => updateRow("ptDetails", ptDetail.id, { accountNumber: e.target.value })}
+                placeholder="e.g. 5271038812"
+              />
+            </Field>
+            <Field label="Accountholder Name" source="free">
+              <input
+                className={inputCls}
+                value={ptDetail.accountholderName}
+                onChange={(e) =>
+                  updateRow("ptDetails", ptDetail.id, { accountholderName: e.target.value })
+                }
+                placeholder="e.g. PT Tuku Sejahtera"
+              />
+              {ptDetail.name.trim() &&
+                ptDetail.accountholderName.trim() &&
+                ptDetail.name.trim() !== ptDetail.accountholderName.trim() && (
+                  <InlineWarning message="Mismatch on accountholder and PT names" />
+                )}
+            </Field>
+            <Field label="SLIK-PT File URL" source="free">
+              <input
+                className={inputCls}
+                value={ptDetail.slikFileUrl}
+                onChange={(e) => updateRow("ptDetails", ptDetail.id, { slikFileUrl: e.target.value })}
+                placeholder="https://drive.google.com/…"
+              />
+            </Field>
+            <Field label="SLIK-PT Exec Summary" source="free">
+              <input
+                className={inputCls}
+                value={ptDetail.slikExecSummary}
+                onChange={(e) => updateRow("ptDetails", ptDetail.id, { slikExecSummary: e.target.value })}
+                placeholder="e.g. Kol 1, no arrears"
+              />
+            </Field>
           </FormSection>
         )}
 
