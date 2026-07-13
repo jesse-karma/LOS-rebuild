@@ -3,16 +3,13 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { AlertCircle, Plus, Search, Vote } from "lucide-react";
+import { Plus, Search, Vote } from "lucide-react";
 import { ICProject } from "@/data/types";
 import { mockProjects } from "@/data/mock";
-import { computeWarnings } from "@/lib/warnings";
 import { Tag, approvalTypeVariant, assetClassVariant } from "@/components/ui/Tag";
 import {
   allReviewProjects,
-  leadStatusFor,
   listSubmissions,
-  requestStateFor,
   seedDemoSubmissions,
   StoredSubmission,
 } from "@/lib/submissionsStore";
@@ -42,51 +39,20 @@ function projectAmount(p: ICProject): string {
     : `USD ${(p.trancheTargetAmount ?? p.requestedAmount).toLocaleString()}`;
 }
 
-/** Lifecycle chip: Lead Status (master data §1) + Request State (§2). */
-function LifecycleChip({ status, leadStatusCode }: Pick<StoredSubmission, "status" | "leadStatusCode">) {
-  const lead = leadStatusFor(status, leadStatusCode);
-  const request = requestStateFor(status);
-  const isDraft = status === "draft";
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded border ${
-        isDraft
-          ? "bg-gray-50 text-gray-600 border-gray-200"
-          : "bg-indigo-50 text-indigo-700 border-indigo-200"
-      }`}
-      title={`Stage: ${lead.stage}`}
-    >
-      {lead.label}
-      <span className={isDraft ? "text-gray-300" : "text-indigo-300"}>·</span>
-      {request}
-    </span>
-  );
-}
-
-/** "waiting Nd" — red once IC has sat on it past the threshold. */
-function AgingChip({ submittedAt }: { submittedAt: string }) {
+/** "Pending Review" with submitted date and days pending (red once stale). */
+function ReviewStatusCell({ submittedAt }: { submittedAt: string }) {
   const days = daysWaiting(submittedAt);
   const stale = days > 14;
   return (
-    <span
-      className={`text-xs font-medium px-2 py-0.5 rounded whitespace-nowrap ${
-        stale ? "bg-red-50 text-red-600 border border-red-200" : "bg-gray-50 text-gray-500 border border-gray-200"
-      }`}
-      title={`Submitted ${fmtDate(submittedAt)}`}
-    >
-      waiting {days}d
-    </span>
-  );
-}
-
-function BlockerChip({ project }: { project: ICProject }) {
-  const errorCount = computeWarnings(project).filter((w) => w.level === "error").length;
-  if (errorCount === 0) return null;
-  return (
-    <span className="inline-flex items-center gap-1 text-xs bg-red-100 text-red-700 font-medium px-2 py-0.5 rounded whitespace-nowrap">
-      <AlertCircle className="w-3 h-3" />
-      {errorCount} blocker{errorCount > 1 ? "s" : ""}
-    </span>
+    <div className="flex flex-col items-start gap-1">
+      <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200 whitespace-nowrap">
+        Pending Review
+      </span>
+      <span className="text-xs text-gray-400 px-0.5 whitespace-nowrap">
+        Submitted {fmtDate(submittedAt)} ·{" "}
+        <span className={stale ? "text-red-600 font-semibold" : ""}>{days}d</span>
+      </span>
+    </div>
   );
 }
 
@@ -262,7 +228,7 @@ export default function HomePage() {
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
                 <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Created at</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Last updated</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -302,8 +268,8 @@ export default function HomePage() {
                       : <span className="text-gray-400 font-normal">—</span>}
                   </td>
                   <td className="py-2.5 px-2.5 text-gray-500 whitespace-nowrap">{fmtDate(d.createdAt)}</td>
-                  <td className="py-2.5 px-2.5 whitespace-nowrap">
-                    <LifecycleChip status={d.status} leadStatusCode={d.leadStatusCode} />
+                  <td className="py-2.5 px-2.5 text-gray-500 whitespace-nowrap">
+                    {fmtDate(d.updatedAt ?? d.createdAt)}
                   </td>
                 </tr>
               ))}
@@ -328,8 +294,7 @@ export default function HomePage() {
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
                 <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Waiting</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Blockers</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
                 {isIC && <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Vote</th>}
               </tr>
             </thead>
@@ -360,10 +325,7 @@ export default function HomePage() {
                     {projectAmount(p)}
                   </td>
                   <td className="py-2.5 px-2.5">
-                    <AgingChip submittedAt={p.submittedAt} />
-                  </td>
-                  <td className="py-2.5 px-2.5">
-                    <BlockerChip project={p} />
+                    <ReviewStatusCell submittedAt={p.submittedAt} />
                   </td>
                   {isIC && (
                     <td className="py-2.5 px-2.5">

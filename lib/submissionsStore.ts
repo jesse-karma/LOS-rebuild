@@ -189,6 +189,8 @@ export interface StoredSubmission {
   /** Where a draft sits before IC review; absent (legacy drafts) means 3.9. */
   leadStatusCode?: DraftLeadStatusCode;
   createdAt: string; // ISO
+  /** Stamped on every save; absent (legacy drafts) means createdAt. */
+  updatedAt?: string; // ISO
   submittedAt: string | null; // ISO
   form: SubmissionFormData;
 }
@@ -289,9 +291,10 @@ export function getSubmission(id: string): StoredSubmission | undefined {
 
 export function saveSubmission(sub: StoredSubmission) {
   const subs = listSubmissions();
-  const i = subs.findIndex((s) => s.id === sub.id);
-  if (i >= 0) subs[i] = sub;
-  else subs.unshift(sub);
+  const stamped = { ...sub, updatedAt: new Date().toISOString() };
+  const i = subs.findIndex((s) => s.id === stamped.id);
+  if (i >= 0) subs[i] = stamped;
+  else subs.unshift(stamped);
   persist(subs);
 }
 
@@ -305,8 +308,8 @@ export function newSubmissionId(): string {
 
 // ─── Demo seed data (prototype: pre-populates the Funding Lead tab once) ─────
 
-// v2: demo drafts carry varied leadStatusCode values.
-const SEED_FLAG = "kc-los-demo-seeded-v2";
+// v3: demo drafts carry varied leadStatusCode and updatedAt values.
+const SEED_FLAG = "kc-los-demo-seeded-v3";
 
 function demoDrafts(): StoredSubmission[] {
   return [
@@ -316,6 +319,7 @@ function demoDrafts(): StoredSubmission[] {
       // Oldest draft is furthest along the pre-IC lifecycle.
       leadStatusCode: "3.9",
       createdAt: "2026-07-08T09:30:00.000Z",
+      updatedAt: "2026-07-12T15:20:00.000Z",
       submittedAt: null,
       form: {
         ...emptySubmissionForm(),
@@ -352,6 +356,7 @@ function demoDrafts(): StoredSubmission[] {
       status: "draft",
       leadStatusCode: "3",
       createdAt: "2026-07-10T04:15:00.000Z",
+      updatedAt: "2026-07-11T08:45:00.000Z",
       submittedAt: null,
       form: {
         ...emptySubmissionForm(),
@@ -379,6 +384,7 @@ function demoDrafts(): StoredSubmission[] {
       status: "draft",
       leadStatusCode: "2",
       createdAt: "2026-07-12T11:00:00.000Z",
+      updatedAt: "2026-07-12T11:00:00.000Z",
       submittedAt: null,
       form: {
         ...emptySubmissionForm(),
@@ -408,10 +414,12 @@ export function seedDemoSubmissions() {
   if (typeof window === "undefined") return;
   if (window.localStorage.getItem(SEED_FLAG)) return;
   const demos = demoDrafts();
-  // Upgrade demo drafts seeded before v2 with their varied lead statuses.
+  // Upgrade demo drafts seeded before v3 with their varied lead statuses and update stamps.
   const existing = listSubmissions().map((s) => {
     const demo = demos.find((d) => d.id === s.id);
-    return demo && s.status === "draft" ? { ...s, leadStatusCode: demo.leadStatusCode } : s;
+    return demo && s.status === "draft"
+      ? { ...s, leadStatusCode: demo.leadStatusCode, updatedAt: s.updatedAt ?? demo.updatedAt }
+      : s;
   });
   const fresh = demos.filter((d) => !existing.some((s) => s.id === d.id));
   persist([...fresh, ...existing]);
