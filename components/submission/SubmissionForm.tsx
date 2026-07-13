@@ -35,7 +35,7 @@ import { isAnalystRole, useProfile } from "@/lib/profileStore";
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm px-5 py-4">
-      <h2 className="text-sm font-semibold text-gray-900 mb-4">{title}</h2>
+      <h2 className="text-sm font-semibold text-gray-900 mb-2">{title}</h2>
       {children}
     </div>
   );
@@ -44,39 +44,44 @@ function FormSection({ title, children }: { title: string; children: React.React
 /** "Master data" = closed enum in the production DB; "Free input" = analyst types it. */
 function SourceBadge({ source }: { source: "master" | "free" }) {
   return source === "master" ? (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-indigo-600 bg-indigo-50 border border-indigo-200 px-1.5 py-0.5 rounded normal-case tracking-normal">
-      <Database className="w-2.5 h-2.5" />
-      Master data
+    <span
+      title="Master data — value comes from a closed enum in the LOS master data"
+      className="inline-flex items-center text-indigo-400 shrink-0"
+    >
+      <Database className="w-3 h-3" />
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 text-[10px] font-medium text-gray-500 bg-gray-50 border border-gray-200 px-1.5 py-0.5 rounded normal-case tracking-normal">
-      <PenLine className="w-2.5 h-2.5" />
-      Free input
+    <span
+      title="Free input — analyst fills it in"
+      className="inline-flex items-center text-gray-300 shrink-0"
+    >
+      <PenLine className="w-3 h-3" />
     </span>
   );
 }
 
+/** Label-left / input-right row, mirroring the IC card's DataRow. */
 function Field({
   label,
   source,
   hint,
   children,
-  full,
 }: {
   label: string;
   source: "master" | "free";
   hint?: string;
   children: React.ReactNode;
-  full?: boolean;
 }) {
   return (
-    <div className={full ? "sm:col-span-2" : ""}>
-      <label className="flex items-center gap-2 text-xs font-medium text-gray-500 uppercase tracking-wide mb-1">
+    <div className="flex items-start gap-4 py-2 border-b border-gray-50 last:border-0">
+      <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 w-44 shrink-0 pt-2.5">
         {label}
         <SourceBadge source={source} />
-      </label>
-      {children}
-      {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+      </span>
+      <div className="flex-1 min-w-0">
+        {children}
+        {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+      </div>
     </div>
   );
 }
@@ -90,31 +95,49 @@ function InlineWarning({ message }: { message: string }) {
   );
 }
 
-/** One removable row of a dynamic table ([+]/[-] pattern from the A&D spec). */
-function RowCard({
-  index,
-  onRemove,
+/** Editable table shell matching the IC card table styling (Plafond / Contacts). */
+function EditTable({
+  headers,
+  minWidthCls,
   children,
 }: {
-  index: number;
-  onRemove: () => void;
+  headers: string[];
+  minWidthCls: string;
   children: React.ReactNode;
 }) {
   return (
-    <div className="border border-gray-200 rounded-lg bg-gray-50/60 px-4 py-3 relative">
-      <div className="flex items-center justify-between mb-3">
-        <span className="text-xs font-semibold text-gray-400">#{index + 1}</span>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="inline-flex items-center gap-1 text-xs text-red-500 hover:text-red-700 transition-colors"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-          Remove
-        </button>
-      </div>
-      {children}
+    <div className="overflow-x-auto -mx-1">
+      <table className={`w-full text-xs border border-gray-100 rounded-lg overflow-hidden ${minWidthCls}`}>
+        <thead>
+          <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left">
+            {headers.map((h, i) => (
+              <th
+                key={`${h}-${i}`}
+                className={`py-2 px-2 font-medium ${i === 0 ? "pl-3 w-8" : ""} ${
+                  i === headers.length - 1 && h === "" ? "w-10" : ""
+                }`}
+              >
+                {h}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">{children}</tbody>
+      </table>
     </div>
+  );
+}
+
+function RemoveRowButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title="Remove row"
+      className="text-red-400 hover:text-red-600 transition-colors mt-1.5"
+    >
+      <Trash2 className="w-3.5 h-3.5" />
+    </button>
   );
 }
 
@@ -123,7 +146,7 @@ function AddRowButton({ label, onClick }: { label: string; onClick: () => void }
     <button
       type="button"
       onClick={onClick}
-      className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors"
+      className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors mt-2"
     >
       <Plus className="w-4 h-4" />
       {label}
@@ -133,6 +156,10 @@ function AddRowButton({ label, onClick }: { label: string; onClick: () => void }
 
 const inputCls =
   "w-full border border-gray-300 rounded-lg px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500";
+
+/** Compact input for table cells. */
+const cellInputCls =
+  "w-full border border-gray-300 rounded px-2 py-1.5 text-xs text-gray-900 focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500";
 
 /** Format digits with id-ID thousand separators as the user types. */
 function formatAmountInput(raw: string): string {
@@ -362,443 +389,480 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         <p className="text-sm text-gray-500 mt-1">
           Fill in the project details, then submit to IC. You can save a draft at any time.
         </p>
-        <div className="flex items-center gap-3 mt-3 text-xs text-gray-500 flex-wrap">
+        <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 flex-wrap">
           <span className="inline-flex items-center gap-1.5">
-            <SourceBadge source="master" /> value comes from a closed enum in the LOS master data
+            <Database className="w-3 h-3 text-indigo-400" />
+            Master data — value comes from a closed enum in the LOS master data
           </span>
           <span className="inline-flex items-center gap-1.5">
-            <SourceBadge source="free" /> analyst fills it in
+            <PenLine className="w-3 h-3 text-gray-300" />
+            Free input — analyst fills it in
           </span>
         </div>
       </div>
 
       <div className="space-y-4">
         <FormSection title="What are we reviewing?">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Brand" source="free" hint="Lookup to Karmapreneur — type a new name to create it">
+          <Field label="Brand" source="free" hint="Lookup to Karmapreneur — type a new name to create it">
+            <input
+              className={inputCls}
+              value={form.brandName}
+              onChange={(e) => {
+                const brand = e.target.value;
+                setForm((f) => ({
+                  ...f,
+                  brandName: brand,
+                  // Pre-fill "[Brand] - " while the analyst hasn't typed a custom name
+                  projectName:
+                    !f.projectName || f.projectName === `${f.brandName} - `
+                      ? `${brand} - `
+                      : f.projectName,
+                }));
+              }}
+              placeholder="e.g. Kopi Tuku"
+            />
+          </Field>
+          <Field label="Project Name" source="free">
+            <input
+              className={inputCls}
+              value={form.projectName}
+              onChange={(e) => set("projectName", e.target.value)}
+              placeholder="e.g. Kopi Tuku - Blok A"
+            />
+          </Field>
+          <Field label="Asset Class" source="master" hint="Changing it filters the allowed Types">
+            <select
+              className={inputCls}
+              value={form.assetClass}
+              onChange={(e) => setAssetClass(e.target.value)}
+            >
+              {ASSET_CLASSES.map((a) => (
+                <option key={a} value={a}>
+                  Asset Class {a}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field
+            label="Type"
+            source="master"
+            hint={`Allowed for Asset ${form.assetClass}: ${approvalTypeOptions.join(", ")}`}
+          >
+            <select
+              className={inputCls}
+              value={form.approvalType}
+              onChange={(e) => setApprovalType(e.target.value as ApprovalType)}
+            >
+              {approvalTypeOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="New Karmapreneur?" source="free">
+            <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
               <input
-                className={inputCls}
-                value={form.brandName}
-                onChange={(e) => {
-                  const brand = e.target.value;
-                  setForm((f) => ({
-                    ...f,
-                    brandName: brand,
-                    // Pre-fill "[Brand] - " while the analyst hasn't typed a custom name
-                    projectName:
-                      !f.projectName || f.projectName === `${f.brandName} - `
-                        ? `${brand} - `
-                        : f.projectName,
-                  }));
-                }}
-                placeholder="e.g. Kopi Tuku"
+                type="checkbox"
+                checked={form.brandIsNew}
+                onChange={(e) => set("brandIsNew", e.target.checked)}
+                className="rounded border-gray-300"
               />
+              First project for this brand
+            </label>
+          </Field>
+        </FormSection>
+
+        <FormSection title="PIC">
+          <Field label="Created by" source="free" hint="Set automatically to the card creator">
+            <input className={`${inputCls} bg-gray-50 text-gray-500`} value={form.createdBy || "—"} readOnly />
+          </Field>
+          {/* Spec C8: Submitted by is not shown prior to the IC submission stage. */}
+          <Field label="Primary Analyst" source="master" hint="From the Karma Team table">
+            <select
+              className={inputCls}
+              value={form.primaryAnalyst}
+              onChange={(e) => set("primaryAnalyst", e.target.value)}
+            >
+              {ANALYSTS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Secondary Analyst" source="master" hint="From the Karma Team table">
+            <select
+              className={inputCls}
+              value={form.secondaryAnalyst}
+              onChange={(e) => set("secondaryAnalyst", e.target.value)}
+            >
+              <option value="">— None —</option>
+              {ANALYSTS.filter((a) => a !== form.primaryAnalyst).map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </Field>
+        </FormSection>
+
+        <FormSection title="Karmapreneur Details">
+          <Field label="Referral Source" source="master">
+            <select
+              className={inputCls}
+              value={form.referralSource}
+              onChange={(e) => set("referralSource", e.target.value)}
+            >
+              {REFERRAL_SOURCES.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Specific Referror" source="free" hint="Who referred this Karmapreneur (optional)">
+            <input
+              className={inputCls}
+              value={form.specificReferror}
+              onChange={(e) => set("specificReferror", e.target.value)}
+              placeholder="e.g. Iman Kusumaputera"
+            />
+          </Field>
+          <Field label="Referror belongs to KP / Brand" source="free" hint="Optional">
+            <input
+              className={inputCls}
+              value={form.referrorBelongsToKP}
+              onChange={(e) => set("referrorBelongsToKP", e.target.value)}
+              placeholder="e.g. Kopi Kalyan"
+            />
+          </Field>
+        </FormSection>
+
+        {isProjectType && (
+          <FormSection title="Project Details">
+            <Field label="Sector" source="master">
+              <select className={inputCls} value={form.mainSector} onChange={(e) => setSector(e.target.value)}>
+                {SECTORS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Project Name" source="free">
-              <input
-                className={inputCls}
-                value={form.projectName}
-                onChange={(e) => set("projectName", e.target.value)}
-                placeholder="e.g. Kopi Tuku - Blok A"
-              />
-            </Field>
-            <Field label="Asset Class" source="master" hint="Changing it filters the allowed Types">
+            <Field label="Sub-sector" source="master" hint={`${subSectorOptions.length} sub-sectors under ${form.mainSector}`}>
               <select
                 className={inputCls}
-                value={form.assetClass}
-                onChange={(e) => setAssetClass(e.target.value)}
+                value={form.subSector}
+                onChange={(e) => set("subSector", e.target.value)}
               >
-                {ASSET_CLASSES.map((a) => (
-                  <option key={a} value={a}>
-                    Asset Class {a}
+                <option value="">— None —</option>
+                {subSectorOptions.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Syariah Project?" source="free">
+              <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
+                <input
+                  type="checkbox"
+                  checked={form.syariah}
+                  onChange={(e) => set("syariah", e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                Syariah
+              </label>
+            </Field>
+            {form.syariah && (
+              <Field label="Syariah Notes" source="free" hint="Shown on the IC card next to the Syariah tag">
+                <textarea
+                  className={`${inputCls} min-h-20 resize-y`}
+                  value={form.syariahNotes}
+                  onChange={(e) => set("syariahNotes", e.target.value)}
+                  placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
+                />
+              </Field>
+            )}
+            <Field label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
+              <div className="flex gap-2">
+                <select
+                  className={`${inputCls} !w-24`}
+                  value={form.requestedAmountCurrency}
+                  onChange={(e) =>
+                    set("requestedAmountCurrency", e.target.value as "IDR" | "USD")
+                  }
+                >
+                  <option value="IDR">Rp</option>
+                  <option value="USD">USD</option>
+                </select>
+                <input
+                  className={`${inputCls} font-mono`}
+                  inputMode="numeric"
+                  value={amountText}
+                  onChange={(e) => setAmountText(formatAmountInput(e.target.value))}
+                  placeholder="2.000.000.000"
+                />
+              </div>
+              {amountWarning && <InlineWarning message={amountWarning} />}
+            </Field>
+            <Field label="Financing Use" source="master" hint="Structured Loan Use enum">
+              <select
+                className={inputCls}
+                value={form.financingUse}
+                onChange={(e) => set("financingUse", e.target.value)}
+              >
+                {STRUCTURED_LOAN_USES.map((u) => (
+                  <option key={u} value={u}>
+                    {u}
                   </option>
                 ))}
               </select>
             </Field>
             <Field
-              label="Type"
+              label="Financing Type"
               source="master"
-              hint={`Allowed for Asset ${form.assetClass}: ${approvalTypeOptions.join(", ")}`}
+              hint={`Return Types allowed for ${form.approvalType}: ${returnTypeOptions.join(", ")}`}
             >
               <select
                 className={inputCls}
-                value={form.approvalType}
-                onChange={(e) => setApprovalType(e.target.value as ApprovalType)}
+                value={form.returnType}
+                onChange={(e) => set("returnType", e.target.value)}
               >
-                {approvalTypeOptions.map((t) => (
-                  <option key={t} value={t}>
-                    {t}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="New Karmapreneur?" source="free">
-              <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-                <input
-                  type="checkbox"
-                  checked={form.brandIsNew}
-                  onChange={(e) => set("brandIsNew", e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                First project for this brand
-              </label>
-            </Field>
-          </div>
-        </FormSection>
-
-        <FormSection title="PIC">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Created by" source="free" hint="Set automatically to the card creator">
-              <input className={`${inputCls} bg-gray-50 text-gray-500`} value={form.createdBy || "—"} readOnly />
-            </Field>
-            {/* Spec C8: Submitted by is not shown prior to the IC submission stage. */}
-            <Field label="Primary Analyst" source="master" hint="From the Karma Team table">
-              <select
-                className={inputCls}
-                value={form.primaryAnalyst}
-                onChange={(e) => set("primaryAnalyst", e.target.value)}
-              >
-                {ANALYSTS.map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Secondary Analyst" source="master" hint="From the Karma Team table">
-              <select
-                className={inputCls}
-                value={form.secondaryAnalyst}
-                onChange={(e) => set("secondaryAnalyst", e.target.value)}
-              >
-                <option value="">— None —</option>
-                {ANALYSTS.filter((a) => a !== form.primaryAnalyst).map((a) => (
-                  <option key={a} value={a}>
-                    {a}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </div>
-        </FormSection>
-
-        <FormSection title="Karmapreneur Details">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Referral Source" source="master">
-              <select
-                className={inputCls}
-                value={form.referralSource}
-                onChange={(e) => set("referralSource", e.target.value)}
-              >
-                {REFERRAL_SOURCES.map((r) => (
+                {returnTypeOptions.map((r) => (
                   <option key={r} value={r}>
                     {r}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label="Specific Referror" source="free" hint="Who referred this Karmapreneur (optional)">
-              <input
-                className={inputCls}
-                value={form.specificReferror}
-                onChange={(e) => set("specificReferror", e.target.value)}
-                placeholder="e.g. Iman Kusumaputera"
-              />
-            </Field>
-            <Field label="Referror belongs to KP / Brand" source="free" hint="Optional">
-              <input
-                className={inputCls}
-                value={form.referrorBelongsToKP}
-                onChange={(e) => set("referrorBelongsToKP", e.target.value)}
-                placeholder="e.g. Kopi Kalyan"
-              />
-            </Field>
-          </div>
-        </FormSection>
-
-        {isProjectType && (
-          <FormSection title="Project Details">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Field label="Sector" source="master">
-                <select className={inputCls} value={form.mainSector} onChange={(e) => setSector(e.target.value)}>
-                  {SECTORS.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Sub-sector" source="master" hint={`${subSectorOptions.length} sub-sectors under ${form.mainSector}`}>
-                <select
-                  className={inputCls}
-                  value={form.subSector}
-                  onChange={(e) => set("subSector", e.target.value)}
-                >
-                  <option value="">— None —</option>
-                  {subSectorOptions.map((s) => (
-                    <option key={s} value={s}>
-                      {s}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field label="Syariah Project?" source="free">
-                <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-                  <input
-                    type="checkbox"
-                    checked={form.syariah}
-                    onChange={(e) => set("syariah", e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  Syariah
-                </label>
-              </Field>
-              {form.syariah && (
-                <Field label="Syariah Notes" source="free" full hint="Shown on the IC card next to the Syariah tag">
-                  <textarea
-                    className={`${inputCls} min-h-20 resize-y`}
-                    value={form.syariahNotes}
-                    onChange={(e) => set("syariahNotes", e.target.value)}
-                    placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
-                  />
-                </Field>
-              )}
-              <Field label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
-                <div className="flex gap-2">
-                  <select
-                    className={`${inputCls} !w-24`}
-                    value={form.requestedAmountCurrency}
-                    onChange={(e) =>
-                      set("requestedAmountCurrency", e.target.value as "IDR" | "USD")
-                    }
-                  >
-                    <option value="IDR">Rp</option>
-                    <option value="USD">USD</option>
-                  </select>
-                  <input
-                    className={`${inputCls} font-mono`}
-                    inputMode="numeric"
-                    value={amountText}
-                    onChange={(e) => setAmountText(formatAmountInput(e.target.value))}
-                    placeholder="2.000.000.000"
-                  />
-                </div>
-                {amountWarning && <InlineWarning message={amountWarning} />}
-              </Field>
-              <Field label="Financing Use" source="master" hint="Structured Loan Use enum">
-                <select
-                  className={inputCls}
-                  value={form.financingUse}
-                  onChange={(e) => set("financingUse", e.target.value)}
-                >
-                  {STRUCTURED_LOAN_USES.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-              <Field
-                label="Financing Type"
-                source="master"
-                hint={`Return Types allowed for ${form.approvalType}: ${returnTypeOptions.join(", ")}`}
-              >
-                <select
-                  className={inputCls}
-                  value={form.returnType}
-                  onChange={(e) => set("returnType", e.target.value)}
-                >
-                  {returnTypeOptions.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
-              </Field>
-            </div>
           </FormSection>
         )}
 
         {hasPlafond && (
           <FormSection title="Plafond and Financial Review">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
               Proposed Limit
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <Field label="Total Limit (Rp)" source="free">
-                <input
-                  className={`${inputCls} font-mono`}
-                  inputMode="numeric"
-                  value={plafondTexts.total}
-                  onChange={(e) =>
-                    setPlafondTexts((t) => ({ ...t, total: formatAmountInput(e.target.value) }))
-                  }
-                  placeholder="5.000.000.000"
-                />
-              </Field>
-              <Field label="PO Sub-Limit (Rp)" source="free">
-                <input
-                  className={`${inputCls} font-mono`}
-                  inputMode="numeric"
-                  value={plafondTexts.po}
-                  onChange={(e) =>
-                    setPlafondTexts((t) => ({ ...t, po: formatAmountInput(e.target.value) }))
-                  }
-                />
-              </Field>
-              <Field label="Working Capital Sub-Limit (Rp)" source="free">
-                <input
-                  className={`${inputCls} font-mono`}
-                  inputMode="numeric"
-                  value={plafondTexts.wc}
-                  onChange={(e) =>
-                    setPlafondTexts((t) => ({ ...t, wc: formatAmountInput(e.target.value) }))
-                  }
-                />
-              </Field>
-            </div>
+            <EditTable
+              headers={["Limit Status", "Total Limit", "PO Sub Limit", "Working Capital Sub Limit"]}
+              minWidthCls="min-w-[560px]"
+            >
+              <tr className="bg-purple-50/30 align-top">
+                <td className="py-3 pl-3 pr-2 font-semibold text-purple-800 whitespace-nowrap">Proposed</td>
+                <td className="py-2 px-2">
+                  <input
+                    className={`${cellInputCls} font-mono`}
+                    inputMode="numeric"
+                    value={plafondTexts.total}
+                    onChange={(e) =>
+                      setPlafondTexts((t) => ({ ...t, total: formatAmountInput(e.target.value) }))
+                    }
+                    placeholder="5.000.000.000"
+                  />
+                </td>
+                <td className="py-2 px-2">
+                  <input
+                    className={`${cellInputCls} font-mono`}
+                    inputMode="numeric"
+                    value={plafondTexts.po}
+                    onChange={(e) =>
+                      setPlafondTexts((t) => ({ ...t, po: formatAmountInput(e.target.value) }))
+                    }
+                  />
+                </td>
+                <td className="py-2 px-2">
+                  <input
+                    className={`${cellInputCls} font-mono`}
+                    inputMode="numeric"
+                    value={plafondTexts.wc}
+                    onChange={(e) =>
+                      setPlafondTexts((t) => ({ ...t, wc: formatAmountInput(e.target.value) }))
+                    }
+                  />
+                </td>
+              </tr>
+            </EditTable>
+            <p className="text-[10px] text-gray-400 mt-2">
+              Amounts in Rp. Current and Superseded rows appear on the IC review card once the
+              submission is linked to the KP&apos;s plafond history.
+            </p>
           </FormSection>
         )}
 
         {isAD && (
           <FormSection title="Karmapreneur Contacts">
-            <div className="space-y-3">
-              {form.kpContacts.map((c, i) => (
-                <RowCard key={c.id} index={i} onRemove={() => removeRow("kpContacts", c.id)}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field label="Name" source="free">
+            {form.kpContacts.length > 0 && (
+              <EditTable
+                headers={[
+                  "#",
+                  "Name",
+                  "Role",
+                  "Notes",
+                  "Key Person?",
+                  "SLIK File URL",
+                  "SLIK Exec Summary",
+                  "UBO Exposure (Rp)",
+                  "",
+                ]}
+                minWidthCls="min-w-[960px]"
+              >
+                {form.kpContacts.map((c, i) => (
+                  <tr key={c.id} className="align-top">
+                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                    <td className="py-2 px-2 min-w-40">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={c.name}
                         onChange={(e) => updateRow("kpContacts", c.id, { name: e.target.value })}
                         placeholder="e.g. Tyo Kusumaputera"
                       />
-                    </Field>
-                    <Field label="Role" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-24">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={c.role}
                         onChange={(e) => updateRow("kpContacts", c.id, { role: e.target.value })}
                         placeholder="e.g. CEO"
                       />
-                    </Field>
-                    <Field label="Notes" source="free" full>
+                    </td>
+                    <td className="py-2 px-2 min-w-40">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={c.notesOnPerson}
                         onChange={(e) => updateRow("kpContacts", c.id, { notesOnPerson: e.target.value })}
                       />
-                    </Field>
-                    <Field label="Key Person?" source="free">
-                      <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-                        <input
-                          type="checkbox"
-                          checked={c.isKeyPerson}
-                          onChange={(e) => updateRow("kpContacts", c.id, { isKeyPerson: e.target.checked })}
-                          className="rounded border-gray-300"
-                        />
-                        Key person for this project
-                      </label>
-                    </Field>
-                    <Field label="UBO Exposure (Rp)" source="free">
+                    </td>
+                    <td className="py-2 px-2 pt-3.5 text-center">
                       <input
-                        className={`${inputCls} font-mono`}
+                        type="checkbox"
+                        checked={c.isKeyPerson}
+                        onChange={(e) => updateRow("kpContacts", c.id, { isKeyPerson: e.target.checked })}
+                        className="rounded border-gray-300"
+                      />
+                    </td>
+                    <td className="py-2 px-2 min-w-40">
+                      <input
+                        className={cellInputCls}
+                        value={c.slikFileUrl}
+                        onChange={(e) => updateRow("kpContacts", c.id, { slikFileUrl: e.target.value })}
+                        placeholder="https://drive.google.com/…"
+                      />
+                    </td>
+                    <td className="py-2 px-2 min-w-40">
+                      <input
+                        className={cellInputCls}
+                        value={c.slikExecSummary}
+                        onChange={(e) => updateRow("kpContacts", c.id, { slikExecSummary: e.target.value })}
+                      />
+                    </td>
+                    <td className="py-2 px-2 min-w-32">
+                      <input
+                        className={`${cellInputCls} font-mono`}
                         inputMode="numeric"
                         value={c.uboExposure ? formatAmountInput(String(c.uboExposure)) : ""}
                         onChange={(e) =>
                           updateRow("kpContacts", c.id, { uboExposure: parseAmount(e.target.value) })
                         }
                       />
-                    </Field>
-                    <Field label="SLIK-Key Person File URL" source="free" hint={c.isKeyPerson ? "Required before approval for key persons" : undefined}>
-                      <input
-                        className={inputCls}
-                        value={c.slikFileUrl}
-                        onChange={(e) => updateRow("kpContacts", c.id, { slikFileUrl: e.target.value })}
-                        placeholder="https://drive.google.com/…"
-                      />
-                    </Field>
-                    <Field label="SLIK-Key Person Exec Summary" source="free">
-                      <input
-                        className={inputCls}
-                        value={c.slikExecSummary}
-                        onChange={(e) => updateRow("kpContacts", c.id, { slikExecSummary: e.target.value })}
-                      />
-                    </Field>
-                  </div>
-                </RowCard>
-              ))}
-              <AddRowButton label="Add contact" onClick={addContact} />
-            </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <RemoveRowButton onClick={() => removeRow("kpContacts", c.id)} />
+                    </td>
+                  </tr>
+                ))}
+              </EditTable>
+            )}
+            <AddRowButton label="Add contact" onClick={addContact} />
+            <p className="text-[10px] text-gray-400 mt-1">
+              SLIK File URL is required before approval for key persons.
+            </p>
           </FormSection>
         )}
 
         {isAD && isProjectType && (
           <FormSection title="Project Terms Details">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
               Disbursement Schedule
             </h3>
-            <div className="space-y-3">
-              {form.disbursements.map((d, i) => (
-                <RowCard key={d.id} index={i} onRemove={() => removeRow("disbursements", d.id)}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field label={`Disbursement Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`} source="free">
+            {form.disbursements.length > 0 && (
+              <EditTable
+                headers={[
+                  "#",
+                  `Disbursement Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`,
+                  "Planned Disbursement Date",
+                  "",
+                ]}
+                minWidthCls="min-w-[480px]"
+              >
+                {form.disbursements.map((d, i) => (
+                  <tr key={d.id} className="align-top">
+                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                    <td className="py-2 px-2">
                       <input
-                        className={`${inputCls} font-mono`}
+                        className={`${cellInputCls} font-mono`}
                         inputMode="numeric"
                         value={d.amount ? formatAmountInput(String(d.amount)) : ""}
                         onChange={(e) =>
                           updateRow("disbursements", d.id, { amount: parseAmount(e.target.value) })
                         }
                       />
-                    </Field>
-                    <Field label="Planned Disbursement Date" source="free">
+                    </td>
+                    <td className="py-2 px-2">
                       <input
                         type="date"
-                        className={inputCls}
+                        className={cellInputCls}
                         value={d.plannedDate}
                         onChange={(e) => updateRow("disbursements", d.id, { plannedDate: e.target.value })}
                       />
-                    </Field>
-                  </div>
-                </RowCard>
-              ))}
-              <AddRowButton label="Add disbursement" onClick={addDisbursement} />
-              {form.disbursements.length > 0 && (
-                <p className="text-xs text-gray-500">
-                  Total planned: <span className="font-mono">{fmtIdr(disbursementSum)}</span>
-                </p>
-              )}
-              {disbursementMismatch && (
-                <InlineWarning message="Warning: Not same as Project Target Amount" />
-              )}
-            </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <RemoveRowButton onClick={() => removeRow("disbursements", d.id)} />
+                    </td>
+                  </tr>
+                ))}
+              </EditTable>
+            )}
+            <AddRowButton label="Add disbursement" onClick={addDisbursement} />
+            {form.disbursements.length > 0 && (
+              <p className="text-xs text-gray-500 mt-2">
+                Total planned: <span className="font-mono">{fmtIdr(disbursementSum)}</span>
+              </p>
+            )}
+            {disbursementMismatch && (
+              <InlineWarning message="Warning: Not same as Project Target Amount" />
+            )}
 
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
               Branch Details
             </h3>
-            <div className="space-y-3">
-              {form.branches.map((b, i) => (
-                <RowCard key={b.id} index={i} onRemove={() => removeRow("branches", b.id)}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field label="Branch Name" source="free">
+            {form.branches.length > 0 && (
+              <EditTable
+                headers={["#", "Branch Name", "Branch Area", "Type", "Gmaps Link", "Notes", ""]}
+                minWidthCls="min-w-[760px]"
+              >
+                {form.branches.map((b, i) => (
+                  <tr key={b.id} className="align-top">
+                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                    <td className="py-2 px-2 min-w-36">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={b.name}
                         onChange={(e) => updateRow("branches", b.id, { name: e.target.value })}
                       />
-                    </Field>
-                    <Field label="Branch Area" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-28">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={b.area}
                         onChange={(e) => updateRow("branches", b.id, { area: e.target.value })}
                         placeholder="e.g. Depok"
                       />
-                    </Field>
-                    <Field label="Type" source="master">
+                    </td>
+                    <td className="py-2 px-2 min-w-36">
                       <select
-                        className={inputCls}
+                        className={cellInputCls}
                         value={b.type}
                         onChange={(e) =>
                           updateRow("branches", b.id, {
@@ -809,63 +873,79 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         <option value="Opening Branch">Opening Branch</option>
                         <option value="Accruing Branch">Accruing Branch</option>
                       </select>
-                    </Field>
-                    <Field label="Gmaps Link" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-36">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={b.gmapsLink}
                         onChange={(e) => updateRow("branches", b.id, { gmapsLink: e.target.value })}
                         placeholder="https://maps.app.goo.gl/…"
                       />
-                    </Field>
-                    <Field label="Notes" source="free" full>
+                    </td>
+                    <td className="py-2 px-2 min-w-36">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={b.notes}
                         onChange={(e) => updateRow("branches", b.id, { notes: e.target.value })}
                       />
-                    </Field>
-                  </div>
-                </RowCard>
-              ))}
-              <AddRowButton label="Add branch" onClick={addBranch} />
-            </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <RemoveRowButton onClick={() => removeRow("branches", b.id)} />
+                    </td>
+                  </tr>
+                ))}
+              </EditTable>
+            )}
+            <AddRowButton label="Add branch" onClick={addBranch} />
           </FormSection>
         )}
 
         {isAD && (
           <FormSection title="PT Details">
-            <div className="space-y-3">
-              {form.ptDetails.map((pt, i) => (
-                <RowCard key={pt.id} index={i} onRemove={() => removeRow("ptDetails", pt.id)}>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <Field label="PT Name" source="free">
+            {form.ptDetails.length > 0 && (
+              <EditTable
+                headers={[
+                  "#",
+                  "PT Name",
+                  "Bank",
+                  "Account Number",
+                  "Accountholder Name",
+                  "SLIK-PT File URL",
+                  "SLIK-PT Exec Summary",
+                  "",
+                ]}
+                minWidthCls="min-w-[900px]"
+              >
+                {form.ptDetails.map((pt, i) => (
+                  <tr key={pt.id} className="align-top">
+                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                    <td className="py-2 px-2 min-w-40">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={pt.name}
                         onChange={(e) => updateRow("ptDetails", pt.id, { name: e.target.value })}
                         placeholder="e.g. PT Tuku Sejahtera"
                       />
-                    </Field>
-                    <Field label="Bank" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-24">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={pt.bank}
                         onChange={(e) => updateRow("ptDetails", pt.id, { bank: e.target.value })}
                         placeholder="e.g. BCA"
                       />
-                    </Field>
-                    <Field label="Account Number" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-32">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         inputMode="numeric"
                         value={pt.accountNumber}
                         onChange={(e) => updateRow("ptDetails", pt.id, { accountNumber: e.target.value })}
                       />
-                    </Field>
-                    <Field label="Accountholder Name" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-40">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={pt.accountholderName}
                         onChange={(e) =>
                           updateRow("ptDetails", pt.id, { accountholderName: e.target.value })
@@ -876,134 +956,133 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         pt.name.trim() !== pt.accountholderName.trim() && (
                           <InlineWarning message="Mismatch on accountholder and PT names" />
                         )}
-                    </Field>
-                    <Field label="SLIK-PT File URL" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-40">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={pt.slikFileUrl}
                         onChange={(e) => updateRow("ptDetails", pt.id, { slikFileUrl: e.target.value })}
                         placeholder="https://drive.google.com/…"
                       />
-                    </Field>
-                    <Field label="SLIK-PT Exec Summary" source="free">
+                    </td>
+                    <td className="py-2 px-2 min-w-40">
                       <input
-                        className={inputCls}
+                        className={cellInputCls}
                         value={pt.slikExecSummary}
                         onChange={(e) => updateRow("ptDetails", pt.id, { slikExecSummary: e.target.value })}
                       />
-                    </Field>
-                  </div>
-                </RowCard>
-              ))}
-              <AddRowButton label="Add PT" onClick={addPT} />
-            </div>
+                    </td>
+                    <td className="py-2 px-2">
+                      <RemoveRowButton onClick={() => removeRow("ptDetails", pt.id)} />
+                    </td>
+                  </tr>
+                ))}
+              </EditTable>
+            )}
+            <AddRowButton label="Add PT" onClick={addPT} />
           </FormSection>
         )}
 
         <FormSection title="Credit Memo and Notes">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {isAD && (
-              <Field
-                label="Calculator / Financials Link"
-                source="free"
-                hint="Google Sheets link — embedded on the IC review card"
-              >
-                <input
-                  className={inputCls}
-                  value={form.financialsLink}
-                  onChange={(e) => set("financialsLink", e.target.value)}
-                  placeholder="https://docs.google.com/spreadsheets/…"
-                />
-              </Field>
-            )}
-            <Field label="Term Sheet Link" source="free" hint="Optional">
+          {isAD && (
+            <Field
+              label="Calculator / Financials Link"
+              source="free"
+              hint="Google Sheets link — embedded on the IC review card"
+            >
               <input
                 className={inputCls}
-                value={form.termSheetLink}
-                onChange={(e) => set("termSheetLink", e.target.value)}
-                placeholder="https://drive.google.com/…"
+                value={form.financialsLink}
+                onChange={(e) => set("financialsLink", e.target.value)}
+                placeholder="https://docs.google.com/spreadsheets/…"
               />
             </Field>
-            <Field label="Special Notes for IC" source="free" hint="Optional">
-              <input
-                className={inputCls}
-                value={form.specialNotesForIC}
-                onChange={(e) => set("specialNotesForIC", e.target.value)}
-              />
-            </Field>
-            {isAD && (
-              <Field label="Karmapreneur Credit Memo" source="free" full>
-                <textarea
-                  className={`${inputCls} min-h-24 resize-y`}
-                  value={form.kpCreditMemo}
-                  onChange={(e) => set("kpCreditMemo", e.target.value)}
-                  placeholder="Summary of the credit case for this Karmapreneur…"
-                />
-              </Field>
-            )}
-            <Field label="Project Credit Memo" source="free" full>
+          )}
+          <Field label="Term Sheet Link" source="free" hint="Optional">
+            <input
+              className={inputCls}
+              value={form.termSheetLink}
+              onChange={(e) => set("termSheetLink", e.target.value)}
+              placeholder="https://drive.google.com/…"
+            />
+          </Field>
+          <Field label="Special Notes for IC" source="free" hint="Optional">
+            <input
+              className={inputCls}
+              value={form.specialNotesForIC}
+              onChange={(e) => set("specialNotesForIC", e.target.value)}
+            />
+          </Field>
+          {isAD && (
+            <Field label="Karmapreneur Credit Memo" source="free">
               <textarea
                 className={`${inputCls} min-h-24 resize-y`}
-                value={form.projectCreditMemo}
-                onChange={(e) => set("projectCreditMemo", e.target.value)}
-                placeholder="Summary of the credit case for this project…"
+                value={form.kpCreditMemo}
+                onChange={(e) => set("kpCreditMemo", e.target.value)}
+                placeholder="Summary of the credit case for this Karmapreneur…"
               />
             </Field>
-          </div>
+          )}
+          <Field label="Project Credit Memo" source="free">
+            <textarea
+              className={`${inputCls} min-h-24 resize-y`}
+              value={form.projectCreditMemo}
+              onChange={(e) => set("projectCreditMemo", e.target.value)}
+              placeholder="Summary of the credit case for this project…"
+            />
+          </Field>
         </FormSection>
 
         <FormSection title="Other">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <Field label="Funding Source" source="master">
-              <select
-                className={inputCls}
-                value={form.fundingSource}
-                onChange={(e) => set("fundingSource", e.target.value)}
-              >
-                {FUNDING_SOURCES.map((f) => (
-                  <option key={f} value={f}>
-                    {f}
-                  </option>
-                ))}
-              </select>
-              {form.fundingSource === "Members" && (
-                <InlineWarning message="Warning: this is a Members project" />
-              )}
-            </Field>
-            <Field label="Tax Withholdings" source="master">
-              <select
-                className={inputCls}
-                value={form.taxWithholdings}
-                onChange={(e) =>
-                  set("taxWithholdings", e.target.value as SubmissionFormData["taxWithholdings"])
-                }
-              >
-                <option value="TBD">TBD</option>
-                <option value="Yes">Karmapreneur will withhold</option>
-                <option value="No">Karmapreneur will NOT withhold</option>
-              </select>
-              {form.taxWithholdings === "No" && (
-                <InlineWarning message="Warning: Karmapreneur will NOT withhold taxes" />
-              )}
-            </Field>
-            {/* Spec C101: only display if Funding Source includes Members */}
+          <Field label="Funding Source" source="master">
+            <select
+              className={inputCls}
+              value={form.fundingSource}
+              onChange={(e) => set("fundingSource", e.target.value)}
+            >
+              {FUNDING_SOURCES.map((f) => (
+                <option key={f} value={f}>
+                  {f}
+                </option>
+              ))}
+            </select>
             {form.fundingSource === "Members" && (
-              <Field label="Bank Details for PT (Members)" source="free" full>
-                <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-                  <input
-                    type="checkbox"
-                    checked={form.bankDetailsReviewed}
-                    onChange={(e) => set("bankDetailsReviewed", e.target.checked)}
-                    className="rounded border-gray-300"
-                  />
-                  Bank details for PT reviewed by Finance / Analyst
-                </label>
-                {!form.bankDetailsReviewed && (
-                  <InlineWarning message="Bank Details Not Yet Reviewed by Finance/Analyst and going to Members" />
-                )}
-              </Field>
+              <InlineWarning message="Warning: this is a Members project" />
             )}
-          </div>
+          </Field>
+          <Field label="Tax Withholdings" source="master">
+            <select
+              className={inputCls}
+              value={form.taxWithholdings}
+              onChange={(e) =>
+                set("taxWithholdings", e.target.value as SubmissionFormData["taxWithholdings"])
+              }
+            >
+              <option value="TBD">TBD</option>
+              <option value="Yes">Karmapreneur will withhold</option>
+              <option value="No">Karmapreneur will NOT withhold</option>
+            </select>
+            {form.taxWithholdings === "No" && (
+              <InlineWarning message="Warning: Karmapreneur will NOT withhold taxes" />
+            )}
+          </Field>
+          {/* Spec C101: only display if Funding Source includes Members */}
+          {form.fundingSource === "Members" && (
+            <Field label="Bank Details for PT (Members)" source="free">
+              <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
+                <input
+                  type="checkbox"
+                  checked={form.bankDetailsReviewed}
+                  onChange={(e) => set("bankDetailsReviewed", e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                Bank details for PT reviewed by Finance / Analyst
+              </label>
+              {!form.bankDetailsReviewed && (
+                <InlineWarning message="Bank Details Not Yet Reviewed by Finance/Analyst and going to Members" />
+              )}
+            </Field>
+          )}
         </FormSection>
 
         {errors.length > 0 && (
