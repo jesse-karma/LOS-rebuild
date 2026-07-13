@@ -9,9 +9,7 @@ import { mockProjects } from "@/data/mock";
 import { Tag, approvalTypeVariant, assetClassVariant } from "@/components/ui/Tag";
 import {
   allReviewProjects,
-  leadStatusFor,
   listSubmissions,
-  requestStateFor,
   seedDemoSubmissions,
   StoredSubmission,
 } from "@/lib/submissionsStore";
@@ -41,39 +39,18 @@ function projectAmount(p: ICProject): string {
     : `USD ${(p.trancheTargetAmount ?? p.requestedAmount).toLocaleString()}`;
 }
 
-/** Lifecycle chip: Lead Status (master data §1) + Request State (§2). */
-function LifecycleChip({ status, leadStatusCode }: Pick<StoredSubmission, "status" | "leadStatusCode">) {
-  const lead = leadStatusFor(status, leadStatusCode);
-  const request = requestStateFor(status);
-  const isDraft = status === "draft";
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded border ${
-        isDraft
-          ? "bg-gray-50 text-gray-600 border-gray-200"
-          : "bg-indigo-50 text-indigo-700 border-indigo-200"
-      }`}
-      title={`Stage: ${lead.stage}`}
-    >
-      {lead.label}
-      <span className={isDraft ? "text-gray-300" : "text-indigo-300"}>·</span>
-      {request}
-    </span>
-  );
-}
-
-/** Lifecycle status with the days-in-review count underneath (red once stale). */
+/** "Pending Review" with submitted date and days pending (red once stale). */
 function ReviewStatusCell({ submittedAt }: { submittedAt: string }) {
   const days = daysWaiting(submittedAt);
   const stale = days > 14;
   return (
     <div className="flex flex-col items-start gap-1">
-      <LifecycleChip status="submitted" />
-      <span
-        className={`text-xs px-0.5 ${stale ? "text-red-600 font-semibold" : "text-gray-400"}`}
-        title={`Submitted ${fmtDate(submittedAt)}`}
-      >
-        {days}d
+      <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200 whitespace-nowrap">
+        Pending Review
+      </span>
+      <span className="text-xs text-gray-400 px-0.5 whitespace-nowrap">
+        Submitted {fmtDate(submittedAt)} ·{" "}
+        <span className={stale ? "text-red-600 font-semibold" : ""}>{days}d</span>
       </span>
     </div>
   );
