@@ -200,6 +200,111 @@ export function newSubmissionId(): string {
   return `sub-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
+// ─── Demo seed data (prototype: pre-populates the Funding Lead tab once) ─────
+
+const SEED_FLAG = "kc-los-demo-seeded";
+
+function demoDrafts(): StoredSubmission[] {
+  return [
+    {
+      id: "sub-demo-sks",
+      status: "draft",
+      createdAt: "2026-07-08T09:30:00.000Z",
+      submittedAt: null,
+      form: {
+        ...emptySubmissionForm(),
+        brandName: "Sate Khas Senayan",
+        brandIsNew: true,
+        projectName: "Sate Khas Senayan (#1) — Branch Opening: Bandung",
+        assetClass: "A",
+        approvalType: "Project",
+        createdBy: "Priska Ponggawa",
+        primaryAnalyst: "Priska Ponggawa",
+        secondaryAnalyst: "Nila Layla Melinda",
+        mainSector: "F&B",
+        subSector: "🍲Full Service Resto",
+        requestedAmount: 2_500_000_000,
+        financingUse: "Branch Opening/Expansion",
+        returnType: "Revenue Share",
+        referralSource: "KarmaClub Member",
+        kpContacts: [
+          {
+            id: "row-demo-sks-1",
+            name: "Rizky Pratama",
+            role: "Owner / Director",
+            notesOnPerson: "Founder; runs day-to-day ops across 4 outlets.",
+            isKeyPerson: true,
+            slikFileUrl: "",
+            slikExecSummary: "",
+            uboExposure: 0,
+          },
+        ],
+      },
+    },
+    {
+      id: "sub-demo-spj",
+      status: "draft",
+      createdAt: "2026-07-10T04:15:00.000Z",
+      submittedAt: null,
+      form: {
+        ...emptySubmissionForm(),
+        brandName: "Sumber Pangan Jaya",
+        brandIsNew: true,
+        projectName: "Sumber Pangan Jaya (#1) — PO Financing: Indomarco",
+        assetClass: "B - PO",
+        approvalType: "PO/Invoice",
+        createdBy: "Nila Layla Melinda",
+        primaryAnalyst: "Nila Layla Melinda",
+        mainSector: "Commodities Trading, Processing, & Distribution",
+        subSector: "🥨FMCG Distribution",
+        requestedAmount: 1_200_000_000,
+        financingUse: "Domestic PO Financing",
+        returnType: "Daily Interest",
+        referralSource: "Karmapreneur",
+        disbursements: [
+          { id: "row-demo-spj-1", amount: 700_000_000, plannedDate: "2026-08-01" },
+          { id: "row-demo-spj-2", amount: 500_000_000, plannedDate: "2026-09-01" },
+        ],
+      },
+    },
+    {
+      id: "sub-demo-dc",
+      status: "draft",
+      createdAt: "2026-07-12T11:00:00.000Z",
+      submittedAt: null,
+      form: {
+        ...emptySubmissionForm(),
+        brandName: "Dapur Cokelat",
+        brandIsNew: false,
+        projectName: "Dapur Cokelat (#2) — Working Capital + Plafond",
+        assetClass: "D",
+        approvalType: "Project+Plafond",
+        createdBy: "Priska Ponggawa",
+        primaryAnalyst: "Priska Ponggawa",
+        mainSector: "F&B",
+        subSector: "🧋Snacks, Drinks, & Desserts",
+        requestedAmount: 3_000_000_000,
+        financingUse: "Working Capital Financing",
+        returnType: "Fixed Amount Repayment",
+        referralSource: "2nd+ Project",
+        proposedTotalLimit: 5_000_000_000,
+        proposedPOSubLimit: 2_000_000_000,
+        proposedWCSubLimit: 3_000_000_000,
+      },
+    },
+  ];
+}
+
+/** One-time localStorage seed so the prototype opens with Funding Lead examples. */
+export function seedDemoSubmissions() {
+  if (typeof window === "undefined") return;
+  if (window.localStorage.getItem(SEED_FLAG)) return;
+  const existing = listSubmissions();
+  const fresh = demoDrafts().filter((d) => !existing.some((s) => s.id === d.id));
+  persist([...fresh, ...existing]);
+  window.localStorage.setItem(SEED_FLAG, "1");
+}
+
 // ─── Projects visible to IC (mock + submitted) ───────────────────────────────
 
 export function submittedProjects(): ICProject[] {
