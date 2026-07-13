@@ -9,6 +9,44 @@ import {
 
 // ─── Submission form data (analyst-entered fields) ───────────────────────────
 
+// Dynamic row types per the "Sub+IC Review_Card_A&D_MOD" spec (IC Review Layout sheet).
+
+export interface SubmissionContactRow {
+  id: string;
+  name: string;
+  role: string;
+  notesOnPerson: string;
+  isKeyPerson: boolean;
+  slikFileUrl: string;
+  slikExecSummary: string;
+  uboExposure: number; // IDR
+}
+
+export interface SubmissionDisbursementRow {
+  id: string;
+  amount: number; // in the submission's requested-amount currency
+  plannedDate: string; // ISO date (yyyy-mm-dd)
+}
+
+export interface SubmissionBranchRow {
+  id: string;
+  name: string;
+  area: string;
+  gmapsLink: string;
+  notes: string;
+  type: "Opening Branch" | "Accruing Branch";
+}
+
+export interface SubmissionPTRow {
+  id: string;
+  name: string;
+  bank: string;
+  accountNumber: string;
+  accountholderName: string;
+  slikFileUrl: string;
+  slikExecSummary: string;
+}
+
 export interface SubmissionFormData {
   brandName: string;
   brandIsNew: boolean;
@@ -16,11 +54,21 @@ export interface SubmissionFormData {
   /** Master data: Asset Class enum (A, B - I, B - PO, C, D). */
   assetClass: string;
   approvalType: ApprovalType;
+  /** Card creator (spec: defaults Primary Analyst to the creator). */
+  createdBy: string;
+  /** Filled on submit; cleared when pulled back to draft (spec E8 fill logic). */
+  submittedBy: string;
   primaryAnalyst: string;
   secondaryAnalyst: string;
+  /** Free text — the person who referred (spec E10). */
+  specificReferror: string;
+  /** KP/Brand the referror belongs to (spec E10). */
+  referrorBelongsToKP: string;
   mainSector: string;
   subSector: string;
   syariah: boolean;
+  /** Shown only when syariah = true (spec E18). */
+  syariahNotes: string;
   requestedAmountCurrency: "IDR" | "USD";
   requestedAmount: number;
   /** Master data: Structured Loan Use enum. */
@@ -35,6 +83,18 @@ export interface SubmissionFormData {
   proposedTotalLimit: number;
   proposedPOSubLimit: number;
   proposedWCSubLimit: number;
+  // Asset A&D spec sections
+  kpContacts: SubmissionContactRow[];
+  disbursements: SubmissionDisbursementRow[];
+  branches: SubmissionBranchRow[];
+  ptDetails: SubmissionPTRow[];
+  /** Calculator / Financials Google Sheets link (spec F27 & E90 — embedded on the IC card). */
+  financialsLink: string;
+  kpCreditMemo: string;
+  /** Only meaningful when fundingSource is Members (spec E101 display logic). */
+  bankDetailsReviewed: boolean;
+  /** Karmapreneur will withhold / will NOT withhold (spec E102). */
+  taxWithholdings: "Yes" | "No" | "TBD";
   termSheetLink: string;
   projectCreditMemo: string;
   specialNotesForIC: string;
@@ -65,11 +125,16 @@ export function emptySubmissionForm(): SubmissionFormData {
     projectName: "",
     assetClass: "A",
     approvalType: "Project",
+    createdBy: "",
+    submittedBy: "",
     primaryAnalyst: "Priska Ponggawa",
     secondaryAnalyst: "",
+    specificReferror: "",
+    referrorBelongsToKP: "",
     mainSector: "F&B",
     subSector: "",
     syariah: false,
+    syariahNotes: "",
     requestedAmountCurrency: "IDR",
     requestedAmount: 0,
     financingUse: "Branch Opening/Expansion",
@@ -79,10 +144,22 @@ export function emptySubmissionForm(): SubmissionFormData {
     proposedTotalLimit: 0,
     proposedPOSubLimit: 0,
     proposedWCSubLimit: 0,
+    kpContacts: [],
+    disbursements: [],
+    branches: [],
+    ptDetails: [],
+    financialsLink: "",
+    kpCreditMemo: "",
+    bankDetailsReviewed: false,
+    taxWithholdings: "TBD",
     termSheetLink: "",
     projectCreditMemo: "",
     specialNotesForIC: "",
   };
+}
+
+export function newRowId(): string {
+  return `row-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
 // ─── localStorage CRUD (client-only; prototype persistence) ──────────────────
@@ -165,6 +242,28 @@ function legacyReturnType(masterReturnType: string): ReturnType {
   }
 }
 
+/** Spec A97: flag accountholder/PT name mismatches on the review card. */
+function ptWarnings(pt: SubmissionPTRow): string[] {
+  const warnings: string[] = [];
+  if (pt.name.trim() && pt.accountholderName.trim() && pt.name.trim() !== pt.accountholderName.trim()) {
+    warnings.push("Mismatch on accountholder and PT names");
+  }
+  return warnings;
+}
+
+/** Spec U19 Warning 2: Project Target Amount vs Proposed Plafond (Project+Plafond only). */
+export function requestedAmountWarning(f: SubmissionFormData): string | null {
+  if (
+    f.approvalType === "Project+Plafond" &&
+    f.requestedAmountCurrency === "IDR" &&
+    f.proposedTotalLimit > 0 &&
+    f.requestedAmount > f.proposedTotalLimit
+  ) {
+    return "Warning: Project Target Amount exceeds Proposed Plafond";
+  }
+  return null;
+}
+
 export function submissionToICProject(sub: StoredSubmission): ICProject {
   const f = sub.form;
   const hasPlafond = f.approvalType.includes("Plafond");
@@ -178,7 +277,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     submittedAt: sub.submittedAt ?? sub.createdAt,
 
     pic: {
-      submitter: f.primaryAnalyst,
+      submitter: f.submittedBy || f.primaryAnalyst,
       primaryAnalyst: f.primaryAnalyst,
       secondaryAnalyst: f.secondaryAnalyst || null,
     },
@@ -191,10 +290,11 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     mainSector: f.mainSector,
     subSector: f.subSector || null,
     syariah: f.syariah,
+    syariahNotes: f.syariah && f.syariahNotes ? f.syariahNotes : null,
     assetClass: f.assetClass,
     requestedAmountCurrency: f.requestedAmountCurrency,
     requestedAmount: f.requestedAmount,
-    amountWarning: null,
+    amountWarning: requestedAmountWarning(f),
     financingUse: f.financingUse,
     sectorWarning: null,
 
@@ -217,11 +317,22 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     financialReviews: [],
 
     referralSource: f.referralSource,
-    specificReferror: null,
-    referrorBelongsToKP: null,
+    specificReferror: f.specificReferror || null,
+    referrorBelongsToKP: f.referrorBelongsToKP || null,
     otherReferees: [],
 
-    kpContacts: [],
+    kpContacts: f.kpContacts.map((c) => ({
+      id: c.id,
+      name: c.name,
+      role: c.role,
+      notesOnPerson: c.notesOnPerson,
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: c.isKeyPerson,
+      slikFileUrl: c.slikFileUrl || null,
+      slikExecSummary: c.slikExecSummary || null,
+      uboExposure: c.uboExposure,
+    })),
 
     pastProjects: [
       {
@@ -246,24 +357,44 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     ],
 
     returnType: legacyReturnType(f.returnType),
-    disbursements: [],
-    branches: [],
+    disbursements: f.disbursements.map((d, i) => ({
+      tranche: i + 1,
+      plannedAmount: d.amount,
+      plannedDate: d.plannedDate,
+    })),
+    branches: f.branches.map((b) => ({
+      id: b.id,
+      name: b.name,
+      area: b.area,
+      gmapsLink: b.gmapsLink || null,
+      notes: b.notes,
+      type: b.type,
+    })),
     revenueShareTerms: null,
     fixedReturnTerms: null,
     dailyInterestTerms: null,
     lateFee: { basis: "—", gracePeriodDays: 0, dailyPctInvestors: 0, dailyPctASN: 0 },
     termSheetLink: f.termSheetLink || null,
 
-    kpCreditMemo: "",
+    kpCreditMemo: f.kpCreditMemo,
     projectCreditMemo: f.projectCreditMemo,
-    financialsLink: null,
+    financialsLink: f.financialsLink || null,
     projectNotes: [],
 
-    ptDetails: [],
+    ptDetails: f.ptDetails.map((pt) => ({
+      id: pt.id,
+      name: pt.name,
+      bank: pt.bank,
+      accountNumber: pt.accountNumber,
+      accountholderName: pt.accountholderName,
+      slikFileUrl: pt.slikFileUrl || null,
+      slikExecSummary: pt.slikExecSummary || null,
+      warnings: ptWarnings(pt),
+    })),
 
     fundingSource: f.fundingSource,
-    bankDetailsReviewed: false,
-    taxWithholdings: "TBD",
+    bankDetailsReviewed: f.bankDetailsReviewed,
+    taxWithholdings: f.taxWithholdings,
     icVotes: IC_MEMBERS.map((m) => ({ ...m, vote: null, votedAt: null })),
     approvalNotes: "",
     specialNotesForIC: f.specialNotesForIC || null,

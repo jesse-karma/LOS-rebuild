@@ -330,7 +330,12 @@ export function ProjectAndPlafond({ project }: Props) {
           label="Syariah"
           value={
             project.syariah ? (
-              <Tag label="Syariah" variant="syariah" />
+              <span className="inline-flex items-center gap-2 flex-wrap">
+                <Tag label="Syariah" variant="syariah" />
+                {project.syariahNotes && (
+                  <span className="text-gray-600">{project.syariahNotes}</span>
+                )}
+              </span>
             ) : (
               <span className="text-gray-600">No</span>
             )
