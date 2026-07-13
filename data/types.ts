@@ -338,6 +338,8 @@ export interface ICProject {
 
   // Project terms
   returnType: ReturnType;
+  /** Master data Return Type enum value as selected on the submission form (display-preferred). */
+  masterReturnType?: string;
   disbursements: DisbursementRow[];
   branches: BranchInfo[];
   revenueShareTerms: RevenueShareTerms | null;

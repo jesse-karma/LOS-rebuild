@@ -3,6 +3,7 @@ import { SectionCard } from "@/components/ui/SectionCard";
 import { fmt, fmtDate } from "@/components/ui/DataRow";
 import { CalculatorGSheetEmbedBlock } from "@/components/sections/CalculatorGSheetSection";
 import { shouldShowCalculatorGSheet } from "@/lib/calculatorGSheetVisibility";
+import { PlafondTable, hasPlafondInfo } from "@/components/sections/ProjectAndPlafond";
 
 interface Props {
   project: ICProject;
@@ -42,10 +43,26 @@ export function FinancialReviews({ project }: Props) {
   const reviews = project.financialReviews.slice(0, 2);
 
   const showCalculator = shouldShowCalculatorGSheet(project);
+  const showPlafond = hasPlafondInfo(project);
+  const p = project.plafond;
+  const negativeCount = [p.remainingTotal, p.remainingWC, p.remainingPO].filter((n) => n < 0).length;
+  const badge =
+    negativeCount > 0 ? (
+      <span className="text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
+        {negativeCount} issue{negativeCount > 1 ? "s" : ""}
+      </span>
+    ) : null;
 
   return (
-    <SectionCard title="Financial Reviews">
+    <SectionCard title="Plafond & Financial Reviews" badge={badge}>
       <div className="mt-2 space-y-4">
+        {showPlafond && (
+          <div className="pb-4 border-b border-gray-100">
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Plafond</h3>
+            <PlafondTable project={project} />
+          </div>
+        )}
+
         {showCalculator && (
           <div className="pb-4 border-b border-gray-100">
             <div className="text-xs font-semibold text-gray-900 mb-3">Calculator (Google Sheets)</div>
@@ -53,6 +70,7 @@ export function FinancialReviews({ project }: Props) {
           </div>
         )}
 
+        <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Financial Reviews</h3>
         <div className="overflow-x-auto -mx-1">
         {reviews.length === 0 ? (
           <p className="text-sm text-gray-400 italic px-1">No financial reviews on record.</p>

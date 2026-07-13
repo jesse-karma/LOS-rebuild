@@ -1,5 +1,6 @@
 import { ApprovalType, ICProject, ReturnType } from "@/data/types";
 import { mockProjects } from "@/data/mock";
+import { isAssetB } from "@/lib/assetClass";
 import {
   LeadStatus,
   LEAD_STATUS_DISCUSSING_RETURN,
@@ -37,6 +38,27 @@ export interface SubmissionBranchRow {
   gmapsLink: string;
   notes: string;
   type: "Opening Branch" | "Accruing Branch";
+}
+
+/** One month of the fixed-repayment amortization (month number = row order). */
+export interface SubmissionFixedRow {
+  id: string;
+  principal: number;
+  interest: number;
+  carry: number;
+}
+
+/** Asset B: one payor / PO / invoice line for this proposed submission. */
+export interface SubmissionPayorRow {
+  id: string;
+  payorLabel: string;
+  poOrInvoiceNumber: string;
+  dueDate: string; // ISO date (yyyy-mm-dd)
+  amount: number; // in the submission's requested-amount currency
+  payorType: string;
+  payeeProjects: string;
+  notes: string;
+  riskLevel: "Low" | "Medium" | "High";
 }
 
 export interface SubmissionPTRow {
@@ -85,11 +107,47 @@ export interface SubmissionFormData {
   proposedTotalLimit: number;
   proposedPOSubLimit: number;
   proposedWCSubLimit: number;
+  // Financial review (becomes Review 1 on the IC card's Plafond & Financial Reviews section)
+  finReviewReportsReviewed: string;
+  finReviewPeriodEnding: string; // ISO date (yyyy-mm-dd)
+  finReviewLimitRecommendation: "Keep" | "Increase" | "Decrease";
+  /** Brand total limit (IDR) in effect at review time; 0 = none on file. */
+  finReviewLimitCurrent: number;
+  /** Recommended new total limit (IDR) for Increase / Decrease. */
+  finReviewLimitRecommended: number;
+  finReviewNotes: string;
   // Asset A&D spec sections
   kpContacts: SubmissionContactRow[];
   disbursements: SubmissionDisbursementRow[];
   branches: SubmissionBranchRow[];
   ptDetails: SubmissionPTRow[];
+  // Deal terms — Revenue Share (shown when Return Type includes Revenue/Profit Share)
+  rsSourceOfRevenue: string;
+  rsFrequency: string;
+  rsDueDate: string;
+  rsCapType: "Return Cap" | "Time Cap";
+  rsCapMultiple: number; // x, when Return Cap
+  rsCapTimeMonths: number; // when Time Cap
+  rsStartType: "Anchored to Branch Opening" | "Fixed";
+  rsStartDate: string; // ISO, when Fixed
+  rsPreBEPPct: number;
+  rsPostBEPPct: number;
+  rsCarryPct: number;
+  // Deal terms — Fixed repayment schedule (Return Type includes Fixed Amount Repayment)
+  fixedSchedule: SubmissionFixedRow[];
+  // Deal terms — Daily Interest (Return Type = Daily Interest)
+  diInterestRate30d: number; // % per 30 days
+  diServiceFee30d: number; // % per 30 days
+  diTenorDays: number;
+  diMinInterestDays: number;
+  diServiceFeeBasis: string;
+  // Late fees (policy defaults pre-filled; card warns on deviations)
+  lfBasis: string;
+  lfGraceDays: number;
+  lfDailyPctInvestors: number;
+  lfDailyPctASN: number;
+  // Asset B: payor / PO / invoice grid
+  payorInvoices: SubmissionPayorRow[];
   /** Calculator / Financials Google Sheets link (spec F27 & E90 — embedded on the IC card). */
   financialsLink: string;
   kpCreditMemo: string;
@@ -161,10 +219,38 @@ export function emptySubmissionForm(): SubmissionFormData {
     proposedTotalLimit: 0,
     proposedPOSubLimit: 0,
     proposedWCSubLimit: 0,
+    finReviewReportsReviewed: "",
+    finReviewPeriodEnding: "",
+    finReviewLimitRecommendation: "Keep",
+    finReviewLimitCurrent: 0,
+    finReviewLimitRecommended: 0,
+    finReviewNotes: "",
     kpContacts: [],
     disbursements: [],
     branches: [],
     ptDetails: [],
+    rsSourceOfRevenue: "All revenue of the financed branches",
+    rsFrequency: "Monthly",
+    rsDueDate: "",
+    rsCapType: "Return Cap",
+    rsCapMultiple: 0,
+    rsCapTimeMonths: 0,
+    rsStartType: "Anchored to Branch Opening",
+    rsStartDate: "",
+    rsPreBEPPct: 0,
+    rsPostBEPPct: 0,
+    rsCarryPct: 0,
+    fixedSchedule: [],
+    diInterestRate30d: 0,
+    diServiceFee30d: 0,
+    diTenorDays: 0,
+    diMinInterestDays: 0,
+    diServiceFeeBasis: "Disbursed Amount",
+    lfBasis: "Overdue Amount",
+    lfGraceDays: 5,
+    lfDailyPctInvestors: 0.08,
+    lfDailyPctASN: 0.02,
+    payorInvoices: [],
     financialsLink: "",
     kpCreditMemo: "",
     bankDetailsReviewed: false,
@@ -400,6 +486,90 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
   const f = sub.form;
   const hasPlafond = f.approvalType.includes("Plafond");
 
+  // The analyst's financial review becomes Review 1 on the IC card.
+  const financialReviews = f.finReviewReportsReviewed.trim() || f.finReviewPeriodEnding
+    ? [
+        {
+          submissionDate: (sub.submittedAt ?? sub.createdAt).slice(0, 10),
+          financialReportsReviewed: f.finReviewReportsReviewed,
+          periodEndingDate: f.finReviewPeriodEnding,
+          limitRecommendation: f.finReviewLimitRecommendation,
+          limitCurrentIdr: f.finReviewLimitCurrent > 0 ? f.finReviewLimitCurrent : null,
+          limitRecommendedIdr: f.finReviewLimitRecommended > 0 ? f.finReviewLimitRecommended : null,
+          reviewNotes: f.finReviewNotes,
+        },
+      ]
+    : [];
+
+  // Deal terms: map the analyst's entries onto the card's term blocks.
+  const wantsRevShare = f.returnType.includes("Revenue Share") || f.returnType === "Profit Share";
+  const wantsFixed = f.returnType.includes("Fixed Amount Repayment");
+  const wantsDaily = f.returnType === "Daily Interest";
+
+  const revenueShareTerms =
+    wantsRevShare && (f.rsPreBEPPct > 0 || f.rsPostBEPPct > 0)
+      ? {
+          sourceOfRevenueAccrued: f.rsSourceOfRevenue || "All revenue of the financed branches",
+          frequency: f.rsFrequency || "Monthly",
+          dueDate: f.rsDueDate || "—",
+          capType: f.rsCapType,
+          capMultiple: f.rsCapType === "Return Cap" && f.rsCapMultiple > 0 ? f.rsCapMultiple : null,
+          capTimePeriodMonths:
+            f.rsCapType === "Time Cap" && f.rsCapTimeMonths > 0 ? f.rsCapTimeMonths : null,
+          revShareStartType: f.rsStartType,
+          revShareStartDate: f.rsStartType === "Fixed" && f.rsStartDate ? f.rsStartDate : null,
+          preBEPRevSharePct: f.rsPreBEPPct,
+          postBEPRevSharePct: f.rsPostBEPPct,
+          carryType: "Fixed Platform Fee",
+          carryPct: f.rsCarryPct,
+          minReturn: null,
+          minReturnMultiple: null,
+          minReturnPayableMonths: null,
+          revProjectionArray: [],
+        }
+      : null;
+
+  const fixedRows = f.fixedSchedule.filter((r) => r.principal > 0 || r.interest > 0 || r.carry > 0);
+  const fixedReturnTerms =
+    wantsFixed && fixedRows.length > 0
+      ? {
+          repaymentSchedule: fixedRows.map((r, i) => ({
+            month: i + 1,
+            principal: r.principal,
+            interest: r.interest,
+            carry: r.carry,
+          })),
+          totalRepayment: fixedRows.reduce((s, r) => s + r.principal + r.interest + r.carry, 0),
+          totalPrincipal: fixedRows.reduce((s, r) => s + r.principal, 0),
+          totalInterest: fixedRows.reduce((s, r) => s + r.interest, 0),
+          carry: fixedRows.reduce((s, r) => s + r.carry, 0),
+        }
+      : null;
+
+  const dailyInterestTerms =
+    wantsDaily && (f.diInterestRate30d > 0 || f.diTenorDays > 0)
+      ? {
+          interestRate30DayPct: f.diInterestRate30d,
+          serviceFee30DayPct: f.diServiceFee30d,
+          tenorDays: f.diTenorDays,
+          minInterestPeriodDays: f.diMinInterestDays,
+          serviceFeeDailyBasis: f.diServiceFeeBasis || "Disbursed Amount",
+        }
+      : null;
+
+  const payorInvoices = f.payorInvoices
+    .filter((r) => r.payorLabel.trim() || r.poOrInvoiceNumber.trim() || r.amount > 0)
+    .map((r) => ({ ...r, currency: f.requestedAmountCurrency }));
+
+  // Recap is core IC content regardless of analyst input: pull the brand's
+  // history from the KP's known projects so Proposed sits alongside it.
+  const brandKey = f.brandName.trim().toLowerCase();
+  const seenPastIds = new Set<string>();
+  const brandHistory = mockProjects
+    .filter((p) => p.brandName.trim().toLowerCase() === brandKey)
+    .flatMap((p) => p.pastProjects.filter((pp) => !pp.isCurrentSubmission))
+    .filter((pp) => (seenPastIds.has(pp.id) ? false : (seenPastIds.add(pp.id), true)));
+
   return {
     id: sub.id,
     brandName: f.brandName,
@@ -414,9 +584,9 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
       secondaryAnalyst: f.secondaryAnalyst || null,
     },
 
-    projectNumberForKP: 1,
-    brandActiveProjects: 0,
-    brandCompletedProjects: 0,
+    projectNumberForKP: brandHistory.length + 1,
+    brandActiveProjects: brandHistory.filter((p) => p.status === "Active" || p.status === "Rescheduled").length,
+    brandCompletedProjects: brandHistory.filter((p) => p.status === "Completed").length,
     brandBeforeICProjects: 1,
     brandPendingDisbursementProjects: 0,
     mainSector: f.mainSector,
@@ -446,7 +616,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
       superseded: [],
     },
 
-    financialReviews: [],
+    financialReviews,
 
     referralSource: f.referralSource,
     specificReferror: f.specificReferror || null,
@@ -486,9 +656,11 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
         currentDPD: 0,
         maxDPD: 0,
       },
+      ...brandHistory,
     ],
 
     returnType: legacyReturnType(f.returnType),
+    masterReturnType: f.returnType,
     disbursements: f.disbursements.map((d, i) => ({
       tranche: i + 1,
       plannedAmount: d.amount,
@@ -502,10 +674,25 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
       notes: b.notes,
       type: b.type,
     })),
-    revenueShareTerms: null,
-    fixedReturnTerms: null,
-    dailyInterestTerms: null,
-    lateFee: { basis: "—", gracePeriodDays: 0, dailyPctInvestors: 0, dailyPctASN: 0 },
+    revenueShareTerms,
+    fixedReturnTerms,
+    dailyInterestTerms,
+    payorInvoices,
+    // Asset B late fees are policy-derived from the daily interest terms
+    // (Outstanding Principal, no grace, daily rate = 30-day rate / 30).
+    lateFee: isAssetB(f.assetClass)
+      ? {
+          basis: "Outstanding Principal",
+          gracePeriodDays: 0,
+          dailyPctInvestors: f.diInterestRate30d / 30,
+          dailyPctASN: f.diServiceFee30d / 30,
+        }
+      : {
+          basis: f.lfBasis || "Overdue Amount",
+          gracePeriodDays: f.lfGraceDays,
+          dailyPctInvestors: f.lfDailyPctInvestors,
+          dailyPctASN: f.lfDailyPctASN,
+        },
     termSheetLink: f.termSheetLink || null,
 
     kpCreditMemo: f.kpCreditMemo,
@@ -527,6 +714,13 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     fundingSource: f.fundingSource,
     bankDetailsReviewed: f.bankDetailsReviewed,
     taxWithholdings: f.taxWithholdings,
+    // Plafond approvals vote on the total limit, not the (possibly zero) project amount.
+    icVoteBasisAmount: hasPlafond
+      ? Math.max(
+          f.proposedTotalLimit,
+          f.requestedAmountCurrency === "IDR" ? f.requestedAmount : f.requestedAmount * 16000
+        )
+      : undefined,
     icVotes: IC_MEMBERS.map((m) => ({ ...m, vote: null, votedAt: null })),
     approvalNotes: "",
     specialNotesForIC: f.specialNotesForIC || null,

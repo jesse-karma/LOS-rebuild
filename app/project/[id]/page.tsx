@@ -10,7 +10,7 @@ import { computeWarnings } from "@/lib/warnings";
 import { Warning } from "@/components/ui/Warning";
 import { ProjectHeader } from "@/components/sections/ProjectHeader";
 import { PICSection } from "@/components/sections/PICSection";
-import { ProjectAndPlafond } from "@/components/sections/ProjectAndPlafond";
+import { ProjectDetailsSection } from "@/components/sections/ProjectAndPlafond";
 import { FinancialReviews } from "@/components/sections/FinancialReviews";
 import { KPDetails } from "@/components/sections/KPDetails";
 import { KPContacts } from "@/components/sections/KPContacts";
@@ -87,12 +87,12 @@ export default function ProjectPage() {
         <KPDetails project={project} />
       </div>
 
-      {/* Project & Plafond (merged) */}
+      {/* Project Details */}
       <div className="mb-4">
-        <ProjectAndPlafond project={project} />
+        <ProjectDetailsSection project={project} />
       </div>
 
-      {/* Financial Reviews */}
+      {/* Plafond & Financial Reviews */}
       <div className="mb-4">
         <FinancialReviews project={project} />
       </div>

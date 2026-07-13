@@ -3,8 +3,8 @@
  * Fields backed by one of these lists are CLOSED ENUMS in the production database;
  * everything else on the submission form is free input.
  *
- * Asset Class enum is exactly A, B - I, B - PO, C, D per the locked July 2026
- * decision (the reference doc's O and E rows are dead data).
+ * Asset Class enum simplified to A, B - I, B - PO, D (July 2026 product call:
+ * park C and E for now; the reference doc's O and E rows are dead data).
  */
 
 // ─── §1 Lead Status (lifecycle subset covered by this app) ───────────────────
@@ -53,7 +53,7 @@ export type RequestState = (typeof REQUEST_STATES)[number];
 
 // ─── §4 Asset Class ───────────────────────────────────────────────────────────
 
-export const ASSET_CLASSES = ["A", "B - I", "B - PO", "C", "D"] as const;
+export const ASSET_CLASSES = ["A", "B - I", "B - PO", "D"] as const;
 
 export type MasterAssetClass = (typeof ASSET_CLASSES)[number];
 
@@ -61,7 +61,7 @@ export type MasterAssetClass = (typeof ASSET_CLASSES)[number];
 // Keys match the app's existing ApprovalType strings (data/types.ts).
 
 export const APPROVAL_TYPE_ASSET_CLASSES: Record<string, MasterAssetClass[]> = {
-  Project: ["A", "D", "C"],
+  Project: ["A", "D"],
   "PO/Invoice": ["B - I", "B - PO"],
   "Project+Plafond": ["D"],
   "PO/Invoice+Plafond": ["B - I", "B - PO"],
