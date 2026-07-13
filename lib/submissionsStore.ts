@@ -3,6 +3,8 @@ import { mockProjects } from "@/data/mock";
 import {
   LeadStatus,
   LEAD_STATUS_DISCUSSING_RETURN,
+  LEAD_STATUS_DUE_DILIGENCE,
+  LEAD_STATUS_FUNDING_LEAD,
   LEAD_STATUS_IC_CREDIT_REVIEW,
   RequestState,
 } from "@/data/masterData";
@@ -102,8 +104,21 @@ export interface SubmissionFormData {
 
 // ─── Lifecycle (Lead Status + Request State master data) ─────────────────────
 
-export function leadStatusFor(status: StoredSubmission["status"]): LeadStatus {
-  return status === "draft" ? LEAD_STATUS_DISCUSSING_RETURN : LEAD_STATUS_IC_CREDIT_REVIEW;
+/** Master data §1 lead statuses a draft can sit in before IC review. */
+export type DraftLeadStatusCode = "2" | "3" | "3.9";
+
+const DRAFT_LEAD_STATUSES: Record<DraftLeadStatusCode, LeadStatus> = {
+  "2": LEAD_STATUS_FUNDING_LEAD,
+  "3": LEAD_STATUS_DUE_DILIGENCE,
+  "3.9": LEAD_STATUS_DISCUSSING_RETURN,
+};
+
+export function leadStatusFor(
+  status: StoredSubmission["status"],
+  leadStatusCode?: DraftLeadStatusCode
+): LeadStatus {
+  if (status !== "draft") return LEAD_STATUS_IC_CREDIT_REVIEW;
+  return DRAFT_LEAD_STATUSES[leadStatusCode ?? "3.9"];
 }
 
 export function requestStateFor(status: StoredSubmission["status"]): RequestState {
@@ -113,6 +128,8 @@ export function requestStateFor(status: StoredSubmission["status"]): RequestStat
 export interface StoredSubmission {
   id: string;
   status: "draft" | "submitted";
+  /** Where a draft sits before IC review; absent (legacy drafts) means 3.9. */
+  leadStatusCode?: DraftLeadStatusCode;
   createdAt: string; // ISO
   submittedAt: string | null; // ISO
   form: SubmissionFormData;
@@ -202,13 +219,16 @@ export function newSubmissionId(): string {
 
 // ─── Demo seed data (prototype: pre-populates the Funding Lead tab once) ─────
 
-const SEED_FLAG = "kc-los-demo-seeded";
+// v2: demo drafts carry varied leadStatusCode values.
+const SEED_FLAG = "kc-los-demo-seeded-v2";
 
 function demoDrafts(): StoredSubmission[] {
   return [
     {
       id: "sub-demo-sks",
       status: "draft",
+      // Oldest draft is furthest along the pre-IC lifecycle.
+      leadStatusCode: "3.9",
       createdAt: "2026-07-08T09:30:00.000Z",
       submittedAt: null,
       form: {
@@ -244,6 +264,7 @@ function demoDrafts(): StoredSubmission[] {
     {
       id: "sub-demo-spj",
       status: "draft",
+      leadStatusCode: "3",
       createdAt: "2026-07-10T04:15:00.000Z",
       submittedAt: null,
       form: {
@@ -270,6 +291,7 @@ function demoDrafts(): StoredSubmission[] {
     {
       id: "sub-demo-dc",
       status: "draft",
+      leadStatusCode: "2",
       createdAt: "2026-07-12T11:00:00.000Z",
       submittedAt: null,
       form: {
@@ -299,8 +321,13 @@ function demoDrafts(): StoredSubmission[] {
 export function seedDemoSubmissions() {
   if (typeof window === "undefined") return;
   if (window.localStorage.getItem(SEED_FLAG)) return;
-  const existing = listSubmissions();
-  const fresh = demoDrafts().filter((d) => !existing.some((s) => s.id === d.id));
+  const demos = demoDrafts();
+  // Upgrade demo drafts seeded before v2 with their varied lead statuses.
+  const existing = listSubmissions().map((s) => {
+    const demo = demos.find((d) => d.id === s.id);
+    return demo && s.status === "draft" ? { ...s, leadStatusCode: demo.leadStatusCode } : s;
+  });
+  const fresh = demos.filter((d) => !existing.some((s) => s.id === d.id));
   persist([...fresh, ...existing]);
   window.localStorage.setItem(SEED_FLAG, "1");
 }

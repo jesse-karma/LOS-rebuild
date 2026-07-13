@@ -43,8 +43,8 @@ function projectAmount(p: ICProject): string {
 }
 
 /** Lifecycle chip: Lead Status (master data §1) + Request State (§2). */
-function LifecycleChip({ status }: { status: StoredSubmission["status"] }) {
-  const lead = leadStatusFor(status);
+function LifecycleChip({ status, leadStatusCode }: Pick<StoredSubmission, "status" | "leadStatusCode">) {
+  const lead = leadStatusFor(status, leadStatusCode);
   const request = requestStateFor(status);
   const isDraft = status === "draft";
   return (
@@ -255,14 +255,14 @@ export default function HomePage() {
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-xs">
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">KP / Brand</th>
-                <th className="py-2 px-2.5 font-medium w-full min-w-48">Project</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Type</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Asset</th>
-                <th className="py-2 px-2.5 font-medium text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Started</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Status</th>
+              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
+                <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project&apos;s Name</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
+                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Created at</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -303,7 +303,7 @@ export default function HomePage() {
                   </td>
                   <td className="py-2.5 px-2.5 text-gray-500 whitespace-nowrap">{fmtDate(d.createdAt)}</td>
                   <td className="py-2.5 px-2.5 whitespace-nowrap">
-                    <LifecycleChip status="draft" />
+                    <LifecycleChip status={d.status} leadStatusCode={d.leadStatusCode} />
                   </td>
                 </tr>
               ))}
@@ -322,15 +322,15 @@ export default function HomePage() {
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-xs">
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">KP / Brand</th>
-                <th className="py-2 px-2.5 font-medium w-full min-w-48">Project</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Type</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Asset</th>
-                <th className="py-2 px-2.5 font-medium text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Waiting</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Blockers</th>
-                {isIC && <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Vote</th>}
+              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
+                <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
+                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Waiting</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Blockers</th>
+                {isIC && <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Vote</th>}
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -387,14 +387,14 @@ export default function HomePage() {
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
           <table className="w-full text-sm min-w-[820px]">
             <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-xs">
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">KP / Brand</th>
-                <th className="py-2 px-2.5 font-medium w-full min-w-48">Project</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Type</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Asset</th>
-                <th className="py-2 px-2.5 font-medium text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">IC Approved</th>
-                <th className="py-2 px-2.5 font-medium whitespace-nowrap w-0">Status</th>
+              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
+                <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
+                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">IC Approved</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
