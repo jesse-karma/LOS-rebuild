@@ -582,8 +582,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               value={form.assetClass}
               onChange={(e) => setAssetClass(e.target.value)}
             >
-              {/* Asset C is parked for now — not selectable on new submissions. */}
-              {ASSET_CLASSES.filter((a) => a !== "C").map((a) => (
+              {ASSET_CLASSES.map((a) => (
                 <option key={a} value={a}>
                   Asset Class {a}
                 </option>
