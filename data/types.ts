@@ -291,6 +291,8 @@ export interface ICProject {
   mainSector: string;
   subSector: string | null;
   syariah: boolean;
+  /** Analyst notes on the syariah scheme; only set when `syariah` is true (A&D spec E18). */
+  syariahNotes?: string | null;
   assetClass: string;
   requestedAmountCurrency: "IDR" | "USD";
   requestedAmount: number;

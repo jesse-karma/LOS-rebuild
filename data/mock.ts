@@ -383,7 +383,7 @@ const projectShushu: ICProject = {
 
   pic: {
     submitter: "Juang Angger Pamungkas",
-    primaryAnalyst: "Sharfina Nindita",
+    primaryAnalyst: "Nila Layla Melinda",
     secondaryAnalyst: null,
   },
 
@@ -539,7 +539,7 @@ const projectShushu: ICProject = {
   bankDetailsReviewed: false,
   taxWithholdings: "Yes",
   icVotes: [
-    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: "Approve", votedAt: "2026-04-02T15:30:00Z" },
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
     { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
     { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
   ],
@@ -916,7 +916,7 @@ const projectCUM: ICProject = {
   bankDetailsReviewed: true,
   taxWithholdings: "Yes",
   icVotes: [
-    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: "Approve", votedAt: "2026-04-07T09:30:00Z" },
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
     { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
     { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
   ],
@@ -947,7 +947,7 @@ const projectCEA: ICProject = {
 
   pic: {
     submitter: "Junaidi",
-    primaryAnalyst: "Junaidi",
+    primaryAnalyst: "Priska Ponggawa",
     secondaryAnalyst: "Armeno Devan",
   },
 
@@ -1154,7 +1154,7 @@ const projectAssetDPlafond: ICProject = {
 
   pic: {
     submitter: "Junaidi",
-    primaryAnalyst: "Armeno Devan",
+    primaryAnalyst: "Nila Layla Melinda",
     secondaryAnalyst: null,
   },
 
