@@ -75,7 +75,7 @@ function RequestedDeltaCell({ proposed, current }: { proposed: number; current: 
 }
 
 /** Plafond table — Proposed / Current / Superseded limit rows. */
-function PlafondTable({ project }: Props) {
+export function PlafondTable({ project }: Props) {
   const p = project.plafond;
 
   const negativeWarnings: string[] = [];
@@ -271,12 +271,14 @@ function PlafondTable({ project }: Props) {
   );
 }
 
-/** Project Details + Plafond merged into a single IC card section. */
-export function ProjectAndPlafond({ project }: Props) {
+/** Whether the card has any plafond information worth showing. */
+export function hasPlafondInfo(project: ICProject): boolean {
   const p = project.plafond;
-  const showPlafond =
-    project.approvalType.includes("Plafond") || p.current !== null || p.proposed !== null;
+  return project.approvalType.includes("Plafond") || p.current !== null || p.proposed !== null;
+}
 
+/** Project Details section (plafond lives with Financial Reviews). */
+export function ProjectDetailsSection({ project }: Props) {
   // Sector display: "Main: Sub" or just "Main" if no sub-sector
   const sectorLabel = project.subSector
     ? `${project.mainSector}: ${project.subSector}`
@@ -303,16 +305,8 @@ export function ProjectAndPlafond({ project }: Props) {
     return null;
   })();
 
-  const negativeCount = [p.remainingTotal, p.remainingWC, p.remainingPO].filter((n) => n < 0).length;
-  const badge =
-    negativeCount > 0 ? (
-      <span className="text-xs font-medium text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded">
-        {negativeCount} issue{negativeCount > 1 ? "s" : ""}
-      </span>
-    ) : null;
-
   return (
-    <SectionCard title="Project & Plafond" badge={badge}>
+    <SectionCard title="Project Details">
       <div className="mt-2 space-y-0">
         {project.sectorWarning && (
           <Warning message={project.sectorWarning} level="warn" className="mb-3" />
@@ -363,13 +357,6 @@ export function ProjectAndPlafond({ project }: Props) {
           }
         />
       </div>
-
-      {showPlafond && (
-        <div className="mt-5 pt-4 border-t border-gray-100">
-          <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">Plafond</h3>
-          <PlafondTable project={project} />
-        </div>
-      )}
     </SectionCard>
   );
 }

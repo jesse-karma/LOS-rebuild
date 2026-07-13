@@ -287,6 +287,14 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     po: submission.form.proposedPOSubLimit ? formatAmountInput(String(submission.form.proposedPOSubLimit)) : "",
     wc: submission.form.proposedWCSubLimit ? formatAmountInput(String(submission.form.proposedWCSubLimit)) : "",
   });
+  const [finReviewTexts, setFinReviewTexts] = useState({
+    current: submission.form.finReviewLimitCurrent
+      ? formatAmountInput(String(submission.form.finReviewLimitCurrent))
+      : "",
+    recommended: submission.form.finReviewLimitRecommended
+      ? formatAmountInput(String(submission.form.finReviewLimitRecommended))
+      : "",
+  });
   const [errors, setErrors] = useState<string[]>([]);
 
   // On a brand-new form, the creator becomes Created by and the default Primary Analyst (spec S8).
@@ -408,6 +416,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         proposedTotalLimit: parseAmount(plafondTexts.total),
         proposedPOSubLimit: parseAmount(plafondTexts.po),
         proposedWCSubLimit: parseAmount(plafondTexts.wc),
+        finReviewLimitCurrent: parseAmount(finReviewTexts.current),
+        finReviewLimitRecommended: parseAmount(finReviewTexts.recommended),
       },
     };
   }
@@ -419,6 +429,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     if (isProjectType && parseAmount(amountText) <= 0) errs.push("Requested Amount must be greater than zero.");
     if (hasPlafond && parseAmount(plafondTexts.total) <= 0)
       errs.push("Proposed Total Limit must be greater than zero for a Plafond submission.");
+    if (!form.finReviewReportsReviewed.trim())
+      errs.push("Financial Review: state which financial reports were reviewed.");
+    if (!form.finReviewPeriodEnding)
+      errs.push("Financial Review: the reports' period ending date is required.");
     return errs;
   }
 
@@ -706,8 +720,9 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
           </FormSection>
         )}
 
-        {hasPlafond && (
-          <FormSection title="Plafond and Financial Review">
+        <FormSection title="Plafond & Financial Review">
+          {hasPlafond && (
+            <>
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
               Proposed Limit
             </h3>
@@ -754,8 +769,96 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               Amounts in Rp. Current and Superseded rows appear on the IC review card once the
               submission is linked to the KP&apos;s plafond history.
             </p>
-          </FormSection>
-        )}
+            </>
+          )}
+
+          <h3
+            className={`text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1 ${
+              hasPlafond ? "mt-6" : "mt-1"
+            }`}
+          >
+            Financial Review
+          </h3>
+          <p className="text-xs text-gray-500 mb-2">
+            Which financials you reviewed and your limit recommendation — shown as Review 1 on the
+            IC card, and required before submitting to IC.
+          </p>
+          <Field
+            label="Financial Reports Reviewed"
+            source="free"
+            hint="Which statements / reports you looked at"
+          >
+            <input
+              className={inputCls}
+              value={form.finReviewReportsReviewed}
+              onChange={(e) => set("finReviewReportsReviewed", e.target.value)}
+              placeholder="e.g. FY2025 audited P&L + Jan–May 2026 management accounts"
+            />
+          </Field>
+          <Field label="Reports' Period Ending" source="free">
+            <input
+              type="date"
+              className={inputCls}
+              value={form.finReviewPeriodEnding}
+              onChange={(e) => set("finReviewPeriodEnding", e.target.value)}
+            />
+          </Field>
+          <Field label="Limit Recommendation" source="master">
+            <select
+              className={inputCls}
+              value={form.finReviewLimitRecommendation}
+              onChange={(e) =>
+                set(
+                  "finReviewLimitRecommendation",
+                  e.target.value as SubmissionFormData["finReviewLimitRecommendation"]
+                )
+              }
+            >
+              <option value="Keep">Keep</option>
+              <option value="Increase">Increase</option>
+              <option value="Decrease">Decrease</option>
+            </select>
+          </Field>
+          <Field
+            label="Current Total Limit (Rp)"
+            source="free"
+            hint="Leave empty if the brand has no total limit on file yet"
+          >
+            <input
+              className={`${inputCls} font-mono`}
+              inputMode="numeric"
+              value={finReviewTexts.current}
+              onChange={(e) =>
+                setFinReviewTexts((t) => ({ ...t, current: formatAmountInput(e.target.value) }))
+              }
+              placeholder="5.000.000.000"
+            />
+          </Field>
+          {form.finReviewLimitRecommendation !== "Keep" && (
+            <Field label="Recommended Total Limit (Rp)" source="free">
+              <input
+                className={`${inputCls} font-mono`}
+                inputMode="numeric"
+                value={finReviewTexts.recommended}
+                onChange={(e) =>
+                  setFinReviewTexts((t) => ({
+                    ...t,
+                    recommended: formatAmountInput(e.target.value),
+                  }))
+                }
+                placeholder="7.000.000.000"
+              />
+            </Field>
+          )}
+          <Field label="Review Notes" source="free">
+            <textarea
+              className={`${inputCls} min-h-20 resize-y`}
+              value={form.finReviewNotes}
+              onChange={(e) => set("finReviewNotes", e.target.value)}
+              placeholder="Key takeaways from the financials — margins, trends, red flags…"
+            />
+          </Field>
+        </FormSection>
 
         {isAD && (
           <FormSection title="Karmapreneur Contacts">
