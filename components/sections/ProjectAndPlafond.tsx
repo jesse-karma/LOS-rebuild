@@ -319,7 +319,10 @@ export function ProjectDetailsSection({ project }: Props) {
           label="Sector"
           value={<Tag label={sectorLabel} variant="blue" />}
         />
-        <DataRow label="Financing Type" value={<span className="text-gray-800">{project.returnType}</span>} />
+        <DataRow
+          label="Financing Type"
+          value={<span className="text-gray-800">{project.masterReturnType ?? project.returnType}</span>}
+        />
         <DataRow
           label="Syariah"
           value={

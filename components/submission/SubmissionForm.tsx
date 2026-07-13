@@ -16,13 +16,15 @@ import {
   returnTypesForApprovalType,
   subSectorsForSector,
 } from "@/data/masterData";
-import { isAssetAOrD } from "@/lib/assetClass";
+import { isAssetAOrD, isAssetB } from "@/lib/assetClass";
 import {
   SubmissionFormData,
   StoredSubmission,
   SubmissionBranchRow,
   SubmissionContactRow,
   SubmissionDisbursementRow,
+  SubmissionFixedRow,
+  SubmissionPayorRow,
   SubmissionPTRow,
   emptySubmissionForm,
   newRowId,
@@ -209,6 +211,21 @@ function ptIsBlank(pt: SubmissionPTRow): boolean {
   );
 }
 
+function fixedRowIsBlank(r: SubmissionFixedRow): boolean {
+  return r.principal === 0 && r.interest === 0 && r.carry === 0;
+}
+
+function payorIsBlank(r: SubmissionPayorRow): boolean {
+  return (
+    !r.payorLabel.trim() &&
+    !r.poOrInvoiceNumber.trim() &&
+    !r.dueDate &&
+    r.amount === 0 &&
+    !r.payeeProjects.trim() &&
+    !r.notes.trim()
+  );
+}
+
 // Blank-row factories, shared by the [+] buttons and the starter rows.
 
 function blankContact(): SubmissionContactRow {
@@ -232,6 +249,24 @@ function blankBranch(): SubmissionBranchRow {
   return { id: newRowId(), name: "", area: "", gmapsLink: "", notes: "", type: "Opening Branch" };
 }
 
+function blankFixedRow(): SubmissionFixedRow {
+  return { id: newRowId(), principal: 0, interest: 0, carry: 0 };
+}
+
+function blankPayorRow(): SubmissionPayorRow {
+  return {
+    id: newRowId(),
+    payorLabel: "",
+    poOrInvoiceNumber: "",
+    dueDate: "",
+    amount: 0,
+    payorType: "Corporate",
+    payeeProjects: "",
+    notes: "",
+    riskLevel: "Medium",
+  };
+}
+
 function blankPT(): SubmissionPTRow {
   return {
     id: newRowId(),
@@ -250,13 +285,19 @@ function blankPT(): SubmissionPTRow {
  * are stripped again on save/submit.
  */
 function withStarterRows(f: SubmissionFormData): SubmissionFormData {
-  if (!isAssetAOrD(f.assetClass)) return f;
   const next = { ...f };
-  if (next.kpContacts.length === 0) next.kpContacts = [blankContact()];
-  if (next.ptDetails.length === 0) next.ptDetails = [blankPT()];
-  if (next.approvalType !== "Plafond") {
-    if (next.disbursements.length === 0) next.disbursements = [blankDisbursement()];
-    if (next.branches.length === 0) next.branches = [blankBranch()];
+  const isProject = f.approvalType !== "Plafond";
+  if (isAssetAOrD(f.assetClass)) {
+    if (next.kpContacts.length === 0) next.kpContacts = [blankContact()];
+    if (next.ptDetails.length === 0) next.ptDetails = [blankPT()];
+    if (isProject && next.branches.length === 0) next.branches = [blankBranch()];
+  }
+  if (isProject && next.disbursements.length === 0) next.disbursements = [blankDisbursement()];
+  if (isProject && isAssetB(f.assetClass) && next.payorInvoices.length === 0) {
+    next.payorInvoices = [blankPayorRow()];
+  }
+  if (isProject && f.returnType.includes("Fixed Amount Repayment") && next.fixedSchedule.length === 0) {
+    next.fixedSchedule = [blankFixedRow()];
   }
   return next;
 }
@@ -314,6 +355,11 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const isAD = isAssetAOrD(form.assetClass);
   /** Single PT per submission — the starter effect guarantees one exists for A/D. */
   const ptDetail = form.ptDetails[0];
+  const isB = isAssetB(form.assetClass);
+  // Which deal-terms subsection the selected Return Type calls for
+  const wantsRevShare = form.returnType.includes("Revenue Share") || form.returnType === "Profit Share";
+  const wantsFixed = form.returnType.includes("Fixed Amount Repayment");
+  const wantsDaily = form.returnType === "Daily Interest";
 
   // Dependent master-data option lists
   const approvalTypeOptions = approvalTypesForAssetClass(form.assetClass);
@@ -365,7 +411,9 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
 
   // ── Dynamic row helpers ([+]/[✍️]/[-] pattern) ─────────────────────────────
 
-  function updateRow<K extends "kpContacts" | "disbursements" | "branches" | "ptDetails">(
+  function updateRow<
+    K extends "kpContacts" | "disbursements" | "branches" | "ptDetails" | "fixedSchedule" | "payorInvoices"
+  >(
     key: K,
     id: string,
     patch: Partial<SubmissionFormData[K][number]>
@@ -378,7 +426,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     }));
   }
 
-  function removeRow(key: "kpContacts" | "disbursements" | "branches" | "ptDetails", id: string) {
+  function removeRow(
+    key: "kpContacts" | "disbursements" | "branches" | "ptDetails" | "fixedSchedule" | "payorInvoices",
+    id: string
+  ) {
     setForm((f) =>
       withStarterRows({
         ...f,
@@ -399,6 +450,19 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     setForm((f) => ({ ...f, branches: [...f.branches, blankBranch()] }));
   }
 
+  function addFixedRow() {
+    setForm((f) => ({ ...f, fixedSchedule: [...f.fixedSchedule, blankFixedRow()] }));
+  }
+
+  function addPayorRow() {
+    setForm((f) => ({ ...f, payorInvoices: [...f.payorInvoices, blankPayorRow()] }));
+  }
+
+  /** Return type drives which deal-terms subsection (and starter rows) apply. */
+  function setReturnType(returnType: string) {
+    setForm((f) => withStarterRows({ ...f, returnType }));
+  }
+
   function currentDraft(status: "draft" | "submitted"): StoredSubmission {
     return {
       ...submission,
@@ -412,6 +476,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         disbursements: form.disbursements.filter((d) => !disbursementIsBlank(d)),
         branches: form.branches.filter((b) => !branchIsBlank(b)),
         ptDetails: form.ptDetails.filter((pt) => !ptIsBlank(pt)),
+        fixedSchedule: form.fixedSchedule.filter((r) => !fixedRowIsBlank(r)),
+        payorInvoices: form.payorInvoices.filter((r) => !payorIsBlank(r)),
         requestedAmount: parseAmount(amountText),
         proposedTotalLimit: parseAmount(plafondTexts.total),
         proposedPOSubLimit: parseAmount(plafondTexts.po),
@@ -708,7 +774,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               <select
                 className={inputCls}
                 value={form.returnType}
-                onChange={(e) => set("returnType", e.target.value)}
+                onChange={(e) => setReturnType(e.target.value)}
               >
                 {returnTypeOptions.map((r) => (
                   <option key={r} value={r}>
@@ -956,7 +1022,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
           </FormSection>
         )}
 
-        {isAD && isProjectType && (
+        {isProjectType && (
           <FormSection title="Project Terms Details">
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
               Disbursement Schedule
@@ -1012,6 +1078,382 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               <InlineWarning message="Warning: Not same as Project Target Amount" />
             )}
 
+            {isB && (
+              <>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
+                  Payor / PO / Invoice Details
+                </h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  One row per payor / PO or invoice line backing this request — shown on the IC
+                  card&apos;s Payor section.
+                </p>
+                <EditTable
+                  headers={[
+                    "#",
+                    "Payor",
+                    "PO / Invoice #",
+                    "Due Date",
+                    `Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`,
+                    "Payor Type",
+                    "Payee Projects",
+                    "Notes",
+                    "Risk",
+                    "",
+                  ]}
+                  minWidthCls="min-w-[1100px]"
+                >
+                  {form.payorInvoices.map((r, i) => (
+                    <tr key={r.id} className="align-top">
+                      <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                      <td className="py-2 px-2 min-w-36">
+                        <input
+                          className={cellInputCls}
+                          value={r.payorLabel}
+                          onChange={(e) => updateRow("payorInvoices", r.id, { payorLabel: e.target.value })}
+                          placeholder="e.g. Indomarco Adi Prima"
+                        />
+                      </td>
+                      <td className="py-2 px-2 min-w-28">
+                        <input
+                          className={cellInputCls}
+                          value={r.poOrInvoiceNumber}
+                          onChange={(e) =>
+                            updateRow("payorInvoices", r.id, { poOrInvoiceNumber: e.target.value })
+                          }
+                          placeholder="e.g. PO-2026-0713"
+                        />
+                      </td>
+                      <td className="py-2 px-2 min-w-32">
+                        <input
+                          type="date"
+                          className={cellInputCls}
+                          value={r.dueDate}
+                          onChange={(e) => updateRow("payorInvoices", r.id, { dueDate: e.target.value })}
+                        />
+                      </td>
+                      <td className="py-2 px-2 min-w-32">
+                        <input
+                          className={`${cellInputCls} font-mono`}
+                          inputMode="numeric"
+                          value={r.amount ? formatAmountInput(String(r.amount)) : ""}
+                          onChange={(e) =>
+                            updateRow("payorInvoices", r.id, { amount: parseAmount(e.target.value) })
+                          }
+                          placeholder="700.000.000"
+                        />
+                      </td>
+                      <td className="py-2 px-2 min-w-28">
+                        <select
+                          className={cellInputCls}
+                          value={r.payorType}
+                          onChange={(e) => updateRow("payorInvoices", r.id, { payorType: e.target.value })}
+                        >
+                          <option value="Corporate">Corporate</option>
+                          <option value="Government">Government</option>
+                          <option value="SME">SME</option>
+                          <option value="Individual">Individual</option>
+                        </select>
+                      </td>
+                      <td className="py-2 px-2 min-w-32">
+                        <input
+                          className={cellInputCls}
+                          value={r.payeeProjects}
+                          onChange={(e) =>
+                            updateRow("payorInvoices", r.id, { payeeProjects: e.target.value })
+                          }
+                          placeholder="e.g. this project only"
+                        />
+                      </td>
+                      <td className="py-2 px-2 min-w-36">
+                        <input
+                          className={cellInputCls}
+                          value={r.notes}
+                          onChange={(e) => updateRow("payorInvoices", r.id, { notes: e.target.value })}
+                          placeholder="e.g. repeat payor, pays on time"
+                        />
+                      </td>
+                      <td className="py-2 px-2">
+                        <select
+                          className={cellInputCls}
+                          value={r.riskLevel}
+                          onChange={(e) =>
+                            updateRow("payorInvoices", r.id, {
+                              riskLevel: e.target.value as SubmissionPayorRow["riskLevel"],
+                            })
+                          }
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                        </select>
+                      </td>
+                      <td className="py-2 px-2">
+                        <RemoveRowButton onClick={() => removeRow("payorInvoices", r.id)} />
+                      </td>
+                    </tr>
+                  ))}
+                </EditTable>
+                <AddRowButton label="Add payor / invoice" onClick={addPayorRow} />
+              </>
+            )}
+
+            {wantsRevShare && (
+              <>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
+                  Revenue Share Terms
+                </h3>
+                <Field label="Source of Revenue Accrued" source="free">
+                  <input
+                    className={inputCls}
+                    value={form.rsSourceOfRevenue}
+                    onChange={(e) => set("rsSourceOfRevenue", e.target.value)}
+                    placeholder="e.g. All revenue of the financed branches"
+                  />
+                </Field>
+                <Field label="Revenue Share %" source="free" hint="Pre-BEP / Post-BEP, % of revenue">
+                  <div className="flex gap-2">
+                    <input
+                      type="number"
+                      step="any"
+                      inputMode="decimal"
+                      className={inputCls}
+                      value={form.rsPreBEPPct || ""}
+                      onChange={(e) => set("rsPreBEPPct", Number(e.target.value) || 0)}
+                      placeholder="Pre-BEP, e.g. 6"
+                    />
+                    <input
+                      type="number"
+                      step="any"
+                      inputMode="decimal"
+                      className={inputCls}
+                      value={form.rsPostBEPPct || ""}
+                      onChange={(e) => set("rsPostBEPPct", Number(e.target.value) || 0)}
+                      placeholder="Post-BEP, e.g. 4"
+                    />
+                  </div>
+                </Field>
+                <Field label="Carry %" source="free" hint="Fixed Platform Fee">
+                  <input
+                    type="number"
+                    step="any"
+                    inputMode="decimal"
+                    className={inputCls}
+                    value={form.rsCarryPct || ""}
+                    onChange={(e) => set("rsCarryPct", Number(e.target.value) || 0)}
+                    placeholder="e.g. 20"
+                  />
+                </Field>
+                <Field label="Frequency" source="master" hint="Monthly is the default — the IC card warns otherwise">
+                  <select
+                    className={inputCls}
+                    value={form.rsFrequency}
+                    onChange={(e) => set("rsFrequency", e.target.value)}
+                  >
+                    <option value="Monthly">Monthly</option>
+                    <option value="Weekly">Weekly</option>
+                    <option value="Quarterly">Quarterly</option>
+                  </select>
+                </Field>
+                <Field label="Due Date" source="free">
+                  <input
+                    className={inputCls}
+                    value={form.rsDueDate}
+                    onChange={(e) => set("rsDueDate", e.target.value)}
+                    placeholder="e.g. 5th of the following month"
+                  />
+                </Field>
+                <Field label="Cap Type" source="master">
+                  <select
+                    className={inputCls}
+                    value={form.rsCapType}
+                    onChange={(e) =>
+                      set("rsCapType", e.target.value as SubmissionFormData["rsCapType"])
+                    }
+                  >
+                    <option value="Return Cap">Return Cap</option>
+                    <option value="Time Cap">Time Cap</option>
+                  </select>
+                </Field>
+                {form.rsCapType === "Return Cap" ? (
+                  <Field label="Cap Multiple (x)" source="free" hint="Investor cap multiple">
+                    <input
+                      type="number"
+                      step="any"
+                      inputMode="decimal"
+                      className={inputCls}
+                      value={form.rsCapMultiple || ""}
+                      onChange={(e) => set("rsCapMultiple", Number(e.target.value) || 0)}
+                      placeholder="e.g. 1.4"
+                    />
+                  </Field>
+                ) : (
+                  <Field label="Time Cap Period (months)" source="free">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      className={inputCls}
+                      value={form.rsCapTimeMonths || ""}
+                      onChange={(e) => set("rsCapTimeMonths", Number(e.target.value) || 0)}
+                      placeholder="e.g. 36"
+                    />
+                  </Field>
+                )}
+                <Field label="Revenue Share Start" source="master">
+                  <select
+                    className={inputCls}
+                    value={form.rsStartType}
+                    onChange={(e) =>
+                      set("rsStartType", e.target.value as SubmissionFormData["rsStartType"])
+                    }
+                  >
+                    <option value="Anchored to Branch Opening">Anchored to Branch Opening</option>
+                    <option value="Fixed">Fixed start date</option>
+                  </select>
+                </Field>
+                {form.rsStartType === "Fixed" && (
+                  <Field label="Fixed Start Date" source="free">
+                    <input
+                      type="date"
+                      className={inputCls}
+                      value={form.rsStartDate}
+                      onChange={(e) => set("rsStartDate", e.target.value)}
+                    />
+                  </Field>
+                )}
+              </>
+            )}
+
+            {wantsFixed && (
+              <>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
+                  Fixed Repayment Schedule
+                </h3>
+                <p className="text-xs text-gray-500 mb-3">
+                  One row per month — principal, interest, and carry per installment. Totals are
+                  computed for the IC card.
+                </p>
+                <EditTable
+                  headers={["#", "Principal (Rp)", "Interest (Rp)", "Carry (Rp)", ""]}
+                  minWidthCls="min-w-[560px]"
+                >
+                  {form.fixedSchedule.map((r, i) => (
+                    <tr key={r.id} className="align-top">
+                      <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium whitespace-nowrap">
+                        Month {i + 1}
+                      </td>
+                      <td className="py-2 px-2">
+                        <input
+                          className={`${cellInputCls} font-mono`}
+                          inputMode="numeric"
+                          value={r.principal ? formatAmountInput(String(r.principal)) : ""}
+                          onChange={(e) =>
+                            updateRow("fixedSchedule", r.id, { principal: parseAmount(e.target.value) })
+                          }
+                          placeholder="100.000.000"
+                        />
+                      </td>
+                      <td className="py-2 px-2">
+                        <input
+                          className={`${cellInputCls} font-mono`}
+                          inputMode="numeric"
+                          value={r.interest ? formatAmountInput(String(r.interest)) : ""}
+                          onChange={(e) =>
+                            updateRow("fixedSchedule", r.id, { interest: parseAmount(e.target.value) })
+                          }
+                          placeholder="10.000.000"
+                        />
+                      </td>
+                      <td className="py-2 px-2">
+                        <input
+                          className={`${cellInputCls} font-mono`}
+                          inputMode="numeric"
+                          value={r.carry ? formatAmountInput(String(r.carry)) : ""}
+                          onChange={(e) =>
+                            updateRow("fixedSchedule", r.id, { carry: parseAmount(e.target.value) })
+                          }
+                          placeholder="2.000.000"
+                        />
+                      </td>
+                      <td className="py-2 px-2">
+                        <RemoveRowButton onClick={() => removeRow("fixedSchedule", r.id)} />
+                      </td>
+                    </tr>
+                  ))}
+                </EditTable>
+                <AddRowButton label="Add month" onClick={addFixedRow} />
+                {form.fixedSchedule.some((r) => !fixedRowIsBlank(r)) && (
+                  <p className="text-xs text-gray-500 mt-2">
+                    Total repayment:{" "}
+                    <span className="font-mono">
+                      {fmtIdr(
+                        form.fixedSchedule.reduce((s, r) => s + r.principal + r.interest + r.carry, 0)
+                      )}
+                    </span>
+                  </p>
+                )}
+              </>
+            )}
+
+            {wantsDaily && (
+              <>
+                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
+                  Daily Interest Terms
+                </h3>
+                <Field label="Interest Rate (30-day) %" source="free">
+                  <input
+                    type="number"
+                    step="any"
+                    inputMode="decimal"
+                    className={inputCls}
+                    value={form.diInterestRate30d || ""}
+                    onChange={(e) => set("diInterestRate30d", Number(e.target.value) || 0)}
+                    placeholder="e.g. 1.8"
+                  />
+                </Field>
+                <Field label="Service Fee (30-day) %" source="free">
+                  <input
+                    type="number"
+                    step="any"
+                    inputMode="decimal"
+                    className={inputCls}
+                    value={form.diServiceFee30d || ""}
+                    onChange={(e) => set("diServiceFee30d", Number(e.target.value) || 0)}
+                    placeholder="e.g. 0.2"
+                  />
+                </Field>
+                <Field label="Tenor (days)" source="free">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    className={inputCls}
+                    value={form.diTenorDays || ""}
+                    onChange={(e) => set("diTenorDays", Number(e.target.value) || 0)}
+                    placeholder="e.g. 90"
+                  />
+                </Field>
+                <Field label="Minimum Interest Period (days)" source="free">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    className={inputCls}
+                    value={form.diMinInterestDays || ""}
+                    onChange={(e) => set("diMinInterestDays", Number(e.target.value) || 0)}
+                    placeholder="e.g. 30"
+                  />
+                </Field>
+                <Field label="Service Fee Daily Basis" source="free">
+                  <input
+                    className={inputCls}
+                    value={form.diServiceFeeBasis}
+                    onChange={(e) => set("diServiceFeeBasis", e.target.value)}
+                    placeholder="e.g. Disbursed Amount"
+                  />
+                </Field>
+              </>
+            )}
+
+            {isAD && (
+              <>
             <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
               Branch Details
             </h3>
@@ -1079,6 +1521,70 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                 ))}
               </EditTable>
             <AddRowButton label="Add branch" onClick={addBranch} />
+              </>
+            )}
+
+            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
+              Late Fees
+            </h3>
+            {isB ? (
+              <p className="text-xs text-gray-500">
+                Asset B late fees follow policy from the Daily Interest terms: basis{" "}
+                <strong className="text-gray-600">Outstanding Principal</strong>, no grace period,
+                daily late fee = 30-day rate ÷ 30. Nothing to fill in here.
+              </p>
+            ) : (
+              <>
+            <Field
+              label="Late Fee Basis"
+              source="free"
+              hint="Default: Overdue Amount — the IC card warns on deviations"
+            >
+              <input
+                className={inputCls}
+                value={form.lfBasis}
+                onChange={(e) => set("lfBasis", e.target.value)}
+                placeholder="Overdue Amount"
+              />
+            </Field>
+            <Field label="Grace Period (days)" source="free" hint="Default: 5 days">
+              <input
+                type="number"
+                inputMode="numeric"
+                className={inputCls}
+                value={form.lfGraceDays || ""}
+                onChange={(e) => set("lfGraceDays", Number(e.target.value) || 0)}
+                placeholder="5"
+              />
+            </Field>
+            <Field
+              label="Daily Late Fee %"
+              source="free"
+              hint="To Investors / to ASN — defaults 0.08 / 0.02 per day"
+            >
+              <div className="flex gap-2">
+                <input
+                  type="number"
+                  step="any"
+                  inputMode="decimal"
+                  className={inputCls}
+                  value={form.lfDailyPctInvestors || ""}
+                  onChange={(e) => set("lfDailyPctInvestors", Number(e.target.value) || 0)}
+                  placeholder="Investors, e.g. 0.08"
+                />
+                <input
+                  type="number"
+                  step="any"
+                  inputMode="decimal"
+                  className={inputCls}
+                  value={form.lfDailyPctASN || ""}
+                  onChange={(e) => set("lfDailyPctASN", Number(e.target.value) || 0)}
+                  placeholder="ASN, e.g. 0.02"
+                />
+              </div>
+            </Field>
+              </>
+            )}
           </FormSection>
         )}
 
