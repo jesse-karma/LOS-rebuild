@@ -1,12 +1,16 @@
-import { notFound } from "next/navigation";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useParams } from "next/navigation";
 import Link from "next/link";
+import { ICProject } from "@/data/types";
 import { getProjectById } from "@/data/mock";
+import { getReviewProjectById } from "@/lib/submissionsStore";
 import { computeWarnings } from "@/lib/warnings";
 import { Warning } from "@/components/ui/Warning";
 import { ProjectHeader } from "@/components/sections/ProjectHeader";
 import { PICSection } from "@/components/sections/PICSection";
-import { ProjectDetails } from "@/components/sections/ProjectDetails";
-import { PlafondSection } from "@/components/sections/PlafondSection";
+import { ProjectAndPlafond } from "@/components/sections/ProjectAndPlafond";
 import { FinancialReviews } from "@/components/sections/FinancialReviews";
 import { KPDetails } from "@/components/sections/KPDetails";
 import { KPContacts } from "@/components/sections/KPContacts";
@@ -18,27 +22,42 @@ import { PTDetails } from "@/components/sections/PTDetails";
 import { ApprovalSection } from "@/components/sections/ApprovalSection";
 import { ChevronLeft } from "lucide-react";
 
-interface Params {
-  params: Promise<{ id: string }>;
-}
+export default function ProjectPage() {
+  const { id } = useParams<{ id: string }>();
+  // Mock projects resolve immediately; browser-stored submissions resolve after mount.
+  const [project, setProject] = useState<ICProject | null | undefined>(
+    () => getProjectById(id) ?? undefined
+  );
 
-export default async function ProjectPage({ params }: Params) {
-  const { id } = await params;
-  const project = getProjectById(id);
-  if (!project) notFound();
+  useEffect(() => {
+    setProject(getReviewProjectById(id) ?? null);
+  }, [id]);
+
+  if (project === undefined) {
+    return <p className="text-sm text-gray-400">Loading review…</p>;
+  }
+
+  if (project === null) {
+    return (
+      <div className="text-sm text-gray-500">
+        Review not found.{" "}
+        <Link href="/" className="text-blue-600 hover:underline">
+          Back to submissions
+        </Link>
+      </div>
+    );
+  }
 
   const warnings = computeWarnings(project);
   const errors = warnings.filter((w) => w.level === "error");
   const warnItems = warnings.filter((w) => w.level === "warn");
-
-  const showPlafond = project.approvalType.includes("Plafond") || project.plafond.current !== null;
 
   return (
     <div>
       {/* Back nav */}
       <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-800 mb-5 transition-colors">
         <ChevronLeft className="w-4 h-4" />
-        All pending reviews
+        All submissions
       </Link>
 
       {/* Global warnings banner */}
@@ -68,17 +87,10 @@ export default async function ProjectPage({ params }: Params) {
         <KPDetails project={project} />
       </div>
 
-      {/* Project Details */}
+      {/* Project & Plafond (merged) */}
       <div className="mb-4">
-        <ProjectDetails project={project} />
+        <ProjectAndPlafond project={project} />
       </div>
-
-      {/* Plafond */}
-      {showPlafond && (
-        <div className="mb-4">
-          <PlafondSection project={project} />
-        </div>
-      )}
 
       {/* Financial Reviews */}
       <div className="mb-4">
