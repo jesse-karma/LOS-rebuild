@@ -459,15 +459,6 @@ function AssetBRecapTable({ project, projects }: { project: ICProject; projects:
     totalOutstandingExclProposed +
     projects.filter((p) => p.status === "Proposed").reduce((s, p) => s + p.amount, 0);
 
-  const termMonthsAvg =
-    projects.length > 0
-      ? projects.reduce((s, p) => {
-          const daily = effectiveDailyRecap(project, p);
-          if (daily) return s + daily.tenorDays / 30;
-          return s + p.projectedTermMonths;
-        }, 0) / projects.length
-      : 0;
-
   const completedWithIRR = projects.filter((p) => p.otfIRR !== null);
   const avgIRR =
     completedWithIRR.length > 0
@@ -475,101 +466,160 @@ function AssetBRecapTable({ project, projects }: { project: ICProject; projects:
       : null;
 
   const statusCounts: Record<string, number> = {};
-  const typeCounts: Record<string, number> = {};
   const kindCounts: Record<string, number> = {};
   projects.forEach((p) => {
     statusCounts[p.status] = (statusCounts[p.status] ?? 0) + 1;
-    typeCounts[returnTypeLabel(p.returnType)] = (typeCounts[returnTypeLabel(p.returnType)] ?? 0) + 1;
     kindCounts[rowBRecapKind(p, project)] = (kindCounts[rowBRecapKind(p, project)] ?? 0) + 1;
   });
 
+  const cells = projects.map((p) => bRecapCells(project, p));
+  const isLiveRow = (p: PastProject) => Boolean(p.isCurrentSubmission) || p.status === "Proposed";
+  const proposedIdx = projects.findIndex(isLiveRow);
+  const dash = <span className="text-gray-300">—</span>;
+
+  // Same A–F grouped, transposed layout as the A/D recap; group E (Revenue
+  // Model) doesn't apply to daily-interest projects, F keeps its letter.
+  const groups: Array<{
+    title: string;
+    rows: Array<{ label: string; cell: (i: number) => React.ReactNode }>;
+  }> = [
+    {
+      title: "A — Identity & Structure",
+      rows: [
+        { label: "Financing Type", cell: (i) => cells[i].financingType },
+        { label: "Asset Type", cell: (i) => cells[i].kindChip },
+        { label: "Financing Use", cell: (i) => (isLiveRow(projects[i]) ? project.financingUse : dash) },
+        {
+          label: "PT (Legal Entity)",
+          cell: (i) => (isLiveRow(projects[i]) ? project.ptDetails[0]?.name || dash : dash),
+        },
+        { label: "Payor(s)", cell: (i) => cells[i].payors },
+        { label: "Amount Disbursed", cell: (i) => cells[i].amount },
+        { label: "Principal Outstanding", cell: (i) => cells[i].outstanding },
+      ],
+    },
+    {
+      title: "B — Return Structure",
+      rows: [
+        { label: "Interest Rate (30-day)", cell: (i) => cells[i].int30 },
+        { label: "Service Fee (30-day)", cell: (i) => cells[i].svc30 },
+      ],
+    },
+    {
+      title: "C — Timeline & Operation",
+      rows: [
+        { label: "Tenor / Term", cell: (i) => cells[i].term },
+        { label: "Minimum Interest Period (days)", cell: (i) => cells[i].minInt },
+      ],
+    },
+    {
+      title: "D — Performance Metrics",
+      rows: [
+        { label: "PvA", cell: (i) => cells[i].pva },
+        { label: "IRR", cell: (i) => cells[i].irr },
+        { label: "MOIC / BEP", cell: (i) => cells[i].moic },
+        { label: "DPD", cell: (i) => cells[i].dpd },
+      ],
+    },
+    {
+      title: "F — Payment Mechanics",
+      rows: [{ label: "Late Fee", cell: (i) => cells[i].lateFee }],
+    },
+  ];
+
   return (
     <>
-      <p className="text-xs text-gray-500 leading-relaxed">
-        <strong>B_MOD layout</strong> (Asset B): wide recap per IC Review Card spec — project type, payors, daily-interest
-        economics, late-fee checks (B-I/B-PO vs older A/D rows), PvA where applicable. Rows sorted by status, then IC
-        approval date (newest first).
-      </p>
+      {/* Project Recap summary (consistent with the A/D recap) */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+        {[
+          { label: "Total Amount (Incl. Proposed)", value: fmt(totalAmountInclProposed) },
+          { label: "Total Outstanding (Incl. Proposed)", value: fmt(totalOutstandingInclProposed) },
+          { label: "Outstanding (Excl. Proposed)", value: fmt(totalOutstandingExclProposed) },
+          { label: "Avg of IRR", value: avgIRR !== null ? fmtPct(avgIRR) : "—" },
+        ].map((s) => (
+          <div key={s.label} className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+            <div className="text-[10px] text-gray-500">{s.label}</div>
+            <div className="text-sm font-semibold text-gray-800 mt-0.5">{s.value}</div>
+          </div>
+        ))}
+        <div className="bg-gray-50 border border-gray-100 rounded-lg px-3 py-2">
+          <div className="text-[10px] text-gray-500">Project Mix</div>
+          <div className="text-[11px] text-gray-700 mt-0.5 leading-snug">
+            <div>
+              {Object.entries(statusCounts)
+                .map(([s, n]) => `${n}× ${s}`)
+                .join(" · ")}
+            </div>
+            <div className="text-gray-500">
+              {Object.entries(kindCounts)
+                .map(([k, n]) => `${n}× ${k}`)
+                .join(" · ")}
+            </div>
+          </div>
+        </div>
+      </div>
+
       <div className="overflow-x-auto -mx-1">
-        <table className="w-full text-[10px] min-w-[1280px]">
+        <table className="w-full text-xs min-w-[760px]">
           <thead>
-            <tr className="border-b text-gray-400 text-left">
-              <th className="pb-2 pr-1 font-medium w-6">#</th>
-              <th className="pb-2 pr-2 font-medium min-w-[120px]">Project</th>
-              <th className="pb-2 pr-2 font-medium">Status</th>
-              <th className="pb-2 pr-2 font-medium">Financing</th>
-              <th className="pb-2 pr-2 font-medium text-right">Amount</th>
-              <th className="pb-2 pr-2 font-medium text-right">Outstd.</th>
-              <th className="pb-2 pr-2 font-medium">Type</th>
-              <th className="pb-2 pr-2 font-medium min-w-[72px]">Payor(s)</th>
-              <th className="pb-2 pr-2 font-medium text-right">Term</th>
-              <th className="pb-2 pr-2 font-medium text-right">Min int (d)</th>
-              <th className="pb-2 pr-2 font-medium text-right">Int 30d</th>
-              <th className="pb-2 pr-2 font-medium text-right">Svc 30d</th>
-              <th className="pb-2 pr-2 font-medium">Late basis</th>
-              <th className="pb-2 pr-2 font-medium text-right">Grace</th>
-              <th className="pb-2 pr-2 font-medium min-w-[88px]">Daily late</th>
-              <th className="pb-2 pr-2 font-medium text-right">DPD</th>
-              <th className="pb-2 pr-2 font-medium text-right">PvA</th>
-              <th className="pb-2 pr-2 font-medium text-right">IRR</th>
-              <th className="pb-2 font-medium text-right min-w-[88px]">MOIC / BEP</th>
+            <tr className="border-b border-gray-200 text-left text-gray-500">
+              <th className="sticky left-0 z-10 bg-white py-2 pl-3 pr-2 font-medium w-44 border-r border-gray-100">
+                Metric
+              </th>
+              {projects.map((p, j) => (
+                <th
+                  key={p.id}
+                  className={`py-2 px-3 font-medium align-top min-w-[170px] max-w-[240px] ${
+                    j === proposedIdx ? "bg-blue-50/60" : ""
+                  }`}
+                >
+                  <div className="text-gray-800 leading-snug" title={p.projectName}>
+                    {p.projectName}
+                  </div>
+                  <div className="mt-1">
+                    <Tag label={p.status} variant={statusVariant(p.status)} />
+                  </div>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
-            {projects.map((p, i) => (
-              <AssetBRow key={p.id} project={project} p={p} index={i + 1} />
+            {groups.map((g) => (
+              <Fragment key={g.title}>
+                <tr className="border-b border-gray-100">
+                  <td className="sticky left-0 z-10 bg-gray-50 py-1.5 pl-3 pr-2 text-[10px] font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-100 whitespace-nowrap">
+                    {g.title}
+                  </td>
+                  <td colSpan={projects.length} className="bg-gray-50"></td>
+                </tr>
+                {g.rows.map((row) => (
+                  <tr key={row.label} className="border-b border-gray-50 align-top">
+                    <td className="sticky left-0 z-10 bg-white py-2 pl-3 pr-2 text-gray-500 border-r border-gray-100 leading-snug">
+                      {row.label}
+                    </td>
+                    {projects.map((p, j) => (
+                      <td
+                        key={p.id}
+                        className={`py-2 px-3 text-gray-800 leading-snug ${
+                          j === proposedIdx ? "bg-blue-50/40" : ""
+                        }`}
+                      >
+                        {row.cell(j)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </Fragment>
             ))}
           </tbody>
-          <tfoot className="border-t-2 border-gray-200 bg-gray-50 text-[10px]">
-            <tr>
-              <td className="pt-2 pr-1"></td>
-              <td className="pt-2 pr-2 text-gray-500 font-medium">
-                {Object.entries(statusCounts)
-                  .map(([s, n]) => `${n} ${s}`)
-                  .join(", ")}
-              </td>
-              <td className="pt-2 pr-2"></td>
-              <td className="pt-2 pr-2 text-gray-500">
-                {Object.entries(typeCounts)
-                  .map(([t, n]) => `${n}× ${t}`)
-                  .join(", ")}
-              </td>
-              <td className="pt-2 pr-2 text-right font-medium text-gray-700">{fmt(totalAmountInclProposed)}</td>
-              <td className="pt-2 pr-2 text-right">
-                <div className="font-medium text-gray-700">{fmt(totalOutstandingExclProposed)}</div>
-                <div className="text-gray-400 text-[9px]">excl. proposed</div>
-                <div className="font-medium text-gray-600 mt-0.5">{fmt(totalOutstandingInclProposed)}</div>
-                <div className="text-gray-400 text-[9px]">incl. proposed</div>
-              </td>
-              <td className="pt-2 pr-2 text-gray-500">{Object.entries(kindCounts).map(([k, n]) => `${n}× ${k}`).join(", ")}</td>
-              <td className="pt-2 pr-2"></td>
-              <td className="pt-2 pr-2 text-right text-gray-500">{termMonthsAvg.toFixed(1)} mo eq.</td>
-              <td className="pt-2 pr-2 text-right text-gray-300">—</td>
-              <td className="pt-2 pr-2 text-right text-gray-300">—</td>
-              <td className="pt-2 pr-2 text-right text-gray-300">—</td>
-              <td className="pt-2 pr-2"></td>
-              <td className="pt-2 pr-2"></td>
-              <td className="pt-2 pr-2"></td>
-              <td className="pt-2 pr-2 text-right text-gray-300">—</td>
-              <td className="pt-2 pr-2 text-right text-gray-300">—</td>
-              <td className="pt-2 pr-2 text-right">
-                {avgIRR !== null ? (
-                  <span className={irrClass(avgIRR)}>{fmtPct(avgIRR)} avg (OTF)</span>
-                ) : (
-                  <span className="text-gray-300">—</span>
-                )}
-              </td>
-              <td className="pt-2 text-right text-gray-400 text-[9px]">OTF MOIC N/A</td>
-            </tr>
-          </tfoot>
         </table>
       </div>
     </>
   );
 }
 
-function AssetBRow({ project, p, index }: { project: ICProject; p: PastProject; index: number }) {
-  const isProposed = p.status === "Proposed";
+/** Shared cell renderers for the Asset B recap — one column per project. */
+function bRecapCells(project: ICProject, p: PastProject) {
   const kind = rowBRecapKind(p, project);
   const daily = effectiveDailyRecap(project, p);
   const late = p.lateFeeRecap;
@@ -693,26 +743,6 @@ function AssetBRow({ project, p, index }: { project: ICProject; p: PastProject; 
     return <span className="text-gray-300">—</span>;
   };
 
-  const graceCell = () => {
-    if (daily && (kind === "B-I" || kind === "B-PO")) {
-      return <span className={lateFeeGraceWarningB(kind, daily.gracePeriodDays) ? "text-red-600 font-semibold" : ""}>{daily.gracePeriodDays}</span>;
-    }
-    if (late) return <span>{late.gracePeriodDays}</span>;
-    return <span className="text-gray-300">—</span>;
-  };
-
-  const basisShort = () => {
-    if (daily && (kind === "B-I" || kind === "B-PO")) {
-      const b = lateFeeBasisWarningB(kind, daily.lateFeeBasis);
-      return <span className={b ? "text-red-600 font-semibold" : "text-gray-700"}>{daily.lateFeeBasis}</span>;
-    }
-    if (late) {
-      const b = kind === "A/D" ? lateFeeBasisWarningAD(late.basis) : null;
-      return <span className={b ? "text-red-600 font-semibold" : "text-gray-700"}>{late.basis}</span>;
-    }
-    return <span className="text-gray-300">—</span>;
-  };
-
   const pvaCell = () => {
     if (kind !== "A/D") return <span className="text-gray-300 text-[9px]">N/A</span>;
     if (p.pvaPct == null) return <span className="text-gray-300">—</span>;
@@ -753,44 +783,44 @@ function AssetBRow({ project, p, index }: { project: ICProject; p: PastProject; 
       ? "fixed >36"
       : null;
 
-  return (
-    <tr className={`border-b border-gray-50 align-top ${isProposed ? "bg-blue-50/40" : ""}`}>
-      <td className="py-2 pr-1 text-gray-400">{index}</td>
-      <td className="py-2 pr-2 text-gray-800 font-medium min-w-[120px] leading-snug">{p.projectName}</td>
-      <td className="py-2 pr-2">
-        <Tag label={p.status} variant={statusVariant(p.status)} />
-      </td>
-      <td className="py-2 pr-2 text-gray-600">
+  return {
+    kind,
+    financingType: (
+      <div>
         <div>{returnTypeLabel(p.returnType)}</div>
         {ftWarning && (
-          <div className="mt-0.5 text-[9px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5">
+          <div className="mt-0.5 text-[9px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5 inline-block">
             {ftWarning === "long fixed" ? "Warning: >60 mo" : "Warning: >36 mo Fixed Return"}
           </div>
         )}
-      </td>
-      <td className="py-2 pr-2 text-right text-gray-700">{fmt(p.amount)}</td>
-      <td className="py-2 pr-2 text-right text-gray-700">
-        {p.outstandingAmount > 0 ? fmt(p.outstandingAmount) : <span className="text-gray-300">—</span>}
-      </td>
-      <td className="py-2 pr-2">
-        <span className="inline-flex px-1 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">{kind}</span>
-      </td>
-      <td className="py-2 pr-2 text-gray-600 leading-snug">{payorStr}</td>
-      <td className="py-2 pr-2 text-right">{termCell()}</td>
-      <td className="py-2 pr-2 text-right">{minIntCell()}</td>
-      <td className="py-2 pr-2 text-right align-top">{int30Cell()}</td>
-      <td className="py-2 pr-2 text-right align-top">{svc30Cell()}</td>
-      <td className="py-2 pr-2 align-top">{basisShort()}</td>
-      <td className="py-2 pr-2 text-right align-top">{graceCell()}</td>
-      <td className="py-2 pr-2 align-top">{lateBlock()}</td>
-      <td className="py-2 pr-2 text-right align-top">
+      </div>
+    ),
+    kindChip: (
+      <span className="inline-flex px-1 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">{kind}</span>
+    ),
+    payors:
+      payorStr !== "—" ? (
+        <span className="leading-snug">{payorStr}</span>
+      ) : (
+        <span className="text-gray-300">—</span>
+      ),
+    amount: <span className="font-medium">{fmt(p.amount)}</span>,
+    outstanding:
+      p.outstandingAmount > 0 ? fmt(p.outstandingAmount) : <span className="text-gray-300">—</span>,
+    term: termCell(),
+    minInt: minIntCell(),
+    int30: int30Cell(),
+    svc30: svc30Cell(),
+    lateFee: lateBlock(),
+    dpd: (
+      <div>
         {p.currentDPD > 0 && <div className="text-red-600 font-semibold">{p.currentDPD}d now</div>}
         {p.maxDPD > 0 && (
           <div className={p.maxDPD > 30 ? "text-red-600 font-medium" : "text-amber-600"}>{p.maxDPD}d max</div>
         )}
         {p.currentDPD === 0 && p.maxDPD === 0 && <span className="text-gray-300">—</span>}
         {p.overdueHistory && p.overdueHistory.length > 0 && (
-          <div className="mt-1 space-y-0.5 text-left">
+          <div className="mt-1 space-y-0.5">
             {p.overdueHistory.map((ev, i) => (
               <div key={i} className="text-[9px] text-gray-500">
                 {fmtDate(ev.dueDate)} — {ev.daysOverdue}d —{" "}
@@ -799,12 +829,12 @@ function AssetBRow({ project, p, index }: { project: ICProject; p: PastProject; 
             ))}
           </div>
         )}
-      </td>
-      <td className="py-2 pr-2 text-right">{pvaCell()}</td>
-      <td className="py-2 pr-2 text-right">{irrCell()}</td>
-      <td className="py-2 text-right">{moicCell()}</td>
-    </tr>
-  );
+      </div>
+    ),
+    pva: pvaCell(),
+    irr: irrCell(),
+    moic: moicCell(),
+  };
 }
 
 export function PastProjectsRecap({ project }: Props) {
