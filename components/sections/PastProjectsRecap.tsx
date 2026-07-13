@@ -501,8 +501,12 @@ function AssetBRow({ project, p, index }: { project: ICProject; p: PastProject; 
 export function PastProjectsRecap({ project }: Props) {
   const allRows = project.pastProjects;
   const projects = sortPastProjectsRecapRows(getPastProjectsRecapRows(allRows));
+  // Only when there is stored history to compare against — a lone Proposed row
+  // (e.g. a fresh submission) keeps the plain recap table, no extra table.
   const showRevShareCrossCompare =
-    isAssetAOrD(project.assetClass) && project.revenueShareTerms != null;
+    isAssetAOrD(project.assetClass) &&
+    project.revenueShareTerms != null &&
+    projects.some((p) => !p.isCurrentSubmission && p.revShareTermsSnapshot != null);
   const useAssetBTable = isAssetB(project.assetClass);
 
   const totalAmountInclProposed = projects.reduce((s, p) => s + p.amount, 0);
