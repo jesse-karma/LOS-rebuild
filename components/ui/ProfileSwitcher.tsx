@@ -1,6 +1,7 @@
 "use client";
 
 import { useProfile } from "@/lib/profileStore";
+import { TEAMS } from "@/lib/access";
 
 function initials(name: string): string {
   return name
@@ -11,7 +12,7 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-/** Header profile picker — prototype stand-in for login. */
+/** Header profile picker — prototype stand-in for login, grouped by team. */
 export function ProfileSwitcher() {
   const { user, users, setUserId } = useProfile();
 
@@ -27,13 +28,22 @@ export function ProfileSwitcher() {
           onChange={(e) => setUserId(e.target.value)}
           aria-label="Active profile"
         >
-          {users.map((u) => (
-            <option key={u.id} value={u.id}>
-              {u.name}
-            </option>
+          {TEAMS.map((team) => (
+            <optgroup key={team} label={team}>
+              {users
+                .filter((u) => u.team === team)
+                .map((u) => (
+                  <option key={u.id} value={u.id}>
+                    {u.name}
+                  </option>
+                ))}
+            </optgroup>
           ))}
         </select>
-        <span className="text-[10px] text-gray-400 leading-none">{user.role}</span>
+        <span className="text-[10px] text-gray-400 leading-none">
+          {user.team}
+          {user.icPrincipal ? " · Principal" : ""}
+        </span>
       </div>
     </div>
   );

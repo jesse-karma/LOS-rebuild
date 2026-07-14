@@ -4,9 +4,21 @@ import { useState } from "react";
 import { ICProject, ICVote } from "@/data/types";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { CheckCircle, XCircle } from "lucide-react";
+import { useProfile } from "@/lib/profileStore";
+import { canEdit } from "@/lib/access";
+import {
+  effectiveVotes,
+  icDecidedAt,
+  icOutcome,
+  ProjectWorkflow,
+  StageInfo,
+} from "@/lib/workflowStore";
 
 interface Props {
   project: ICProject;
+  workflow: ProjectWorkflow;
+  stageInfo: StageInfo;
+  onWorkflowChange: (wf: ProjectWorkflow) => void;
 }
 
 const VOTE_OPTIONS: { value: Exclude<ICVote, null>; label: string; color: string; icon: React.ReactNode }[] = [
@@ -32,18 +44,43 @@ function VoteBadge({ vote }: { vote: ICVote }) {
   return <span className="text-xs text-gray-400 italic">Pending</span>;
 }
 
-export function ApprovalSection({ project }: Props) {
-  const [votes, setVotes] = useState<Record<string, ICVote>>(
-    Object.fromEntries(project.icVotes.map((v) => [v.memberId, v.vote]))
-  );
-  const [approvalNotes, setApprovalNotes] = useState(project.approvalNotes);
-  const [conditionsSubsequent, setConditionsSubsequent] = useState<string[]>(() => [
-    ...project.conditionsSubsequent,
-  ]);
-  const [submitted, setSubmitted] = useState(false);
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
 
-  const myVoterId = "ic-1"; // Ben Elberger — Principal
-  const myVote = votes[myVoterId];
+export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange }: Props) {
+  const { user } = useProfile();
+
+  const votes = effectiveVotes(project, workflow);
+  const outcome = icOutcome(project, workflow);
+  const decidedAt = icDecidedAt(project, workflow);
+
+  // The active profile votes as themselves — only IC members appear on the roster.
+  const myMember = votes.find((v) => v.memberName === user.name);
+  // Field-level rule: icDecision is editable by the Investment Committee, only during IC Review.
+  const decisionOpen = canEdit(user.team, "icDecision", stageInfo.stage) && outcome === null;
+  const canVote = decisionOpen && !!myMember;
+
+  const [myVote, setMyVote] = useState<ICVote>(myMember?.vote ?? null);
+  const [approvalNotes, setApprovalNotes] = useState(workflow.approvalNotes ?? project.approvalNotes);
+  const [conditionsSubsequent, setConditionsSubsequent] = useState<string[]>(
+    () => workflow.conditionsSubsequent ?? [...project.conditionsSubsequent]
+  );
+  const [justSubmitted, setJustSubmitted] = useState(false);
+
+  function handleSubmit() {
+    if (!myMember || !myVote) return;
+    onWorkflowChange({
+      ...workflow,
+      votes: {
+        ...workflow.votes,
+        [myMember.memberId]: { vote: myVote, votedAt: new Date().toISOString() },
+      },
+      approvalNotes,
+      conditionsSubsequent,
+    });
+    setJustSubmitted(true);
+  }
 
   // Voting rule: use explicit IC basis (e.g. proposed total limit) when provided — else project amount
   const amount =
@@ -54,7 +91,7 @@ export function ApprovalSection({ project }: Props) {
 
   function isRequired(v: { memberId: string; isPrincipal: boolean }): boolean {
     if (votingRule === 1) return v.isPrincipal;
-    if (votingRule === 2) return v.isPrincipal || project.icVotes.indexOf(project.icVotes.find(x => x.memberId === v.memberId)!) < 2;
+    if (votingRule === 2) return v.isPrincipal || votes.findIndex((x) => x.memberId === v.memberId) < 2;
     return true; // all 3 required
   }
 
@@ -124,6 +161,22 @@ export function ApprovalSection({ project }: Props) {
       <div className="mt-6 border-t border-gray-100 pt-5 space-y-5">
         <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Approval</h4>
 
+        {/* Decision banner once IC has decided */}
+        {outcome === "approved" && (
+          <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
+            <CheckCircle className="w-5 h-5 text-emerald-600" />
+            <div className="text-sm font-semibold text-emerald-800">
+              Approved by IC{decidedAt ? ` on ${fmtDate(decidedAt)}` : ""} — handed off to Legal
+            </div>
+          </div>
+        )}
+        {outcome === "rejected" && (
+          <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-lg px-4 py-3">
+            <XCircle className="w-5 h-5 text-red-600" />
+            <div className="text-sm font-semibold text-red-800">Rejected by IC — the flow stops here.</div>
+          </div>
+        )}
+
         {project.specialNotesForIC && (
           <div className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
             {project.specialNotesForIC}
@@ -135,15 +188,15 @@ export function ApprovalSection({ project }: Props) {
           <span className="font-semibold text-gray-700">Rule:</span>
           <span>{RULE_LABELS[votingRule]}</span>
           <span className="ml-auto text-gray-400">
-            {project.icVotes.filter(v => votes[v.memberId] === "Approve").length}/{requiredVoteCount} required vote{requiredVoteCount > 1 ? "s" : ""}
+            {votes.filter((v) => v.vote === "Approve").length}/{requiredVoteCount} required vote
+            {requiredVoteCount > 1 ? "s" : ""}
           </span>
         </div>
 
         {/* IC votes table */}
         <div className="space-y-1">
-          {project.icVotes.map((v) => {
-            const currentVote = votes[v.memberId];
-            const isMe = v.memberId === myVoterId;
+          {votes.map((v) => {
+            const isMe = v.memberName === user.name;
             const required = isRequired(v);
             return (
               <div
@@ -162,21 +215,21 @@ export function ApprovalSection({ project }: Props) {
                     <span className="text-xs text-gray-400 italic">optional</span>
                   )}
                 </div>
-                <VoteBadge vote={currentVote} />
+                <VoteBadge vote={v.vote} />
               </div>
             );
           })}
         </div>
 
-        {/* Vote buttons — Approve / Reject only per CSV */}
-        {!submitted && (
+        {/* Vote buttons — IC members only, while the decision is open */}
+        {canVote && !justSubmitted && (
           <div>
             <div className="text-xs text-gray-500 mb-2">Your Vote</div>
             <div className="flex gap-2">
               {VOTE_OPTIONS.map(({ value, label, color, icon }) => (
                 <button
                   key={value}
-                  onClick={() => setVotes((prev) => ({ ...prev, [myVoterId]: value }))}
+                  onClick={() => setMyVote(value)}
                   className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${color} ${myVote === value ? "ring-2 ring-offset-1 ring-gray-400 scale-[1.02]" : "opacity-80"}`}
                 >
                   {icon}
@@ -186,15 +239,17 @@ export function ApprovalSection({ project }: Props) {
             </div>
           </div>
         )}
+        {decisionOpen && !myMember && (
+          <p className="text-xs text-gray-400">
+            Voting is open to the Investment Committee. Your team ({user.team}) has view access to this
+            decision.
+          </p>
+        )}
 
         {/* Approval Notes */}
         <div>
           <div className="text-xs text-gray-500 mb-1">Approval Notes</div>
-          {submitted ? (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px]">
-              {approvalNotes || <span className="text-gray-400 italic">No notes entered.</span>}
-            </div>
-          ) : (
+          {canVote && !justSubmitted ? (
             <textarea
               value={approvalNotes}
               onChange={(e) => setApprovalNotes(e.target.value)}
@@ -202,73 +257,75 @@ export function ApprovalSection({ project }: Props) {
               placeholder="Enter approval notes here..."
               className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
             />
+          ) : (
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap min-h-[60px]">
+              {(workflow.approvalNotes ?? project.approvalNotes) || (
+                <span className="text-gray-400 italic">No notes entered.</span>
+              )}
+            </div>
           )}
         </div>
 
         {/* Conditions Subsequent — analyst draft; IC revises before vote (prototype) */}
-        {(conditionsSubsequent.length > 0 || !submitted) && (
-          <div>
-            <div className="text-xs text-gray-500 mb-1">Conditions Subsequent</div>
-            <p className="text-xs text-gray-500 mb-2 leading-relaxed">
-              Drafted by the <strong className="text-gray-600">analyst</strong> (e.g. from diligence).{" "}
-              <strong className="text-gray-600">IC</strong> may edit or add items here before submitting a vote; in production
-              this would write back to the Project row.
-            </p>
-            {submitted ? (
-              conditionsSubsequent.length > 0 ? (
-                <ul className="list-disc pl-5 space-y-1">
-                  {conditionsSubsequent.map((c, i) => (
-                    <li key={i} className="text-sm text-gray-700 whitespace-pre-wrap">
-                      {c}
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="text-sm text-gray-400 italic">No conditions subsequent.</p>
-              )
-            ) : (
-              <div className="space-y-2">
-                {conditionsSubsequent.length === 0 && (
-                  <p className="text-xs text-gray-400 italic">No conditions yet — add if needed.</p>
-                )}
-                {conditionsSubsequent.map((c, i) => (
-                  <div key={i} className="flex gap-2 items-start">
-                    <textarea
-                      value={c}
-                      onChange={(e) =>
-                        setConditionsSubsequent((prev) =>
-                          prev.map((line, j) => (j === i ? e.target.value : line))
-                        )
-                      }
-                      rows={2}
-                      className="flex-1 min-w-0 border border-gray-200 rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-y"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setConditionsSubsequent((prev) => prev.filter((_, j) => j !== i))}
-                      className="text-xs text-red-600 hover:text-red-800 shrink-0 pt-2"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setConditionsSubsequent((prev) => [...prev, ""])}
-                  className="text-xs font-medium text-blue-600 hover:text-blue-800"
-                >
-                  + Add condition
-                </button>
-              </div>
-            )}
-          </div>
-        )}
+        <div>
+          <div className="text-xs text-gray-500 mb-1">Conditions Subsequent</div>
+          <p className="text-xs text-gray-500 mb-2 leading-relaxed">
+            Drafted by the <strong className="text-gray-600">Investments Team</strong> (e.g. from diligence).{" "}
+            <strong className="text-gray-600">IC</strong> may edit or add items here before submitting a vote; in production
+            this would write back to the Project row.
+          </p>
+          {canVote && !justSubmitted ? (
+            <div className="space-y-2">
+              {conditionsSubsequent.length === 0 && (
+                <p className="text-xs text-gray-400 italic">No conditions yet — add if needed.</p>
+              )}
+              {conditionsSubsequent.map((c, i) => (
+                <div key={i} className="flex gap-2 items-start">
+                  <textarea
+                    value={c}
+                    onChange={(e) =>
+                      setConditionsSubsequent((prev) =>
+                        prev.map((line, j) => (j === i ? e.target.value : line))
+                      )
+                    }
+                    rows={2}
+                    className="flex-1 min-w-0 border border-gray-200 rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-y"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setConditionsSubsequent((prev) => prev.filter((_, j) => j !== i))}
+                    className="text-xs text-red-600 hover:text-red-800 shrink-0 pt-2"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setConditionsSubsequent((prev) => [...prev, ""])}
+                className="text-xs font-medium text-blue-600 hover:text-blue-800"
+              >
+                + Add condition
+              </button>
+            </div>
+          ) : (workflow.conditionsSubsequent ?? project.conditionsSubsequent).length > 0 ? (
+            <ul className="list-disc pl-5 space-y-1">
+              {(workflow.conditionsSubsequent ?? project.conditionsSubsequent).map((c, i) => (
+                <li key={i} className="text-sm text-gray-700 whitespace-pre-wrap">
+                  {c}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-sm text-gray-400 italic">No conditions subsequent.</p>
+          )}
+        </div>
 
         {/* Submit */}
-        {!submitted ? (
+        {canVote && !justSubmitted && (
           <div>
             <button
-              onClick={() => setSubmitted(true)}
+              onClick={handleSubmit}
               disabled={!myVote}
               className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
@@ -279,13 +336,14 @@ export function ApprovalSection({ project }: Props) {
               ℹ️ In production, submitting will trigger Coda automation (status update + Slack notification).
             </p>
           </div>
-        ) : (
+        )}
+        {justSubmitted && outcome === null && (
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
             <CheckCircle className="w-5 h-5 text-emerald-600" />
             <div>
-              <div className="text-sm font-semibold text-emerald-800">Vote recorded (prototype only)</div>
+              <div className="text-sm font-semibold text-emerald-800">Vote recorded</div>
               <div className="text-xs text-emerald-600">
-                In production this would update Coda and send Slack notifications.
+                Waiting on the remaining required IC votes before the project moves to Legal.
               </div>
             </div>
           </div>

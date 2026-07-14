@@ -32,7 +32,8 @@ import {
   saveSubmission,
   deleteSubmission,
 } from "@/lib/submissionsStore";
-import { isAnalystRole, useProfile } from "@/lib/profileStore";
+import { useProfile } from "@/lib/profileStore";
+import { canEdit } from "@/lib/access";
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -311,6 +312,8 @@ interface Props {
 export function SubmissionForm({ submission, isNew = false }: Props) {
   const router = useRouter();
   const { user } = useProfile();
+  // A draft sits in the Funding Lead stage: only the Investments Team can fill it.
+  const readOnly = !canEdit(user.team, "submission", "funding_lead");
   // Merge over defaults so drafts saved before new fields existed stay controlled.
   const [form, setForm] = useState<SubmissionFormData>(() =>
     withStarterRows({
@@ -344,7 +347,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       setForm((f) => ({
         ...f,
         createdBy: user.name,
-        primaryAnalyst: isAnalystRole(user.role) ? user.name : f.primaryAnalyst,
+        primaryAnalyst: user.team === "Investments Team" ? user.name : f.primaryAnalyst,
       }));
     }
   }, [isNew, user]);
@@ -533,7 +536,9 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Analyst Submission</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Fill in the project details, then submit to IC. You can save a draft at any time.
+          {readOnly
+            ? `View only — submissions are filled and submitted by the Investments Team (you are on the ${user.team}).`
+            : "Fill in the project details, then submit to IC. You can save a draft at any time."}
         </p>
         <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 flex-wrap">
           <span className="inline-flex items-center gap-1.5">
@@ -547,7 +552,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         </div>
       </div>
 
-      <div className="space-y-4">
+      {/* fieldset[disabled] enforces the field-level rule: every input inside is read-only for non-Investments teams */}
+      <fieldset disabled={readOnly} className="space-y-4 min-w-0">
         <FormSection title="What are we reviewing?">
           <Field label="Brand" source="free" hint="Lookup to Karmapreneur — type a new name to create it">
             <input
@@ -1765,35 +1771,44 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
           </div>
         )}
 
-        {/* Action bar */}
-        <div className="sticky bottom-0 bg-white border border-gray-200 rounded-xl shadow-md px-5 py-4 flex items-center gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={handleSubmitToIC}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Submit to IC
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Save Draft
-          </button>
-          <button
-            type="button"
-            onClick={handleDeleteDraft}
-            className="ml-auto text-sm text-red-500 hover:text-red-700 transition-colors"
-          >
-            Delete draft
-          </button>
-          <span className="w-full text-xs text-gray-400">
-            Submitting moves the request to IC Credit Review (Request State: Pending review). Prototype:
-            data is stored in your browser only.
-          </span>
-        </div>
-      </div>
+        {/* Action bar — Investments Team only (submission buttons are field-level controls too) */}
+        {readOnly ? (
+          <div className="sticky bottom-0 bg-white border border-gray-200 rounded-xl shadow-md px-5 py-4">
+            <span className="text-xs text-gray-400">
+              View only — the Investments Team fills and submits this form while the lead is in
+              preparation.
+            </span>
+          </div>
+        ) : (
+          <div className="sticky bottom-0 bg-white border border-gray-200 rounded-xl shadow-md px-5 py-4 flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={handleSubmitToIC}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+            >
+              Submit to IC
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+            >
+              Save Draft
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteDraft}
+              className="ml-auto text-sm text-red-500 hover:text-red-700 transition-colors"
+            >
+              Delete draft
+            </button>
+            <span className="w-full text-xs text-gray-400">
+              Submitting moves the request to IC Credit Review (Request State: Pending review). Prototype:
+              data is stored in your browser only.
+            </span>
+          </div>
+        )}
+      </fieldset>
     </div>
   );
 }

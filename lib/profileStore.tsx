@@ -1,38 +1,37 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState } from "react";
+import { Team } from "@/lib/access";
 
 /**
- * App user profiles — prototype only, no login. Analyst roles come from Jesse's
- * team model (a principal sees the whole team's projects); IC roles come from
- * the Karma Team Role master data (§14: IC Principal, IC Member).
+ * App user profiles — prototype only, no login. Access is governed by the
+ * user's team (Role Type), never by the individual: see lib/access.ts.
+ * `icPrincipal` is IC voting mechanics (the ≤4B single-approval rule), not
+ * an access hierarchy.
  */
-export type AppRole = "Analyst" | "Analyst Principal" | "IC Principal" | "IC Member";
-
 export interface AppUser {
   id: string;
   name: string;
-  role: AppRole;
+  team: Team;
+  icPrincipal?: boolean;
 }
 
 export const APP_USERS: AppUser[] = [
-  { id: "priska", name: "Priska Ponggawa", role: "Analyst Principal" },
-  { id: "nila", name: "Nila Layla Melinda", role: "Analyst" },
-  { id: "ben", name: "Ben Elberger", role: "IC Principal" },
+  // Investments Team — every member works the team's full pipeline (no per-person scoping).
+  { id: "priska", name: "Priska Ponggawa", team: "Investments Team" },
+  { id: "nila", name: "Nila Layla Melinda", team: "Investments Team" },
+  // Investment Committee — votes on submissions.
+  { id: "ben", name: "Ben Elberger", team: "Investment Committee", icPrincipal: true },
+  { id: "aldi", name: "Aldi Haryopratomo", team: "Investment Committee" },
+  { id: "junaidi", name: "Junaidi", team: "Investment Committee" },
+  // Credit Ops / Legal / Finance — 2 people each; either member covers for the other.
+  { id: "dewi", name: "Dewi Anggraini", team: "Credit Ops Team" },
+  { id: "rizal", name: "Rizal Fauzan", team: "Credit Ops Team" },
+  { id: "laras", name: "Larasati Wibowo", team: "Legal Team" },
+  { id: "andre", name: "Andre Sitompul", team: "Legal Team" },
+  { id: "maya", name: "Maya Kusuma", team: "Finance Team" },
+  { id: "bagus", name: "Bagus Santoso", team: "Finance Team" },
 ];
-
-export function isAnalystRole(role: AppRole): boolean {
-  return role === "Analyst" || role === "Analyst Principal";
-}
-
-export function isICRole(role: AppRole): boolean {
-  return role === "IC Principal" || role === "IC Member";
-}
-
-/** Analysts (and principals) see drafts; only a plain Analyst is limited to own projects. */
-export function seesAllProjects(user: AppUser): boolean {
-  return user.role !== "Analyst";
-}
 
 const STORAGE_KEY = "kc-los-active-profile";
 

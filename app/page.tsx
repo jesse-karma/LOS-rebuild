@@ -14,8 +14,17 @@ import {
   StoredSubmission,
 } from "@/lib/submissionsStore";
 import { mockOnboarded } from "@/data/mockOnboarded";
-import { isICRole, seesAllProjects, useProfile } from "@/lib/profileStore";
+import { useProfile } from "@/lib/profileStore";
+import { canCreateSubmission, Stage } from "@/lib/access";
 import { daysWaiting, needsVoteFrom, votesRemaining } from "@/lib/icVoting";
+import {
+  effectiveVotes,
+  emptyWorkflow,
+  getWorkflow,
+  icDecidedAt,
+  ProjectWorkflow,
+  stageInfo,
+} from "@/lib/workflowStore";
 import { ASSET_CLASSES, APPROVAL_TYPE_ASSET_CLASSES } from "@/data/masterData";
 
 function fmt(n: number): string {
@@ -40,7 +49,14 @@ function projectAmount(p: ICProject): string {
 }
 
 /** "Pending Review" with submitted date and days pending (red once stale). */
-function ReviewStatusCell({ submittedAt }: { submittedAt: string }) {
+function ReviewStatusCell({ submittedAt, rejected }: { submittedAt: string; rejected: boolean }) {
+  if (rejected) {
+    return (
+      <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-red-50 text-red-700 border-red-200 whitespace-nowrap">
+        Rejected
+      </span>
+    );
+  }
   const days = daysWaiting(submittedAt);
   const stale = days > 14;
   return (
@@ -52,6 +68,22 @@ function ReviewStatusCell({ submittedAt }: { submittedAt: string }) {
         Submitted {fmtDate(submittedAt)} ·{" "}
         <span className={stale ? "text-red-600 font-semibold" : ""}>{days}d</span>
       </span>
+    </div>
+  );
+}
+
+/** "With Legal/Finance" + how long the stage has been holding the project. */
+function StageStatusCell({ label, since }: { label: string; since: string | null }) {
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-blue-50 text-blue-700 border-blue-200 whitespace-nowrap">
+        {label}
+      </span>
+      {since && (
+        <span className="text-xs text-gray-400 px-0.5 whitespace-nowrap">
+          Since {fmtDate(since)} · {daysWaiting(since)}d
+        </span>
+      )}
     </div>
   );
 }
@@ -76,13 +108,101 @@ function VoteChip({ project, memberName }: { project: ICProject; memberName: str
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type TabKey = "prep" | "ic" | "decided";
+type TabKey = "prep" | "ic" | "legal" | "finance" | "decided";
+
+interface FlowRow {
+  /** Project with in-app votes overlaid, so vote chips reflect the recorded state. */
+  project: ICProject;
+  workflow: ProjectWorkflow;
+  stage: Stage;
+  rejected: boolean;
+}
+
+/** Shared table shell for the IC / Legal / Finance tabs. */
+function FlowTable({
+  flowRows,
+  statusCell,
+  voteMemberName = null,
+  emptyText,
+  query,
+}: {
+  flowRows: FlowRow[];
+  statusCell: (row: FlowRow) => React.ReactNode;
+  /** IC members get a Vote column with their own vote state. */
+  voteMemberName?: string | null;
+  emptyText: string;
+  query: string;
+}) {
+  const router = useRouter();
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
+      <table className="w-full text-sm min-w-[820px]">
+        <thead>
+          <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
+            <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
+            <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
+            {voteMemberName && <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Vote</th>}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {flowRows.map((row) => {
+            const p = row.project;
+            return (
+              <tr
+                key={p.id}
+                className="hover:bg-blue-50/40 cursor-pointer"
+                onClick={() => router.push(`/project/${p.id}`)}
+              >
+                <td className="py-2.5 px-2.5 whitespace-nowrap">
+                  <Link
+                    href={`/kp/${encodeURIComponent(p.brandName)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-gray-600 hover:text-blue-700 hover:underline underline-offset-2"
+                  >
+                    {p.brandName}
+                  </Link>
+                </td>
+                <td className="py-2.5 px-2.5 font-medium text-gray-900">{p.projectName}</td>
+                <td className="py-2.5 px-2.5">
+                  <Tag label={p.approvalType} variant={approvalTypeVariant(p.approvalType)} />
+                </td>
+                <td className="py-2.5 px-2.5">
+                  <Tag label={`Asset ${p.assetClass}`} variant={assetClassVariant(p.assetClass)} />
+                </td>
+                <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
+                  {projectAmount(p)}
+                </td>
+                <td className="py-2.5 px-2.5">{statusCell(row)}</td>
+                {voteMemberName && (
+                  <td className="py-2.5 px-2.5">
+                    {!row.rejected && <VoteChip project={row.project} memberName={voteMemberName} />}
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      {flowRows.length === 0 && (
+        <p className="text-sm text-gray-400 px-6 py-8 text-center">
+          {query ? `No results for “${query}”.` : emptyText}
+        </p>
+      )}
+    </div>
+  );
+}
 
 export default function HomePage() {
   const { user } = useProfile();
   const router = useRouter();
   const [projects, setProjects] = useState<ICProject[]>(mockProjects);
   const [drafts, setDrafts] = useState<StoredSubmission[]>([]);
+  // Workflows load after mount (localStorage) — empty map matches the server render.
+  const [workflows, setWorkflows] = useState<Record<string, ProjectWorkflow>>({});
   const [query, setQuery] = useState("");
   const [assetFilter, setAssetFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
@@ -90,53 +210,72 @@ export default function HomePage() {
 
   useEffect(() => {
     seedDemoSubmissions();
-    setProjects(allReviewProjects());
+    const all = allReviewProjects();
+    setProjects(all);
     setDrafts(listSubmissions().filter((s) => s.status === "draft"));
+    setWorkflows(Object.fromEntries(all.map((p) => [p.id, getWorkflow(p.id)])));
   }, []);
 
-  const isIC = isICRole(user.role);
-  const showAll = seesAllProjects(user);
-
-  // Role scope
-  const scopedProjects = showAll
-    ? projects
-    : projects.filter(
-        (p) => p.pic.primaryAnalyst === user.name || p.pic.secondaryAnalyst === user.name
-      );
-  const scopedDrafts = isIC
-    ? []
-    : showAll
-    ? drafts
-    : drafts.filter(
-        (d) => d.form.primaryAnalyst === user.name || d.form.secondaryAnalyst === user.name
-      );
+  // Everyone on a team sees the whole pipeline — access is by Role Type, not person.
+  const isIC = user.team === "Investment Committee";
 
   // Search + filters
-  const visibleProjects = scopedProjects
+  const matching = projects
     .filter((p) => matchesQuery(query, p.brandName, p.projectName))
     .filter((p) => !assetFilter || p.assetClass === assetFilter)
     .filter((p) => !typeFilter || p.approvalType === typeFilter)
     // Organize by KP/Brand (rows for the same brand sit together), then oldest-first within a brand.
     .sort((a, b) => a.brandName.localeCompare(b.brandName) || a.submittedAt.localeCompare(b.submittedAt));
-  const visibleDrafts = scopedDrafts
+
+  // Bucket by workflow stage
+  const rows: FlowRow[] = matching.map((p) => {
+    const wf = workflows[p.id] ?? emptyWorkflow();
+    const info = stageInfo(p, wf);
+    return {
+      project: { ...p, icVotes: effectiveVotes(p, wf) },
+      workflow: wf,
+      stage: info.stage,
+      rejected: info.rejected,
+    };
+  });
+  const byStage = (s: Stage) => rows.filter((r) => r.stage === s);
+  const icRows = byStage("ic_review");
+  const legalRows = byStage("legal");
+  const financeRows = byStage("finance");
+  const onboardedFlowRows = byStage("onboarded");
+
+  const visibleDrafts = drafts
     .filter((d) => matchesQuery(query, d.form.brandName, d.form.projectName))
     .filter((d) => !assetFilter || d.form.assetClass === assetFilter)
     .filter((d) => !typeFilter || d.form.approvalType === typeFilter);
-  const visibleOnboarded = (showAll
-    ? mockOnboarded
-    : mockOnboarded.filter(
-        (o) => o.primaryAnalyst === user.name || o.secondaryAnalyst === user.name
-      )
-  )
-    .filter((o) => matchesQuery(query, o.brandName, o.projectName))
-    .filter((o) => !assetFilter || o.assetClass === assetFilter)
-    .filter((o) => !typeFilter || o.approvalType === typeFilter)
-    .sort((a, b) => b.onboardedAt.localeCompare(a.onboardedAt));
+
+  // Onboarded = projects that completed the flow in-app + the pre-existing mock rows.
+  const onboardedRows = [
+    ...onboardedFlowRows.map(({ project, workflow }) => ({
+      id: project.id,
+      brandName: project.brandName,
+      projectName: project.projectName,
+      approvalType: project.approvalType,
+      assetClass: project.assetClass,
+      requestedAmountCurrency: project.requestedAmountCurrency,
+      amount: project.trancheTargetAmount ?? project.requestedAmount,
+      icApprovedAt: icDecidedAt(project, workflow) ?? project.submittedAt,
+      onboardedAt: workflow.finance.completedAt ?? project.submittedAt,
+      href: `/project/${project.id}`,
+    })),
+    ...mockOnboarded
+      .filter((o) => matchesQuery(query, o.brandName, o.projectName))
+      .filter((o) => !assetFilter || o.assetClass === assetFilter)
+      .filter((o) => !typeFilter || o.approvalType === typeFilter)
+      .map((o) => ({ ...o, href: null as string | null })),
+  ].sort((a, b) => b.onboardedAt.localeCompare(a.onboardedAt));
 
   const tabs: Array<{ key: TabKey; label: string; count: number }> = [
     { key: "prep", label: "Funding Lead", count: visibleDrafts.length },
-    { key: "ic", label: "IC Review", count: visibleProjects.length },
-    { key: "decided", label: "Onboarded", count: visibleOnboarded.length },
+    { key: "ic", label: "IC Review", count: icRows.length },
+    { key: "legal", label: "Legal", count: legalRows.length },
+    { key: "finance", label: "Finance", count: financeRows.length },
+    { key: "decided", label: "Onboarded", count: onboardedRows.length },
   ];
 
   return (
@@ -178,7 +317,7 @@ export default function HomePage() {
             </option>
           ))}
         </select>
-        {!isIC && (
+        {canCreateSubmission(user.team) && (
           <Link
             href="/submission/new"
             className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors shrink-0"
@@ -189,31 +328,29 @@ export default function HomePage() {
         )}
       </div>
 
-      {/* Lifecycle tabs */}
-      <div className="flex items-center gap-1 border-b border-gray-200 mb-5">
-        {tabs
-          .filter((t) => !(isIC && t.key === "prep"))
-          .map((t) => (
-            <button
-              key={t.key}
-              type="button"
-              onClick={() => setTab(t.key)}
-              className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-                tab === t.key
-                  ? "border-blue-600 text-blue-700"
-                  : "border-transparent text-gray-500 hover:text-gray-800"
+      {/* Lifecycle tabs — every team sees the whole flow; edit rights are per stage */}
+      <div className="flex items-center gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
+        {tabs.map((t) => (
+          <button
+            key={t.key}
+            type="button"
+            onClick={() => setTab(t.key)}
+            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors whitespace-nowrap ${
+              tab === t.key
+                ? "border-blue-600 text-blue-700"
+                : "border-transparent text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            {t.label}
+            <span
+              className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
+                tab === t.key ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"
               }`}
             >
-              {t.label}
-              <span
-                className={`ml-1.5 text-xs px-1.5 py-0.5 rounded-full ${
-                  tab === t.key ? "bg-blue-100 text-blue-700" : "bg-gray-100 text-gray-500"
-                }`}
-              >
-                {t.count}
-              </span>
-            </button>
-          ))}
+              {t.count}
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Tab: Funding Lead — drafts in preparation, same table shape as IC Review */}
@@ -283,65 +420,44 @@ export default function HomePage() {
         </div>
       )}
 
-      {/* Tab: IC Review — one flat table, KP/Brand is just a column (rows grouped by brand order) */}
+      {/* Tab: IC Review — pending votes + rejected requests */}
       {tab === "ic" && (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
-          <table className="w-full text-sm min-w-[820px]">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
-                <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
-                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
-                {isIC && <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Vote</th>}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {visibleProjects.map((p) => (
-                <tr
-                  key={p.id}
-                  className="hover:bg-blue-50/40 cursor-pointer"
-                  onClick={() => router.push(`/project/${p.id}`)}
-                >
-                  <td className="py-2.5 px-2.5 whitespace-nowrap">
-                    <Link
-                      href={`/kp/${encodeURIComponent(p.brandName)}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-gray-600 hover:text-blue-700 hover:underline underline-offset-2"
-                    >
-                      {p.brandName}
-                    </Link>
-                  </td>
-                  <td className="py-2.5 px-2.5 font-medium text-gray-900">{p.projectName}</td>
-                  <td className="py-2.5 px-2.5">
-                    <Tag label={p.approvalType} variant={approvalTypeVariant(p.approvalType)} />
-                  </td>
-                  <td className="py-2.5 px-2.5">
-                    <Tag label={`Asset ${p.assetClass}`} variant={assetClassVariant(p.assetClass)} />
-                  </td>
-                  <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
-                    {projectAmount(p)}
-                  </td>
-                  <td className="py-2.5 px-2.5">
-                    <ReviewStatusCell submittedAt={p.submittedAt} />
-                  </td>
-                  {isIC && (
-                    <td className="py-2.5 px-2.5">
-                      <VoteChip project={p} memberName={user.name} />
-                    </td>
-                  )}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {visibleProjects.length === 0 && (
-            <p className="text-sm text-gray-400 px-6 py-8 text-center">
-              {query ? `No results for “${query}”.` : "No pending reviews for this profile."}
-            </p>
+        <FlowTable
+          flowRows={icRows}
+          voteMemberName={isIC ? user.name : null}
+          query={query}
+          statusCell={(row) => (
+            <ReviewStatusCell submittedAt={row.project.submittedAt} rejected={row.rejected} />
           )}
-        </div>
+          emptyText="No pending reviews."
+        />
+      )}
+
+      {/* Tab: Legal — IC approved, documentation in progress */}
+      {tab === "legal" && (
+        <FlowTable
+          flowRows={legalRows}
+          query={query}
+          statusCell={(row) => (
+            <StageStatusCell
+              label="With Legal"
+              since={icDecidedAt(row.project, row.workflow)}
+            />
+          )}
+          emptyText="No projects with Legal."
+        />
+      )}
+
+      {/* Tab: Finance — documentation done, KF/KCF split & disbursement in progress */}
+      {tab === "finance" && (
+        <FlowTable
+          flowRows={financeRows}
+          query={query}
+          statusCell={(row) => (
+            <StageStatusCell label="With Finance" since={row.workflow.legal.completedAt} />
+          )}
+          emptyText="No projects with Finance."
+        />
       )}
 
       {/* Tab: Onboarded — approved by IC and disbursed */}
@@ -360,11 +476,16 @@ export default function HomePage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {visibleOnboarded.map((o) => (
-                <tr key={o.id} className="hover:bg-emerald-50/40">
+              {onboardedRows.map((o) => (
+                <tr
+                  key={o.id}
+                  className={`hover:bg-emerald-50/40 ${o.href ? "cursor-pointer" : ""}`}
+                  onClick={() => o.href && router.push(o.href)}
+                >
                   <td className="py-2.5 px-2.5 whitespace-nowrap">
                     <Link
                       href={`/kp/${encodeURIComponent(o.brandName)}`}
+                      onClick={(e) => e.stopPropagation()}
                       className="text-gray-600 hover:text-blue-700 hover:underline underline-offset-2"
                     >
                       {o.brandName}
@@ -393,9 +514,9 @@ export default function HomePage() {
               ))}
             </tbody>
           </table>
-          {visibleOnboarded.length === 0 && (
+          {onboardedRows.length === 0 && (
             <p className="text-sm text-gray-400 px-6 py-8 text-center">
-              {query ? `No results for “${query}”.` : "No onboarded submissions for this profile."}
+              {query ? `No results for “${query}”.` : "No onboarded submissions."}
             </p>
           )}
         </div>
