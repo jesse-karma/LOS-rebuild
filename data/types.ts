@@ -373,4 +373,37 @@ export interface ICProject {
   approvalNotes: string;
   specialNotesForIC: string | null;
   conditionsSubsequent: string[];
+
+  /** Concentration limit check stamped at submission time (audit: shows the config it ran against). */
+  limitCheck?: ConcentrationCheck | null;
+}
+
+// ─── Concentration limit check (policy: Concentration Limits) ────────────────
+
+export interface LimitDimensionCheck {
+  dimension: "project" | "entrepreneur" | "ubo";
+  label: string;
+  /** Existing exposure before this submission (IDR). */
+  existing: number;
+  /** Existing + proposed (IDR) — what the limits are compared against. */
+  cumulative: number;
+  /** Normal maximum in IDR; null when the entity has no normal tier for this dimension. */
+  normalLimit: number | null;
+  /** Hard maximum in IDR (stretch max / fund limit). */
+  maxLimit: number;
+  status: "ok" | "stretch" | "over";
+}
+
+export interface ConcentrationCheck {
+  entity: string;
+  entityName: string;
+  basisLabel: string;
+  /** The configured base (Net Assets / Aggregate Capital Commitments) the check ran against. */
+  baseAmount: number;
+  quarterLabel: string;
+  configSetAt: string;
+  proposedAmount: number;
+  dims: LimitDimensionCheck[];
+  /** ok = proceed · stretch = full Investment Committee sign-off required · blocked = cannot proceed. */
+  outcome: "ok" | "stretch" | "blocked";
 }

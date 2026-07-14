@@ -86,7 +86,15 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
   const amount =
     project.icVoteBasisAmount ??
     (project.requestedAmountCurrency === "IDR" ? project.requestedAmount : project.requestedAmount * 16000);
-  const votingRule: 1 | 2 | 3 = amount <= 4_000_000_000 ? 1 : amount <= 6_000_000_000 ? 2 : 3;
+  // Concentration stretch tier overrides the amount tiers: full Investment Committee sign-off.
+  const stretchTier = project.limitCheck?.outcome === "stretch";
+  const votingRule: 1 | 2 | 3 = stretchTier
+    ? 3
+    : amount <= 4_000_000_000
+    ? 1
+    : amount <= 6_000_000_000
+    ? 2
+    : 3;
   const requiredVoteCount = votingRule === 1 ? 1 : votingRule === 2 ? 2 : 3;
 
   function isRequired(v: { memberId: string; isPrincipal: boolean }): boolean {
@@ -100,6 +108,9 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
     2: "IDR 4B–6B — 2 IC votes required, including Principal",
     3: "> IDR 6B — All 3 IC votes required, including Principal",
   };
+  const ruleLabel = stretchTier
+    ? "Concentration stretch tier — full Investment Committee sign-off required (all 3 votes)"
+    : RULE_LABELS[votingRule];
 
   // Other section items per CSV (Funding Source, Tax Withholdings)
   const isMembersProject = project.fundingSource.includes("Members");
@@ -184,9 +195,15 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
         )}
 
         {/* Voting rule banner */}
-        <div className="flex items-center gap-2 text-xs bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-gray-600">
-          <span className="font-semibold text-gray-700">Rule:</span>
-          <span>{RULE_LABELS[votingRule]}</span>
+        <div
+          className={`flex items-center gap-2 text-xs border rounded-lg px-3 py-2 ${
+            stretchTier
+              ? "bg-purple-50 border-purple-200 text-purple-800"
+              : "bg-gray-50 border-gray-200 text-gray-600"
+          }`}
+        >
+          <span className={`font-semibold ${stretchTier ? "text-purple-800" : "text-gray-700"}`}>Rule:</span>
+          <span>{ruleLabel}</span>
           <span className="ml-auto text-gray-400">
             {votes.filter((v) => v.vote === "Approve").length}/{requiredVoteCount} required vote
             {requiredVoteCount > 1 ? "s" : ""}

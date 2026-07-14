@@ -34,6 +34,9 @@ import {
 } from "@/lib/submissionsStore";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
+import { checkConcentration, existingBrandExposure } from "@/lib/exposure";
+import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
+import { ConcentrationPanel } from "@/components/submission/ConcentrationPanel";
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -352,6 +355,13 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     }
   }, [isNew, user]);
 
+  // Limits config lives in localStorage — resolve after mount to keep SSR/first paint identical.
+  const [limitsReady, setLimitsReady] = useState(false);
+  useEffect(() => {
+    seedDefaultLimitConfigs();
+    setLimitsReady(true);
+  }, []);
+
   const hasPlafond = form.approvalType.includes("Plafond");
   const isProjectType = form.approvalType !== "Plafond";
   // The A&D spec sections (contacts, terms, PT, memos) only apply to Asset A / D submissions.
@@ -379,6 +389,23 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const disbursementSum = filledDisbursements.reduce((sum, d) => sum + d.amount, 0);
   const disbursementMismatch =
     filledDisbursements.length > 0 && disbursementSum !== parseAmount(amountText);
+
+  // Concentration limit check — live against the current config (never cached).
+  // Fund assignment happens later at the Finance KF/KCF split; at submission the
+  // full proposed amount is checked against the on-balance (KarmaFood) limits.
+  const proposedIDR =
+    form.requestedAmountCurrency === "IDR"
+      ? parseAmount(amountText)
+      : parseAmount(amountText) * 16000;
+  const uboExisting = form.kpContacts.reduce((max, c) => Math.max(max, c.uboExposure || 0), 0);
+  const concentrationCheck =
+    limitsReady && proposedIDR > 0
+      ? checkConcentration("karmafood", {
+          proposedAmount: proposedIDR,
+          existingEntrepreneur: existingBrandExposure(form.brandName),
+          existingUbo: uboExisting > 0 ? uboExisting : null,
+        })
+      : null;
 
   function set<K extends keyof SubmissionFormData>(key: K, value: SubmissionFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -471,6 +498,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       ...submission,
       status,
       submittedAt: status === "submitted" ? new Date().toISOString() : submission.submittedAt,
+      // Stamp the check at submit time so the IC card shows the config it ran against.
+      limitCheck: status === "submitted" ? concentrationCheck : (submission.limitCheck ?? null),
       form: {
         ...form,
         // Spec S8: Submitted by is set on submission and cleared when pulled back to draft.
@@ -502,6 +531,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       errs.push("Financial Review: state which financial reports were reviewed.");
     if (!form.finReviewPeriodEnding)
       errs.push("Financial Review: the reports' period ending date is required.");
+    if (concentrationCheck?.outcome === "blocked")
+      errs.push(
+        "Concentration limit: cumulative exposure exceeds the Stretch Maximum — this submission cannot proceed. See the Concentration Limit Check panel."
+      );
     return errs;
   }
 
@@ -1760,6 +1793,9 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
             </Field>
           )}
         </FormSection>
+
+        {/* Concentration limit check — live preview against the current config */}
+        {concentrationCheck && <ConcentrationPanel check={concentrationCheck} />}
 
         {errors.length > 0 && (
           <div className="border border-red-200 bg-red-50 rounded-lg px-4 py-3 space-y-1">

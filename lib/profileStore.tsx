@@ -31,6 +31,8 @@ export const APP_USERS: AppUser[] = [
   { id: "andre", name: "Andre Sitompul", team: "Legal Team" },
   { id: "maya", name: "Maya Kusuma", team: "Finance Team" },
   { id: "bagus", name: "Bagus Santoso", team: "Finance Team" },
+  // System Admin — sees everything; co-owns global config (e.g. concentration limits) with IC.
+  { id: "sari", name: "Sari Utami", team: "System Admin" },
 ];
 
 const STORAGE_KEY = "kc-los-active-profile";

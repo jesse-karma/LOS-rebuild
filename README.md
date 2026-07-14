@@ -64,6 +64,34 @@ Buttons follow their field group: *New Submission* / *Submit to IC* are Investme
 > Credit Ops currently has view access to everything (incl. SLIK) but owns no stage gate —
 > what they edit is still to be defined.
 
+## Concentration limits
+
+Limits prevent one investee's failure from failing Karma or posting a negative fund return.
+The **Concentration Limits** admin page (header link, `/admin/limits`) holds the base values —
+editable by **IC or System Admin** only, viewable by everyone:
+
+| Entity | Basis | Limits |
+| --- | --- | --- |
+| KarmaFood (on-balance sheet) | Net Assets (Equity), reset quarterly | 3% / project · 5% / entrepreneur · 10% stretch · 15% UBO (stretch tiers need full IC sign-off) |
+| KarmaCap Fund 1 (off-balance sheet) | Aggregate Capital Commitments, locked at fund close | 10% / project · 25% / entrepreneur |
+
+The config page previews the resulting Rupiah limits **live while typing** (mirroring the policy
+doc's Implementation section), and every save is an append-only version — the change log (who,
+old → new, when) and "what was the limit at the time of a past approval" both fall out of that
+history. Checks always read the live config, never a cached figure.
+
+Enforcement happens at three points:
+
+1. **Analyst form** — a live Concentration Limit Check panel compares cumulative exposure
+   (existing + proposed) per Project / Entrepreneur / UBO. Within normal → proceeds; over normal
+   but within stretch → proceeds flagged for **full IC sign-off (all 3 votes, overriding the
+   amount tiers)**; over stretch → **hard block** on submit.
+2. **IC card** — the check is stamped at submission time and shown with the config it ran
+   against; the voting rule banner switches to the stretch rule when applicable.
+3. **Finance stage** — fund assignment happens at the KF/KCF split, so each slot is checked
+   against its own entity's limits; a slot over its limit blocks *Confirm Disbursement* until
+   the split is rebalanced.
+
 ### Teams & demo profiles
 
 There is no login — switch profiles with the picker in the header (grouped by team):
@@ -75,6 +103,7 @@ There is no login — switch profiles with the picker in the header (grouped by 
 | Credit Ops Team | Dewi Anggraini, Rizal Fauzan |
 | Legal Team | Larasati Wibowo, Andre Sitompul |
 | Finance Team | Maya Kusuma, Bagus Santoso |
+| System Admin | Sari Utami |
 
 ### Try the flow yourself
 
@@ -95,6 +124,7 @@ app/
   project/[id]/page.tsx         Project card: stepper + all sections + stage sections
   submission/new/page.tsx       New draft (Investments-only)
   submission/[id]/page.tsx      Edit draft (read-only outside Investments)
+  admin/limits/page.tsx         Concentration limits config (IC/System Admin edit; all view)
   kp/[brand]/page.tsx           Karmapreneur history page
   field-guide/                  Interactive field guide
 
@@ -115,7 +145,9 @@ lib/
   profileStore.tsx              App users (per team) + active-profile context
   submissionsStore.ts           Draft/submitted submissions (localStorage) → ICProject factory
   workflowStore.ts              ★ Post-submission state: votes, legal, finance → derived stage
-  icVoting.ts                   Amount-tiered quorum rules
+  limitsStore.ts                Concentration limit config (append-only versions = audit log)
+  exposure.ts                   Cumulative exposure calc + the concentration check itself
+  icVoting.ts                   Amount-tiered quorum rules (+ stretch-tier override)
   warnings.ts                   Card warnings engine (plafond breach, SLIK missing, DPD, …)
   assetClass.ts, bRecapRules.ts, pastProjectsRecap.ts, …
 

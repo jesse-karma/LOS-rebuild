@@ -25,6 +25,7 @@ import {
   ProjectWorkflow,
   stageInfo,
 } from "@/lib/workflowStore";
+import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
 import { ASSET_CLASSES, APPROVAL_TYPE_ASSET_CLASSES } from "@/data/masterData";
 
 function fmt(n: number): string {
@@ -210,6 +211,7 @@ export default function HomePage() {
 
   useEffect(() => {
     seedDemoSubmissions();
+    seedDefaultLimitConfigs();
     const all = allReviewProjects();
     setProjects(all);
     setDrafts(listSubmissions().filter((s) => s.status === "draft"));

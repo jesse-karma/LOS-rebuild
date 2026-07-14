@@ -7,6 +7,8 @@ import { Banknote, CheckCircle } from "lucide-react";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
 import { ProjectWorkflow, StageInfo } from "@/lib/workflowStore";
+import { checkConcentration, existingFundExposure } from "@/lib/exposure";
+import { ConcentrationCheck } from "@/data/types";
 
 interface Props {
   project: ICProject;
@@ -21,6 +23,35 @@ function fmt(n: number): string {
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** One fund slot's concentration status vs its own entity's limits. */
+function SlotCheckLine({ slot, check }: { slot: string; check: ConcentrationCheck }) {
+  const worst = check.dims.reduce(
+    (w, d) => (d.status === "over" ? "over" : d.status === "stretch" && w !== "over" ? "stretch" : w),
+    "ok" as "ok" | "stretch" | "over"
+  );
+  const entrepreneur = check.dims.find((d) => d.dimension === "entrepreneur") ?? check.dims[0];
+  const pct = ((entrepreneur.cumulative / check.baseAmount) * 100).toFixed(2);
+  return (
+    <div
+      className={`text-xs rounded px-2 py-1 border ${
+        worst === "over"
+          ? "text-red-700 bg-red-50 border-red-200"
+          : worst === "stretch"
+          ? "text-amber-700 bg-amber-50 border-amber-200"
+          : "text-emerald-700 bg-emerald-50 border-emerald-200"
+      }`}
+    >
+      <span className="font-semibold">{slot}</span> vs {check.entityName}: cumulative{" "}
+      {fmt(entrepreneur.cumulative)} = {pct}% of {check.basisLabel} ({check.quarterLabel}) —{" "}
+      {worst === "over"
+        ? "exceeds the limit; cannot disburse this split"
+        : worst === "stretch"
+        ? "over the normal maximum (stretch tier)"
+        : "within limits"}
+    </div>
+  );
 }
 
 /** Digits-only text → number (same convention as the submission form amounts). */
@@ -51,8 +82,32 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
     (project.requestedAmountCurrency === "IDR" ? project.requestedAmount : project.requestedAmount * 16000);
   const splitTotal = finance.kfAmount + finance.kcfAmount;
   const splitMismatch = splitTotal > 0 && splitTotal !== targetAmount;
+
+  // The fund assignment happens here, so each slot is checked against its own
+  // entity's concentration limits: KF vs KarmaFood (Net Assets), KCF vs
+  // KarmaCap Fund 1 (Aggregate Capital Commitments).
+  const fundExposure = existingFundExposure(project.brandName);
+  const kfCheck =
+    finance.kfAmount > 0
+      ? checkConcentration("karmafood", {
+          proposedAmount: finance.kfAmount,
+          existingEntrepreneur: fundExposure.kf,
+        })
+      : null;
+  const kcfCheck =
+    finance.kcfAmount > 0
+      ? checkConcentration("karmacap1", {
+          proposedAmount: finance.kcfAmount,
+          existingEntrepreneur: fundExposure.kcf,
+        })
+      : null;
+  const slotBlocked = kfCheck?.outcome === "blocked" || kcfCheck?.outcome === "blocked";
+
   const readyToOnboard =
-    splitTotal === targetAmount && finance.bankDetailsReviewed && !!finance.disbursementDate;
+    splitTotal === targetAmount &&
+    finance.bankDetailsReviewed &&
+    !!finance.disbursementDate &&
+    !slotBlocked;
 
   function save(next: typeof finance) {
     setFinance(next);
@@ -133,6 +188,13 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
               </span>
             )}
           </div>
+          {/* Concentration check per slot — each fund has its own limits & basis */}
+          {(kfCheck || kcfCheck) && (
+            <div className="mt-2 space-y-1.5">
+              {kfCheck && <SlotCheckLine slot="KF slot" check={kfCheck} />}
+              {kcfCheck && <SlotCheckLine slot="KCF slot" check={kcfCheck} />}
+            </div>
+          )}
         </div>
 
         {/* Bank details & disbursement date */}
@@ -194,7 +256,9 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
             </button>
             {!readyToOnboard && (
               <p className="text-xs text-gray-400 mt-1">
-                Requires a split matching the approved amount, reviewed bank details, and a disbursement date.
+                {slotBlocked
+                  ? "A fund slot exceeds its concentration limit — adjust the KF/KCF split before disbursing."
+                  : "Requires a split matching the approved amount, reviewed bank details, and a disbursement date."}
               </p>
             )}
           </div>

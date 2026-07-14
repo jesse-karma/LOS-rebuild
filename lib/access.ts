@@ -18,7 +18,8 @@ export type Team =
   | "Investment Committee"
   | "Credit Ops Team"
   | "Legal Team"
-  | "Finance Team";
+  | "Finance Team"
+  | "System Admin";
 
 export const TEAMS: Team[] = [
   "Investments Team",
@@ -26,6 +27,7 @@ export const TEAMS: Team[] = [
   "Credit Ops Team",
   "Legal Team",
   "Finance Team",
+  "System Admin",
 ];
 
 // ─── Stages (end-to-end lifecycle) ────────────────────────────────────────────
@@ -51,36 +53,39 @@ export type FieldGroup =
   | "slik" // SLIK files, exec summaries, UBO exposure — credit-sensitive personal data
   | "icDecision" // IC votes, approval notes, conditions subsequent
   | "legalChecklist" // term sheet & loan agreement execution checklist
-  | "financeOps"; // KF/KCF funding split, bank details review, disbursement
+  | "financeOps" // KF/KCF funding split, bank details review, disbursement
+  | "limitConfig"; // concentration limit base values (Net Assets / Capital Commitments)
 
 export type Access = "edit" | "view" | "hidden";
 
 interface GroupRule {
   /** Teams that can see the group's fields ("all" = every team). */
   view: Team[] | "all";
-  /** The one team that can fill/edit the group's fields and push its buttons… */
-  editBy: Team;
+  /** Teams that can fill/edit the group's fields and push its buttons… */
+  editBy: Team[];
   /** …and only while the project sits in one of these stages. */
   editAt: Stage[];
 }
 
 const MATRIX: Record<FieldGroup, GroupRule> = {
-  submission: { view: "all", editBy: "Investments Team", editAt: ["funding_lead"] },
+  submission: { view: "all", editBy: ["Investments Team"], editAt: ["funding_lead"] },
   slik: {
-    // Credit-sensitive personal data: not shown to Legal/Finance.
-    view: ["Investments Team", "Investment Committee", "Credit Ops Team"],
-    editBy: "Investments Team",
+    // Credit-sensitive personal data: not shown to Legal/Finance. System Admin sees all.
+    view: ["Investments Team", "Investment Committee", "Credit Ops Team", "System Admin"],
+    editBy: ["Investments Team"],
     editAt: ["funding_lead"],
   },
-  icDecision: { view: "all", editBy: "Investment Committee", editAt: ["ic_review"] },
-  legalChecklist: { view: "all", editBy: "Legal Team", editAt: ["legal"] },
-  financeOps: { view: "all", editBy: "Finance Team", editAt: ["finance"] },
+  icDecision: { view: "all", editBy: ["Investment Committee"], editAt: ["ic_review"] },
+  legalChecklist: { view: "all", editBy: ["Legal Team"], editAt: ["legal"] },
+  financeOps: { view: "all", editBy: ["Finance Team"], editAt: ["finance"] },
+  // Global config, not tied to a project stage (see canEditLimitConfig).
+  limitConfig: { view: "all", editBy: ["Investment Committee", "System Admin"], editAt: STAGE_ORDER },
 };
 
 export function fieldAccess(team: Team, group: FieldGroup, stage: Stage): Access {
   const rule = MATRIX[group];
   if (rule.view !== "all" && !rule.view.includes(team)) return "hidden";
-  return rule.editBy === team && rule.editAt.includes(stage) ? "edit" : "view";
+  return rule.editBy.includes(team) && rule.editAt.includes(stage) ? "edit" : "view";
 }
 
 export function canEdit(team: Team, group: FieldGroup, stage: Stage): boolean {
@@ -94,4 +99,9 @@ export function canSee(team: Team, group: FieldGroup, stage: Stage): boolean {
 /** Creating a new submission is an Investments Team action. */
 export function canCreateSubmission(team: Team): boolean {
   return team === "Investments Team";
+}
+
+/** Concentration limit config is global (stage-independent): IC or System Admin only. */
+export function canEditLimitConfig(team: Team): boolean {
+  return fieldAccess(team, "limitConfig", "funding_lead") === "edit";
 }

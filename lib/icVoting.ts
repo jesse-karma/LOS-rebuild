@@ -4,8 +4,10 @@ import { ICProject } from "@/data/types";
  * IC voting tiers (verified onboarding reference):
  * ≤ Rp 4B → IC Principal single approval; > 4–6B → ≥2 IC votes; > 6B → ≥3 votes.
  * Threshold basis = highest amount on the submission (icVoteBasisAmount when set).
+ * A concentration-limit stretch tier overrides the amount tiers: full IC sign-off.
  */
 export function requiredVotes(project: ICProject): number {
+  if (project.limitCheck?.outcome === "stretch") return 3;
   const amount = project.icVoteBasisAmount ?? project.trancheTargetAmount ?? project.requestedAmount;
   if (amount > 6_000_000_000) return 3;
   if (amount > 4_000_000_000) return 2;

@@ -20,6 +20,7 @@ import { ProjectTerms } from "@/components/sections/ProjectTerms";
 import { CreditMemoNotes } from "@/components/sections/CreditMemoNotes";
 import { PTDetails } from "@/components/sections/PTDetails";
 import { ApprovalSection } from "@/components/sections/ApprovalSection";
+import { ConcentrationPanel } from "@/components/submission/ConcentrationPanel";
 import { LegalSection } from "@/components/sections/LegalSection";
 import { FinanceSection } from "@/components/sections/FinanceSection";
 import { StageStepper } from "@/components/ui/StageStepper";
@@ -31,6 +32,7 @@ import {
   saveWorkflow,
   stageInfo as stageInfoFor,
 } from "@/lib/workflowStore";
+import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
 import { ChevronLeft } from "lucide-react";
 
 export default function ProjectPage() {
@@ -43,6 +45,7 @@ export default function ProjectPage() {
   const [workflow, setWorkflow] = useState<ProjectWorkflow | null>(null);
 
   useEffect(() => {
+    seedDefaultLimitConfigs();
     setProject(getReviewProjectById(id) ?? null);
     setWorkflow(getWorkflow(id));
   }, [id]);
@@ -153,6 +156,16 @@ export default function ProjectPage() {
       <div className="mb-4">
         <PTDetails project={project} showSlik={showSlik} />
       </div>
+
+      {/* Concentration limit check stamped at submission (audit: config in effect at the time) */}
+      {project.limitCheck && (
+        <div className="mb-4">
+          <ConcentrationPanel
+            check={project.limitCheck}
+            title="Concentration Limit Check (at submission)"
+          />
+        </div>
+      )}
 
       {/* IC decision — keyed by profile so switching users resets the section's local edit state */}
       <div className="mb-4">

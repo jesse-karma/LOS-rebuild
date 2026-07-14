@@ -1,4 +1,4 @@
-import { ApprovalType, ICProject, ReturnType } from "@/data/types";
+import { ApprovalType, ConcentrationCheck, ICProject, ReturnType } from "@/data/types";
 import { mockProjects } from "@/data/mock";
 import { isAssetB } from "@/lib/assetClass";
 import {
@@ -192,6 +192,8 @@ export interface StoredSubmission {
   /** Stamped on every save; absent (legacy drafts) means createdAt. */
   updatedAt?: string; // ISO
   submittedAt: string | null; // ISO
+  /** Concentration limit check stamped at submit time (limits config in effect then). */
+  limitCheck?: ConcentrationCheck | null;
   form: SubmissionFormData;
 }
 
@@ -733,5 +735,6 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     approvalNotes: "",
     specialNotesForIC: f.specialNotesForIC || null,
     conditionsSubsequent: [],
+    limitCheck: sub.limitCheck ?? null,
   };
 }
