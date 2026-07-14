@@ -126,6 +126,7 @@ app/
   submission/[id]/page.tsx      Edit draft (read-only outside Investments)
   admin/limits/page.tsx         Concentration limits config (IC/System Admin edit; all view)
   kp/[brand]/page.tsx           Karmapreneur history page
+  field-guide/                  Interactive field guide
 
 components/
   ui/

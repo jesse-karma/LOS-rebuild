@@ -18,13 +18,19 @@ const NAV: NavItem[] = [
     label: "Home",
     emoji: "🏠",
     // Home owns the pipeline drill-ins (projects, submissions, KP pages).
-    isActive: (p) => !p.startsWith("/admin/limits"),
+    isActive: (p) => !p.startsWith("/admin/limits") && !p.startsWith("/field-guide"),
   },
   {
     href: "/admin/limits",
     label: "Concentration Limits",
     emoji: "🎯",
     isActive: (p) => p.startsWith("/admin/limits"),
+  },
+  {
+    href: "/field-guide",
+    label: "Field Guide",
+    emoji: "📖",
+    isActive: (p) => p.startsWith("/field-guide"),
   },
 ];
 
