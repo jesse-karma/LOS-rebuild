@@ -13,9 +13,8 @@ import {
   seedDemoSubmissions,
   StoredSubmission,
 } from "@/lib/submissionsStore";
-import { mockOnboarded } from "@/data/mockOnboarded";
 import { useProfile } from "@/lib/profileStore";
-import { canCreateSubmission, Stage } from "@/lib/access";
+import { canCreateSubmission, Stage, STAGE_LABELS } from "@/lib/access";
 import { daysWaiting, needsVoteFrom, votesRemaining } from "@/lib/icVoting";
 import {
   effectiveVotes,
@@ -23,6 +22,7 @@ import {
   getWorkflow,
   icDecidedAt,
   ProjectWorkflow,
+  seedDefaultWorkflows,
   stageInfo,
 } from "@/lib/workflowStore";
 import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
@@ -41,6 +41,11 @@ function matchesQuery(query: string, brandName: string, projectName: string): bo
   const q = query.trim().toLowerCase();
   if (!q) return true;
   return brandName.toLowerCase().includes(q) || projectName.toLowerCase().includes(q);
+}
+
+/** Asset A/D sort to the top of a tab's table; Asset B (any subtype) sinks to the bottom. */
+function assetSortRank(assetClass: string): number {
+  return assetClass.startsWith("B") ? 1 : 0;
 }
 
 function projectAmount(p: ICProject): string {
@@ -73,7 +78,7 @@ function ReviewStatusCell({ submittedAt, rejected }: { submittedAt: string; reje
   );
 }
 
-/** "With Legal/Finance" + how long the stage has been holding the project. */
+/** Stage badge + how long the stage has been holding the project. */
 function StageStatusCell({ label, since }: { label: string; since: string | null }) {
   return (
     <div className="flex flex-col items-start gap-1">
@@ -109,7 +114,7 @@ function VoteChip({ project, memberName }: { project: ICProject; memberName: str
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type TabKey = "prep" | "ic" | "legal" | "finance" | "decided";
+type TabKey = "prep" | "ic" | "finance_slotting" | "legal" | "finance_disbursement";
 
 interface FlowRow {
   /** Project with in-app votes overlaid, so vote chips reflect the recorded state. */
@@ -119,7 +124,7 @@ interface FlowRow {
   rejected: boolean;
 }
 
-/** Shared table shell for the IC / Legal / Finance tabs. */
+/** Shared table shell for the IC / Finance Split / Legal Agreement / Finance Disbursed tabs. */
 function FlowTable({
   flowRows,
   statusCell,
@@ -212,6 +217,7 @@ export default function HomePage() {
   useEffect(() => {
     seedDemoSubmissions();
     seedDefaultLimitConfigs();
+    seedDefaultWorkflows();
     const all = allReviewProjects();
     setProjects(all);
     setDrafts(listSubmissions().filter((s) => s.status === "draft"));
@@ -226,8 +232,14 @@ export default function HomePage() {
     .filter((p) => matchesQuery(query, p.brandName, p.projectName))
     .filter((p) => !assetFilter || p.assetClass === assetFilter)
     .filter((p) => !typeFilter || p.approvalType === typeFilter)
-    // Organize by KP/Brand (rows for the same brand sit together), then oldest-first within a brand.
-    .sort((a, b) => a.brandName.localeCompare(b.brandName) || a.submittedAt.localeCompare(b.submittedAt));
+    // Asset A/D float to the top, Asset B sinks to the bottom; within that, grouped by
+    // KP/Brand (rows for the same brand sit together), then oldest-first within a brand.
+    .sort(
+      (a, b) =>
+        assetSortRank(a.assetClass) - assetSortRank(b.assetClass) ||
+        a.brandName.localeCompare(b.brandName) ||
+        a.submittedAt.localeCompare(b.submittedAt)
+    );
 
   // Bucket by workflow stage
   const rows: FlowRow[] = matching.map((p) => {
@@ -242,42 +254,31 @@ export default function HomePage() {
   });
   const byStage = (s: Stage) => rows.filter((r) => r.stage === s);
   const icRows = byStage("ic_review");
+  const financeSlottingRows = byStage("finance_slotting");
   const legalRows = byStage("legal");
-  const financeRows = byStage("finance");
-  const onboardedFlowRows = byStage("onboarded");
+  const financeDisbursementRows = byStage("finance_disbursement");
 
   const visibleDrafts = drafts
     .filter((d) => matchesQuery(query, d.form.brandName, d.form.projectName))
     .filter((d) => !assetFilter || d.form.assetClass === assetFilter)
-    .filter((d) => !typeFilter || d.form.approvalType === typeFilter);
-
-  // Onboarded = projects that completed the flow in-app + the pre-existing mock rows.
-  const onboardedRows = [
-    ...onboardedFlowRows.map(({ project, workflow }) => ({
-      id: project.id,
-      brandName: project.brandName,
-      projectName: project.projectName,
-      approvalType: project.approvalType,
-      assetClass: project.assetClass,
-      requestedAmountCurrency: project.requestedAmountCurrency,
-      amount: project.trancheTargetAmount ?? project.requestedAmount,
-      icApprovedAt: icDecidedAt(project, workflow) ?? project.submittedAt,
-      onboardedAt: workflow.finance.completedAt ?? project.submittedAt,
-      href: `/project/${project.id}`,
-    })),
-    ...mockOnboarded
-      .filter((o) => matchesQuery(query, o.brandName, o.projectName))
-      .filter((o) => !assetFilter || o.assetClass === assetFilter)
-      .filter((o) => !typeFilter || o.approvalType === typeFilter)
-      .map((o) => ({ ...o, href: null as string | null })),
-  ].sort((a, b) => b.onboardedAt.localeCompare(a.onboardedAt));
+    .filter((d) => !typeFilter || d.form.approvalType === typeFilter)
+    .sort(
+      (a, b) =>
+        assetSortRank(a.form.assetClass) - assetSortRank(b.form.assetClass) ||
+        a.form.brandName.localeCompare(b.form.brandName) ||
+        a.createdAt.localeCompare(b.createdAt)
+    );
 
   const tabs: Array<{ key: TabKey; label: string; count: number }> = [
-    { key: "prep", label: "Funding Lead", count: visibleDrafts.length },
-    { key: "ic", label: "IC Review", count: icRows.length },
-    { key: "legal", label: "Legal", count: legalRows.length },
-    { key: "finance", label: "Finance", count: financeRows.length },
-    { key: "decided", label: "Onboarded", count: onboardedRows.length },
+    { key: "prep", label: STAGE_LABELS.funding_lead, count: visibleDrafts.length },
+    { key: "ic", label: STAGE_LABELS.ic_review, count: icRows.length },
+    { key: "finance_slotting", label: STAGE_LABELS.finance_slotting, count: financeSlottingRows.length },
+    { key: "legal", label: STAGE_LABELS.legal, count: legalRows.length },
+    {
+      key: "finance_disbursement",
+      label: STAGE_LABELS.finance_disbursement,
+      count: financeDisbursementRows.length,
+    },
   ];
 
   return (
@@ -435,93 +436,46 @@ export default function HomePage() {
         />
       )}
 
-      {/* Tab: Legal — IC approved, documentation in progress */}
+      {/* Tab: Finance Split — IC approved, Finance assigning the KF/KCF split */}
+      {tab === "finance_slotting" && (
+        <FlowTable
+          flowRows={financeSlottingRows}
+          query={query}
+          statusCell={(row) => (
+            <StageStatusCell
+              label={STAGE_LABELS.finance_slotting}
+              since={icDecidedAt(row.project, row.workflow)}
+            />
+          )}
+          emptyText="No projects with Finance for slotting."
+        />
+      )}
+
+      {/* Tab: Legal Agreement — KF/KCF slotted, documentation in progress */}
       {tab === "legal" && (
         <FlowTable
           flowRows={legalRows}
           query={query}
           statusCell={(row) => (
-            <StageStatusCell
-              label="With Legal"
-              since={icDecidedAt(row.project, row.workflow)}
-            />
+            <StageStatusCell label={STAGE_LABELS.legal} since={row.workflow.finance.slottedAt} />
           )}
           emptyText="No projects with Legal."
         />
       )}
 
-      {/* Tab: Finance — documentation done, KF/KCF split & disbursement in progress */}
-      {tab === "finance" && (
+      {/* Tab: Finance Disbursed — documentation done, bank details & disbursement in progress */}
+      {tab === "finance_disbursement" && (
         <FlowTable
-          flowRows={financeRows}
+          flowRows={financeDisbursementRows}
           query={query}
           statusCell={(row) => (
-            <StageStatusCell label="With Finance" since={row.workflow.legal.completedAt} />
+            <StageStatusCell
+              label={STAGE_LABELS.finance_disbursement}
+              since={row.workflow.legal.completedAt}
+            />
           )}
-          emptyText="No projects with Finance."
+          emptyText="No projects awaiting disbursement."
         />
-      )}
-
-      {/* Tab: Onboarded — approved by IC and disbursed */}
-      {tab === "decided" && (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
-          <table className="w-full text-sm min-w-[820px]">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
-                <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
-                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">IC Approved</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {onboardedRows.map((o) => (
-                <tr
-                  key={o.id}
-                  className={`hover:bg-emerald-50/40 ${o.href ? "cursor-pointer" : ""}`}
-                  onClick={() => o.href && router.push(o.href)}
-                >
-                  <td className="py-2.5 px-2.5 whitespace-nowrap">
-                    <Link
-                      href={`/kp/${encodeURIComponent(o.brandName)}`}
-                      onClick={(e) => e.stopPropagation()}
-                      className="text-gray-600 hover:text-blue-700 hover:underline underline-offset-2"
-                    >
-                      {o.brandName}
-                    </Link>
-                  </td>
-                  <td className="py-2.5 px-2.5 font-medium text-gray-900">{o.projectName}</td>
-                  <td className="py-2.5 px-2.5">
-                    <Tag label={o.approvalType} variant={approvalTypeVariant(o.approvalType)} />
-                  </td>
-                  <td className="py-2.5 px-2.5">
-                    <Tag label={`Asset ${o.assetClass}`} variant={assetClassVariant(o.assetClass)} />
-                  </td>
-                  <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
-                    {o.requestedAmountCurrency === "IDR" ? fmt(o.amount) : `USD ${o.amount.toLocaleString()}`}
-                  </td>
-                  <td className="py-2.5 px-2.5 text-gray-500 whitespace-nowrap">{fmtDate(o.icApprovedAt)}</td>
-                  <td className="py-2.5 px-2.5">
-                    <span
-                      className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-emerald-50 text-emerald-700 border-emerald-200 whitespace-nowrap"
-                      title={`Onboarded ${fmtDate(o.onboardedAt)}`}
-                    >
-                      Onboarded
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {onboardedRows.length === 0 && (
-            <p className="text-sm text-gray-400 px-6 py-8 text-center">
-              {query ? `No results for “${query}”.` : "No onboarded submissions."}
-            </p>
-          )}
-        </div>
       )}
     </div>
   );

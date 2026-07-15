@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { ICProject } from "@/data/types";
 import { allReviewProjects } from "@/lib/submissionsStore";
+import { existingUboExposure } from "@/lib/exposure";
+import { typeLabelForAssetClass } from "@/data/masterData";
 import { Tag, approvalTypeVariant, assetClassVariant } from "@/components/ui/Tag";
 import { fmt, fmtDate } from "@/components/ui/DataRow";
 
@@ -118,7 +120,7 @@ export default function KPPage() {
                   {fmt(p.trancheTargetAmount ?? p.requestedAmount, p.requestedAmountCurrency)}
                 </span>
               </div>
-              <Tag label={p.approvalType} variant={approvalTypeVariant(p.approvalType)} />
+              <Tag label={typeLabelForAssetClass(p.assetClass)} variant={approvalTypeVariant(p.approvalType)} />
             </div>
           </Link>
         ))}
@@ -139,16 +141,19 @@ export default function KPPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
-                {latest.kpContacts.map((c) => (
-                  <tr key={c.id}>
-                    <td className="py-2.5 px-4 font-medium text-gray-900">{c.name}</td>
-                    <td className="py-2.5 px-4 text-gray-600">{c.role}</td>
-                    <td className="py-2.5 px-4 text-gray-600">{c.isKeyPerson ? "Yes" : "No"}</td>
-                    <td className="py-2.5 px-4 text-gray-600">
-                      {c.uboExposure > 0 ? fmt(c.uboExposure) : "—"}
-                    </td>
-                  </tr>
-                ))}
+                {latest.kpContacts.map((c) => {
+                  const uboExposure = existingUboExposure(c.name);
+                  return (
+                    <tr key={c.id}>
+                      <td className="py-2.5 px-4 font-medium text-gray-900">{c.name}</td>
+                      <td className="py-2.5 px-4 text-gray-600">{c.role}</td>
+                      <td className="py-2.5 px-4 text-gray-600">{c.isKeyPerson ? "Yes" : "No"}</td>
+                      <td className="py-2.5 px-4 text-gray-600">
+                        {uboExposure > 0 ? fmt(uboExposure) : "—"}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

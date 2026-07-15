@@ -93,7 +93,7 @@ export function PTDetails({ project, showSlik = true }: Props) {
         </table>
         {!showSlik && (
           <p className="text-[11px] text-gray-400 mt-2 px-1">
-            SLIK details are visible to the Investments Team, Credit Ops Team, and IC only.
+            SLIK details are visible to the Investments Team and IC only.
           </p>
         )}
       </div>

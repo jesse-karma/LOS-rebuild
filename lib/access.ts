@@ -2,21 +2,19 @@
  * Team-based access control (July 2026 feedback).
  *
  * Access is governed by Role Type (team), never by person: any member of a
- * team can see and do everything the team can — small teams (Credit Ops,
- * Legal, Finance are 2 people each) must be able to cover for each other,
- * and Investments shares context across sectors. No hierarchies within a
- * team for now.
+ * team can see and do everything the team can — small teams (Legal, Finance
+ * are 2 people each) must be able to cover for each other, and Investments
+ * shares context across sectors. No hierarchies within a team for now.
  *
  * Controls are field-level (see / edit / push a button) AND contingent on
  * stage: e.g. Investments can edit the credit memo while the lead is in
  * preparation, but not once it's submitted to IC — and certainly not while
- * Finance is splitting the funding between KF/KCF.
+ * Finance is slotting the KF/KCF split.
  */
 
 export type Team =
   | "Investments Team"
   | "Investment Committee"
-  | "Credit Ops Team"
   | "Legal Team"
   | "Finance Team"
   | "System Admin";
@@ -24,7 +22,6 @@ export type Team =
 export const TEAMS: Team[] = [
   "Investments Team",
   "Investment Committee",
-  "Credit Ops Team",
   "Legal Team",
   "Finance Team",
   "System Admin",
@@ -32,15 +29,29 @@ export const TEAMS: Team[] = [
 
 // ─── Stages (end-to-end lifecycle) ────────────────────────────────────────────
 
-export type Stage = "funding_lead" | "ic_review" | "legal" | "finance" | "onboarded";
+export type Stage =
+  | "funding_lead"
+  | "ic_review"
+  | "finance_slotting"
+  | "legal"
+  | "finance_disbursement"
+  | "onboarded";
 
-export const STAGE_ORDER: Stage[] = ["funding_lead", "ic_review", "legal", "finance", "onboarded"];
+export const STAGE_ORDER: Stage[] = [
+  "funding_lead",
+  "ic_review",
+  "finance_slotting",
+  "legal",
+  "finance_disbursement",
+  "onboarded",
+];
 
 export const STAGE_LABELS: Record<Stage, string> = {
   funding_lead: "Funding Lead",
   ic_review: "IC Review",
-  legal: "Legal",
-  finance: "Finance",
+  finance_slotting: "Finance Split",
+  legal: "Legal Agreement",
+  finance_disbursement: "Finance Disbursed",
   onboarded: "Onboarded",
 };
 
@@ -52,8 +63,9 @@ export type FieldGroup =
   | "submission" // the analyst form: project details, terms, memos, notes for IC
   | "slik" // SLIK files, exec summaries, UBO exposure — credit-sensitive personal data
   | "icDecision" // IC votes, approval notes, conditions subsequent
+  | "financeSlotting" // KF/KCF funding split
   | "legalChecklist" // term sheet & loan agreement execution checklist
-  | "financeOps" // KF/KCF funding split, bank details review, disbursement
+  | "financeDisbursement" // bank details review, disbursement
   | "limitConfig"; // concentration limit base values (Net Assets / Capital Commitments)
 
 export type Access = "edit" | "view" | "hidden";
@@ -71,13 +83,14 @@ const MATRIX: Record<FieldGroup, GroupRule> = {
   submission: { view: "all", editBy: ["Investments Team"], editAt: ["funding_lead"] },
   slik: {
     // Credit-sensitive personal data: not shown to Legal/Finance. System Admin sees all.
-    view: ["Investments Team", "Investment Committee", "Credit Ops Team", "System Admin"],
+    view: ["Investments Team", "Investment Committee", "System Admin"],
     editBy: ["Investments Team"],
     editAt: ["funding_lead"],
   },
   icDecision: { view: "all", editBy: ["Investment Committee"], editAt: ["ic_review"] },
+  financeSlotting: { view: "all", editBy: ["Finance Team"], editAt: ["finance_slotting"] },
   legalChecklist: { view: "all", editBy: ["Legal Team"], editAt: ["legal"] },
-  financeOps: { view: "all", editBy: ["Finance Team"], editAt: ["finance"] },
+  financeDisbursement: { view: "all", editBy: ["Finance Team"], editAt: ["finance_disbursement"] },
   // Global config, not tied to a project stage (see canEditLimitConfig).
   limitConfig: { view: "all", editBy: ["Investment Committee", "System Admin"], editAt: STAGE_ORDER },
 };

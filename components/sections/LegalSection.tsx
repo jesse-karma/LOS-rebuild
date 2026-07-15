@@ -118,7 +118,7 @@ export function LegalSection({ workflow, stageInfo, onWorkflowChange }: Props) {
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
             <CheckCircle className="w-5 h-5 text-emerald-600" />
             <div className="text-sm font-semibold text-emerald-800">
-              Documentation complete — handed off to Finance for the KF/KCF split & disbursement.
+              Documentation complete — handed off to Finance for disbursement.
             </div>
           </div>
         )}

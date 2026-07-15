@@ -24,9 +24,7 @@ export const APP_USERS: AppUser[] = [
   { id: "ben", name: "Ben Elberger", team: "Investment Committee", icPrincipal: true },
   { id: "aldi", name: "Aldi Haryopratomo", team: "Investment Committee" },
   { id: "junaidi", name: "Junaidi", team: "Investment Committee" },
-  // Credit Ops / Legal / Finance — 2 people each; either member covers for the other.
-  { id: "dewi", name: "Dewi Anggraini", team: "Credit Ops Team" },
-  { id: "rizal", name: "Rizal Fauzan", team: "Credit Ops Team" },
+  // Legal / Finance — 2 people each; either member covers for the other.
   { id: "laras", name: "Larasati Wibowo", team: "Legal Team" },
   { id: "andre", name: "Andre Sitompul", team: "Legal Team" },
   { id: "maya", name: "Maya Kusuma", team: "Finance Team" },

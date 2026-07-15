@@ -1,5 +1,6 @@
 import { ICProject } from "@/data/types";
 import { Tag, approvalTypeVariant } from "@/components/ui/Tag";
+import { typeLabelForAssetClass } from "@/data/masterData";
 
 interface Props {
   project: ICProject;
@@ -24,7 +25,7 @@ export function ProjectHeader({ project }: Props) {
         </div>
         <div className="flex flex-col items-end gap-2 shrink-0">
           <Tag
-            label={project.approvalType}
+            label={typeLabelForAssetClass(project.assetClass)}
             variant={approvalTypeVariant(project.approvalType)}
             className="text-sm px-3 py-1"
           />

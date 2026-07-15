@@ -46,7 +46,7 @@ function SlotCheckLine({ slot, check }: { slot: string; check: ConcentrationChec
       <span className="font-semibold">{slot}</span> vs {check.entityName}: cumulative{" "}
       {fmt(entrepreneur.cumulative)} = {pct}% of {check.basisLabel} ({check.quarterLabel}) —{" "}
       {worst === "over"
-        ? "exceeds the limit; cannot disburse this split"
+        ? "exceeds the limit; cannot slot this split"
         : worst === "stretch"
         ? "over the normal maximum (stretch tier)"
         : "within limits"}
@@ -64,17 +64,17 @@ function formatAmountInput(n: number): string {
   return n > 0 ? new Intl.NumberFormat("id-ID").format(n) : "";
 }
 
-/** Finance stage — KF/KCF funding split + disbursement; completing it onboards the project. */
-export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange }: Props) {
+/** Finance Slotting stage — the KF/KCF funding split; this is the only real concentration check in the app. */
+export function FinanceSlottingSection({ project, workflow, stageInfo, onWorkflowChange }: Props) {
   const { user } = useProfile();
-  const editable = canEdit(user.team, "financeOps", stageInfo.stage);
+  const editable = canEdit(user.team, "financeSlotting", stageInfo.stage);
 
   const [finance, setFinance] = useState(workflow.finance);
   const [amountTexts, setAmountTexts] = useState({
     kf: formatAmountInput(workflow.finance.kfAmount),
     kcf: formatAmountInput(workflow.finance.kcfAmount),
   });
-  const done = !!workflow.finance.completedAt;
+  const done = !!workflow.finance.slottedAt;
 
   // Split must cover the approved amount (IDR; USD projects use the 16k basis used for voting).
   const targetAmount =
@@ -103,11 +103,7 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
       : null;
   const slotBlocked = kfCheck?.outcome === "blocked" || kcfCheck?.outcome === "blocked";
 
-  const readyToOnboard =
-    splitTotal === targetAmount &&
-    finance.bankDetailsReviewed &&
-    !!finance.disbursementDate &&
-    !slotBlocked;
+  const readyToSlot = splitTotal === targetAmount && !slotBlocked;
 
   function save(next: typeof finance) {
     setFinance(next);
@@ -120,13 +116,13 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
     save({ ...finance, [key === "kf" ? "kfAmount" : "kcfAmount"]: value });
   }
 
-  function handleOnboard() {
-    save({ ...finance, completedAt: new Date().toISOString(), completedBy: user.name });
+  function handleConfirmSlot() {
+    save({ ...finance, slottedAt: new Date().toISOString(), slottedBy: user.name });
   }
 
   const badge = done ? (
     <span className="text-xs font-medium text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
-      Onboarded {fmtDate(workflow.finance.completedAt!)} · {workflow.finance.completedBy}
+      Slotted {fmtDate(workflow.finance.slottedAt!)} · {workflow.finance.slottedBy}
     </span>
   ) : (
     <span className="text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
@@ -138,12 +134,12 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
     "w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:bg-gray-50 disabled:text-gray-500";
 
   return (
-    <SectionCard title="Finance — Funding Split & Disbursement" badge={badge}>
+    <SectionCard title="Finance — Fund Slotting (KF/KCF)" badge={badge}>
       <div className="mt-2 space-y-4">
         {!editable && !done && (
           <p className="text-xs text-gray-400 flex items-center gap-1.5">
             <Banknote className="w-3.5 h-3.5" />
-            Editable by the Finance Team while the project is in the Finance stage. Your team ({user.team})
+            Editable by the Finance Team while the project is in Finance Slotting. Your team ({user.team})
             has view access.
           </p>
         )}
@@ -151,7 +147,7 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
         {/* KF / KCF split */}
         <div>
           <div className="text-xs text-gray-500 mb-2">
-            Disbursement split — must add up to <span className="font-semibold text-gray-700">{fmt(targetAmount)}</span>
+            Fund split — must add up to <span className="font-semibold text-gray-700">{fmt(targetAmount)}</span>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <label className="block">
@@ -197,68 +193,20 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
           )}
         </div>
 
-        {/* Bank details & disbursement date */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-end">
-          <label
-            className={`flex items-center gap-2.5 text-sm px-3 py-2 rounded-lg border ${
-              finance.bankDetailsReviewed
-                ? "border-emerald-200 bg-emerald-50/50 text-gray-800"
-                : "border-gray-200 text-gray-700"
-            } ${editable && !done ? "cursor-pointer" : ""}`}
-          >
-            <input
-              type="checkbox"
-              checked={finance.bankDetailsReviewed}
-              disabled={!editable || done}
-              onChange={(e) => save({ ...finance, bankDetailsReviewed: e.target.checked })}
-              className="rounded border-gray-300"
-            />
-            Bank details for PT reviewed by Finance
-          </label>
-          <label className="block">
-            <span className="text-xs text-gray-500">Disbursement Date</span>
-            <input
-              type="date"
-              className={inputCls}
-              value={finance.disbursementDate}
-              disabled={!editable || done}
-              onChange={(e) => save({ ...finance, disbursementDate: e.target.value })}
-            />
-          </label>
-        </div>
-
-        <div>
-          <div className="text-xs text-gray-500 mb-1">Finance Notes</div>
-          {editable && !done ? (
-            <textarea
-              value={finance.notes}
-              onChange={(e) => setFinance((f) => ({ ...f, notes: e.target.value }))}
-              onBlur={() => save(finance)}
-              rows={3}
-              placeholder="Plafond updates, tranche instructions, FX notes…"
-              className="w-full border border-gray-200 rounded-lg p-3 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none"
-            />
-          ) : (
-            <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 whitespace-pre-wrap min-h-[44px]">
-              {workflow.finance.notes || <span className="text-gray-400 italic">No notes.</span>}
-            </div>
-          )}
-        </div>
-
         {editable && !done && (
           <div>
             <button
-              onClick={handleOnboard}
-              disabled={!readyToOnboard}
-              className="px-5 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-lg hover:bg-emerald-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              onClick={handleConfirmSlot}
+              disabled={!readyToSlot}
+              className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
-              Confirm Disbursement & Mark Onboarded
+              Confirm Fund Slot → Hand off to Legal
             </button>
-            {!readyToOnboard && (
+            {!readyToSlot && (
               <p className="text-xs text-gray-400 mt-1">
                 {slotBlocked
-                  ? "A fund slot exceeds its concentration limit — adjust the KF/KCF split before disbursing."
-                  : "Requires a split matching the approved amount, reviewed bank details, and a disbursement date."}
+                  ? "A fund slot exceeds its concentration limit — adjust the KF/KCF split before proceeding."
+                  : "Requires a split matching the approved amount."}
               </p>
             )}
           </div>
@@ -267,7 +215,7 @@ export function FinanceSection({ project, workflow, stageInfo, onWorkflowChange 
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
             <CheckCircle className="w-5 h-5 text-emerald-600" />
             <div className="text-sm font-semibold text-emerald-800">
-              Disbursement confirmed — the project is Onboarded.
+              Fund slot confirmed — handed off to Legal for documentation.
             </div>
           </div>
         )}

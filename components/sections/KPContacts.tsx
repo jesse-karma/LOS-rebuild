@@ -2,6 +2,7 @@ import { ICProject } from "@/data/types";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { fmt } from "@/components/ui/DataRow";
 import { ExternalLink } from "lucide-react";
+import { existingUboExposure, uboExposureLevel } from "@/lib/exposure";
 
 interface Props {
   project: ICProject;
@@ -10,6 +11,10 @@ interface Props {
 }
 
 export function KPContacts({ project, showSlik = true }: Props) {
+  const proposedIDR =
+    project.requestedAmountCurrency === "IDR"
+      ? project.trancheTargetAmount ?? project.requestedAmount
+      : (project.trancheTargetAmount ?? project.requestedAmount) * 16000;
   const hasSlikMissing = project.kpContacts.some((c) => c.isKeyPerson && !c.slikFileUrl);
 
   const badge =
@@ -22,11 +27,13 @@ export function KPContacts({ project, showSlik = true }: Props) {
   return (
     <SectionCard title="Karmapreneur Contacts" badge={badge}>
       <div className="mt-2 overflow-x-auto -mx-1">
-        <table className={`w-full text-xs ${showSlik ? "min-w-[700px]" : "min-w-[520px]"}`}>
+        <table className={`w-full text-xs ${showSlik ? "min-w-[1000px]" : "min-w-[800px]"}`}>
           <thead>
             <tr className="border-b text-gray-400 text-left">
               <th className="pb-2 pr-2 font-medium w-6">#</th>
               <th className="pb-2 pr-3 font-medium">Name</th>
+              <th className="pb-2 pr-3 font-medium">WhatsApp</th>
+              <th className="pb-2 pr-3 font-medium">Email</th>
               <th className="pb-2 pr-3 font-medium">Role</th>
               <th className="pb-2 pr-3 font-medium">Notes</th>
               <th className="pb-2 pr-3 font-medium">Connections</th>
@@ -55,6 +62,12 @@ export function KPContacts({ project, showSlik = true }: Props) {
                   <td className="py-3 pr-2 text-gray-400 font-medium">{i + 1}</td>
                   <td className="py-3 pr-3 font-semibold text-gray-900 whitespace-nowrap">
                     {contact.name}
+                  </td>
+                  <td className="py-3 pr-3 text-gray-700">
+                    {contact.whatsapp || <span className="text-gray-300">—</span>}
+                  </td>
+                  <td className="py-3 pr-3 text-gray-700">
+                    {contact.email || <span className="text-gray-300">—</span>}
                   </td>
                   <td className="py-3 pr-3 text-gray-700">{contact.role}</td>
                   <td className="py-3 pr-3 text-gray-700 max-w-[180px]">
@@ -100,11 +113,28 @@ export function KPContacts({ project, showSlik = true }: Props) {
                         )}
                       </td>
                       <td className="py-3 text-gray-700">
-                        {contact.uboExposure > 0 ? (
-                          <span className="font-medium">{fmt(contact.uboExposure)}</span>
-                        ) : (
-                          <span className="text-gray-300">—</span>
-                        )}
+                        {(() => {
+                          const existing = existingUboExposure(contact.name);
+                          const includingProposed = proposedIDR > 0 ? existing + proposedIDR : null;
+                          const level = uboExposureLevel(includingProposed ?? existing);
+                          if (existing === 0 && includingProposed === null) {
+                            return <span className="text-gray-300">—</span>;
+                          }
+                          return (
+                            <span
+                              className={
+                                level === "over"
+                                  ? "font-medium text-red-700"
+                                  : level === "stretch"
+                                  ? "font-medium text-amber-700"
+                                  : "font-medium"
+                              }
+                            >
+                              {fmt(existing)}
+                              {includingProposed !== null && ` (${fmt(includingProposed)} incl. this project)`}
+                            </span>
+                          );
+                        })()}
                       </td>
                     </>
                   )}
@@ -115,7 +145,7 @@ export function KPContacts({ project, showSlik = true }: Props) {
         </table>
         {!showSlik && (
           <p className="text-[11px] text-gray-400 mt-2 px-1">
-            SLIK &amp; UBO exposure details are visible to the Investments Team, Credit Ops Team, and IC only.
+            SLIK &amp; UBO exposure details are visible to the Investments Team and IC only.
           </p>
         )}
       </div>

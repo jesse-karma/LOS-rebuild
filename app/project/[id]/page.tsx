@@ -20,9 +20,9 @@ import { ProjectTerms } from "@/components/sections/ProjectTerms";
 import { CreditMemoNotes } from "@/components/sections/CreditMemoNotes";
 import { PTDetails } from "@/components/sections/PTDetails";
 import { ApprovalSection } from "@/components/sections/ApprovalSection";
-import { ConcentrationPanel } from "@/components/submission/ConcentrationPanel";
 import { LegalSection } from "@/components/sections/LegalSection";
-import { FinanceSection } from "@/components/sections/FinanceSection";
+import { FinanceSlottingSection } from "@/components/sections/FinanceSlottingSection";
+import { FinanceDisbursementSection } from "@/components/sections/FinanceDisbursementSection";
 import { StageStepper } from "@/components/ui/StageStepper";
 import { useProfile } from "@/lib/profileStore";
 import { canSee } from "@/lib/access";
@@ -149,23 +149,18 @@ export default function ProjectPage() {
 
       {/* Credit Memo & Notes */}
       <div className="mb-4">
-        <CreditMemoNotes project={project} />
+        <CreditMemoNotes
+          key={user.id}
+          project={project}
+          workflow={wf}
+          onWorkflowChange={handleWorkflowChange}
+        />
       </div>
 
       {/* PT Details */}
       <div className="mb-4">
         <PTDetails project={project} showSlik={showSlik} />
       </div>
-
-      {/* Concentration limit check stamped at submission (audit: config in effect at the time) */}
-      {project.limitCheck && (
-        <div className="mb-4">
-          <ConcentrationPanel
-            check={project.limitCheck}
-            title="Concentration Limit Check (at submission)"
-          />
-        </div>
-      )}
 
       {/* IC decision — keyed by profile so switching users resets the section's local edit state */}
       <div className="mb-4">
@@ -179,7 +174,21 @@ export default function ProjectPage() {
       </div>
 
       {/* Post-IC stages appear once the project reaches them */}
-      {(stage.stage === "legal" || stage.stage === "finance" || stage.stage === "onboarded") && (
+      {(stage.stage === "finance_slotting" ||
+        stage.stage === "legal" ||
+        stage.stage === "finance_disbursement" ||
+        stage.stage === "onboarded") && (
+        <div className="mb-4">
+          <FinanceSlottingSection
+            key={user.id}
+            project={project}
+            workflow={wf}
+            stageInfo={stage}
+            onWorkflowChange={handleWorkflowChange}
+          />
+        </div>
+      )}
+      {(stage.stage === "legal" || stage.stage === "finance_disbursement" || stage.stage === "onboarded") && (
         <div className="mb-4">
           <LegalSection
             key={user.id}
@@ -189,11 +198,10 @@ export default function ProjectPage() {
           />
         </div>
       )}
-      {(stage.stage === "finance" || stage.stage === "onboarded") && (
+      {(stage.stage === "finance_disbursement" || stage.stage === "onboarded") && (
         <div className="mb-4">
-          <FinanceSection
+          <FinanceDisbursementSection
             key={user.id}
-            project={project}
             workflow={wf}
             stageInfo={stage}
             onWorkflowChange={handleWorkflowChange}

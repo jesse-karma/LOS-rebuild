@@ -60,6 +60,39 @@ export function existingFundExposure(brandName: string): { kf: number; kcf: numb
   return { kf: mockBrandOutstanding(brandName) + funds.kf, kcf: funds.kcf };
 }
 
+/** Every distinct brand a person appears as a KP contact for, across mock + in-app submissions. */
+function brandsForPerson(personName: string): Set<string> {
+  const key = personName.trim().toLowerCase();
+  const brands = new Set<string>();
+  for (const p of mockProjects) {
+    if (p.kpContacts.some((c) => c.name.trim().toLowerCase() === key)) brands.add(p.brandName);
+  }
+  for (const p of allReviewProjects()) {
+    if (p.kpContacts.some((c) => c.name.trim().toLowerCase() === key)) brands.add(p.brandName);
+  }
+  return brands;
+}
+
+/**
+ * Cross-brand UBO exposure: total existing exposure across every brand this person is a
+ * KP contact for (a UBO commonly controls more than one Karmapreneur/brand).
+ */
+export function existingUboExposure(personName: string): number {
+  if (!personName.trim()) return 0;
+  let total = 0;
+  for (const brand of brandsForPerson(personName)) {
+    total += existingBrandExposure(brand);
+  }
+  return total;
+}
+
+/** UBO Exposure warning thresholds: > Rp 8bn is a hard red flag, Rp 4–8bn is a yellow one. */
+export function uboExposureLevel(amountIDR: number): "over" | "stretch" | "ok" {
+  if (amountIDR > 8_000_000_000) return "over";
+  if (amountIDR > 4_000_000_000) return "stretch";
+  return "ok";
+}
+
 // ─── The check itself ─────────────────────────────────────────────────────────
 
 export interface CheckInputs {

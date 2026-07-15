@@ -11,6 +11,7 @@ import {
   formatMinInvestorReturnPaymentType,
   formatMinReturnMultiple,
   formatMinReturnPayableMonths,
+  previousProjectOfSameType,
 } from "@/lib/revShareTermsComparison";
 import {
   effectiveDailyRecap,
@@ -46,6 +47,15 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
 
   const rst = project.revenueShareTerms;
   const frt = project.fixedReturnTerms;
+
+  // Baseline for the "different from previous project of the same Financing Type" warnings.
+  const prevProject = previousProjectOfSameType(project, projects);
+  const prevSnapshot = prevProject ? getRecapRowRevShareSnapshot(project, prevProject) : null;
+  const differsWarning = (
+    <div className="mt-0.5 text-[9px] text-red-700 bg-red-50 border border-red-200 rounded px-1 py-0.5 inline-block">
+      Warning: Different from previous project of the same Financing Type
+    </div>
+  );
 
   const lateFeeCell = (lf: {
     basis: string;
@@ -94,7 +104,8 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         {
           label: "Financing Type",
           cell: (p) => {
-            const fixedWarn = p.returnType === "Fixed Return" && p.projectedTermMonths > 36;
+            const fixedReturnLongWarn = p.returnType === "Fixed Return" && p.projectedTermMonths > 36;
+            const generalLongWarn = p.projectedTermMonths > 60;
             return (
               <div>
                 <div>
@@ -102,9 +113,14 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
                     ? project.masterReturnType
                     : returnTypeLabel(p.returnType)}
                 </div>
-                {fixedWarn && (
+                {fixedReturnLongWarn && (
+                  <div className="mt-0.5 text-[9px] text-red-700 bg-red-50 border border-red-200 rounded px-1 py-0.5 inline-block">
+                    Warning: &gt;36 months on Fixed Return
+                  </div>
+                )}
+                {generalLongWarn && (
                   <div className="mt-0.5 text-[9px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5 inline-block">
-                    Warning: &gt;{p.projectedTermMonths > 60 ? 60 : 36} months on Fixed Return
+                    Warning: &gt;60 months (long)
                   </div>
                 )}
               </div>
@@ -178,7 +194,20 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         },
         {
           label: "Target Carry",
-          cell: (p) => (isLiveRow(p) && rst ? `${fmtPct(rst.carryPct)} ${rst.carryType}` : dash),
+          cell: (p) => {
+            if (!isLiveRow(p) || !rst) return dash;
+            const mismatch =
+              prevSnapshot?.carryPct !== undefined &&
+              (prevSnapshot.carryPct !== rst.carryPct || prevSnapshot.carryType !== rst.carryType);
+            return (
+              <div>
+                <div>
+                  {fmtPct(rst.carryPct)} {rst.carryType}
+                </div>
+                {mismatch && differsWarning}
+              </div>
+            );
+          },
         },
       ],
     },
@@ -269,9 +298,21 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
           cell: (p) => {
             const s = getRecapRowRevShareSnapshot(project, p);
             if (!s || s.minReturn == null) return dash;
-            return `${formatMinInvestorReturnPaymentType(s)} ${formatMinReturnMultiple(
+            const text = `${formatMinInvestorReturnPaymentType(s)} ${formatMinReturnMultiple(
               s
             )} at ${formatMinReturnPayableMonths(s)}`;
+            if (!isLiveRow(p)) return text;
+            const mismatch =
+              !!prevSnapshot &&
+              (prevSnapshot.minReturn !== s.minReturn ||
+                prevSnapshot.minReturnMultiple !== s.minReturnMultiple ||
+                prevSnapshot.minReturnPayableMonths !== s.minReturnPayableMonths);
+            return (
+              <div>
+                <div>{text}</div>
+                {mismatch && differsWarning}
+              </div>
+            );
           },
         },
         {
@@ -291,7 +332,15 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
                   {p.overdueHistory.map((ev, i) => (
                     <div key={i} className="text-[10px] text-gray-500">
                       {fmtDate(ev.dueDate)} — {ev.daysOverdue}d —{" "}
-                      <span className={ev.status === "Unpaid" ? "text-red-600 font-medium" : "text-gray-400"}>
+                      <span
+                        className={
+                          ev.status === "Unpaid"
+                            ? "text-red-600 font-medium"
+                            : ev.status === "Partial Paid"
+                            ? "text-amber-600 font-medium"
+                            : "text-gray-400"
+                        }
+                      >
                         {ev.status}
                       </span>
                     </div>
@@ -330,8 +379,18 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         },
         {
           label: "Source of Revenue Accrued",
-          cell: (p) =>
-            isLiveRow(p) && rst ? <span className="leading-snug">{rst.sourceOfRevenueAccrued}</span> : dash,
+          cell: (p) => {
+            if (!isLiveRow(p) || !rst) return dash;
+            const mismatch =
+              prevSnapshot?.sourceOfRevenueAccrued !== undefined &&
+              prevSnapshot.sourceOfRevenueAccrued !== rst.sourceOfRevenueAccrued;
+            return (
+              <div>
+                <span className="leading-snug">{rst.sourceOfRevenueAccrued}</span>
+                {mismatch && differsWarning}
+              </div>
+            );
+          },
         },
       ],
     },
@@ -340,15 +399,38 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
       rows: [
         {
           label: "Payment Frequency",
-          cell: (p) =>
-            isLiveRow(p) && rst
-              ? `${rst.frequency}${rst.dueDate && rst.dueDate !== "—" ? `, ${rst.dueDate}` : ""}`
-              : dash,
+          cell: (p) => {
+            if (!isLiveRow(p) || !rst) return dash;
+            const text = `${rst.frequency}${rst.dueDate && rst.dueDate !== "—" ? `, ${rst.dueDate}` : ""}`;
+            const mismatch =
+              (prevSnapshot?.frequency !== undefined && prevSnapshot.frequency !== rst.frequency) ||
+              (prevSnapshot?.dueDate !== undefined && prevSnapshot.dueDate !== rst.dueDate);
+            return (
+              <div>
+                <div>{text}</div>
+                {mismatch && differsWarning}
+              </div>
+            );
+          },
         },
         {
           label: "Late Fee",
           cell: (p) => {
-            if (isLiveRow(p)) return lateFeeCell(project.lateFee);
+            if (isLiveRow(p)) {
+              const prevLateFee = prevProject?.lateFeeRecap ?? null;
+              const mismatch =
+                !!prevLateFee &&
+                (prevLateFee.basis !== project.lateFee.basis ||
+                  prevLateFee.gracePeriodDays !== project.lateFee.gracePeriodDays ||
+                  prevLateFee.dailyPctInvestors !== project.lateFee.dailyPctInvestors ||
+                  prevLateFee.dailyPctASN !== project.lateFee.dailyPctASN);
+              return (
+                <div>
+                  {lateFeeCell(project.lateFee)}
+                  {mismatch && differsWarning}
+                </div>
+              );
+            }
             if (p.lateFeeRecap) return lateFeeCell(p.lateFeeRecap);
             return dash;
           },
@@ -776,21 +858,22 @@ function bRecapCells(project: ICProject, p: PastProject) {
     );
   };
 
-  const ftWarning =
-    kind === "A/D" && p.returnType === "Fixed Return" && p.projectedTermMonths > 60
-      ? "long fixed"
-      : kind === "A/D" && p.returnType === "Fixed Return" && p.projectedTermMonths > 36
-      ? "fixed >36"
-      : null;
+  const fixedReturnLongWarn = kind === "A/D" && p.returnType === "Fixed Return" && p.projectedTermMonths > 36;
+  const generalLongWarn = kind === "A/D" && p.projectedTermMonths > 60;
 
   return {
     kind,
     financingType: (
       <div>
         <div>{returnTypeLabel(p.returnType)}</div>
-        {ftWarning && (
+        {fixedReturnLongWarn && (
+          <div className="mt-0.5 text-[9px] text-red-700 bg-red-50 border border-red-200 rounded px-1 py-0.5 inline-block">
+            Warning: &gt;36 mo Fixed Return
+          </div>
+        )}
+        {generalLongWarn && (
           <div className="mt-0.5 text-[9px] text-amber-700 bg-amber-50 border border-amber-200 rounded px-1 py-0.5 inline-block">
-            {ftWarning === "long fixed" ? "Warning: >60 mo" : "Warning: >36 mo Fixed Return"}
+            Warning: &gt;60 mo (long)
           </div>
         )}
       </div>
@@ -824,7 +907,17 @@ function bRecapCells(project: ICProject, p: PastProject) {
             {p.overdueHistory.map((ev, i) => (
               <div key={i} className="text-[9px] text-gray-500">
                 {fmtDate(ev.dueDate)} — {ev.daysOverdue}d —{" "}
-                <span className={ev.status === "Unpaid" ? "text-red-600 font-medium" : "text-gray-400"}>{ev.status}</span>
+                <span
+                  className={
+                    ev.status === "Unpaid"
+                      ? "text-red-600 font-medium"
+                      : ev.status === "Partial Paid"
+                      ? "text-amber-600 font-medium"
+                      : "text-gray-400"
+                  }
+                >
+                  {ev.status}
+                </span>
               </div>
             ))}
           </div>
@@ -864,7 +957,7 @@ export function PastProjectsRecap({ project }: Props) {
   });
 
   return (
-    <SectionCard title="Proposed and Past Projects Recap Table">
+    <SectionCard title="Proposed & Past Project Recap">
       <div className="mt-2 space-y-3">
         {!useAssetBTable && (
           <p className="text-xs text-gray-500 leading-relaxed">

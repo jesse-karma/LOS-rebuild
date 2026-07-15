@@ -1,11 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { ICProject, ICVote } from "@/data/types";
+import { ConditionRow, ICProject, ICVote } from "@/data/types";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { CheckCircle, XCircle } from "lucide-react";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
+import { requiredVotes } from "@/lib/icVoting";
+import { brandHistoryFor } from "@/lib/submissionsStore";
 import {
   effectiveVotes,
   icDecidedAt,
@@ -48,6 +50,114 @@ function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
 }
 
+/** Letters are assigned once and persist — never relabel existing rows when one is removed. */
+function nextLetter(rows: ConditionRow[]): string {
+  if (rows.length === 0) return "A";
+  const maxCode = Math.max(...rows.map((r) => r.letter.charCodeAt(0)));
+  return String.fromCharCode(maxCode + 1);
+}
+
+/** Shared lettered table for Conditions Precedent / Conditions Subsequent. */
+function ConditionsTable({
+  title,
+  description,
+  rows,
+  onRowsChange,
+  logic,
+  onLogicChange,
+  defaultApprover,
+  editable,
+}: {
+  title: string;
+  description: React.ReactNode;
+  rows: ConditionRow[];
+  onRowsChange: (rows: ConditionRow[]) => void;
+  logic: string;
+  onLogicChange: (logic: string) => void;
+  defaultApprover: string;
+  editable: boolean;
+}) {
+  return (
+    <div>
+      <div className="text-xs text-gray-500 mb-1">{title}</div>
+      <p className="text-xs text-gray-500 mb-2 leading-relaxed">{description}</p>
+      {editable ? (
+        <div className="space-y-2">
+          {rows.length === 0 && <p className="text-xs text-gray-400 italic">No conditions yet — add if needed.</p>}
+          {rows.map((row, i) => (
+            <div key={row.letter} className="flex gap-2 items-start border border-gray-200 rounded-lg p-2">
+              <span className="text-xs font-semibold text-gray-500 pt-2 w-4 shrink-0">{row.letter}</span>
+              <div className="flex-1 min-w-0 space-y-1.5">
+                <input
+                  value={row.name}
+                  onChange={(e) => onRowsChange(rows.map((r, j) => (j === i ? { ...r, name: e.target.value } : r)))}
+                  placeholder="Name"
+                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+                <textarea
+                  value={row.condition}
+                  onChange={(e) =>
+                    onRowsChange(rows.map((r, j) => (j === i ? { ...r, condition: e.target.value } : r)))
+                  }
+                  rows={2}
+                  placeholder="Condition"
+                  className="w-full border border-gray-200 rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-y"
+                />
+                <input
+                  value={row.approver}
+                  onChange={(e) =>
+                    onRowsChange(rows.map((r, j) => (j === i ? { ...r, approver: e.target.value } : r)))
+                  }
+                  placeholder="Approver"
+                  className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => onRowsChange(rows.filter((_, j) => j !== i))}
+                className="text-xs text-red-600 hover:text-red-800 shrink-0 pt-2"
+              >
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            type="button"
+            onClick={() =>
+              onRowsChange([...rows, { letter: nextLetter(rows), name: "", condition: "", approver: defaultApprover }])
+            }
+            className="text-xs font-medium text-blue-600 hover:text-blue-800"
+          >
+            + Add condition
+          </button>
+          <input
+            value={logic}
+            onChange={(e) => onLogicChange(e.target.value)}
+            placeholder="Logic (e.g. AND(A,B))"
+            className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-xs text-gray-600 font-mono focus:outline-none focus:ring-2 focus:ring-blue-300"
+          />
+        </div>
+      ) : rows.length > 0 ? (
+        <div className="space-y-1.5">
+          {rows.map((row) => (
+            <div key={row.letter} className="flex gap-2 text-sm text-gray-700">
+              <span className="font-semibold text-gray-500 shrink-0">{row.letter}.</span>
+              <div>
+                {row.name && <div className="font-medium text-gray-800">{row.name}</div>}
+                <div className="whitespace-pre-wrap">{row.condition}</div>
+                {row.approver && <div className="text-xs text-gray-400">Approver: {row.approver}</div>}
+              </div>
+            </div>
+          ))}
+          {logic && <div className="text-xs text-gray-400 font-mono mt-1">Logic: {logic}</div>}
+        </div>
+      ) : (
+        <p className="text-sm text-gray-400 italic">No conditions.</p>
+      )}
+    </div>
+  );
+}
+
 export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange }: Props) {
   const { user } = useProfile();
 
@@ -63,8 +173,17 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
 
   const [myVote, setMyVote] = useState<ICVote>(myMember?.vote ?? null);
   const [approvalNotes, setApprovalNotes] = useState(workflow.approvalNotes ?? project.approvalNotes);
-  const [conditionsSubsequent, setConditionsSubsequent] = useState<string[]>(
+  const [conditionsPrecedent, setConditionsPrecedent] = useState<ConditionRow[]>(
+    () => workflow.conditionsPrecedent ?? [...project.conditionsPrecedent]
+  );
+  const [conditionsPrecedentLogic, setConditionsPrecedentLogic] = useState(
+    workflow.conditionsPrecedentLogic ?? project.conditionsPrecedentLogic
+  );
+  const [conditionsSubsequent, setConditionsSubsequent] = useState<ConditionRow[]>(
     () => workflow.conditionsSubsequent ?? [...project.conditionsSubsequent]
+  );
+  const [conditionsSubsequentLogic, setConditionsSubsequentLogic] = useState(
+    workflow.conditionsSubsequentLogic ?? project.conditionsSubsequentLogic
   );
   const [justSubmitted, setJustSubmitted] = useState(false);
 
@@ -77,25 +196,17 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
         [myMember.memberId]: { vote: myVote, votedAt: new Date().toISOString() },
       },
       approvalNotes,
+      conditionsPrecedent,
+      conditionsPrecedentLogic,
       conditionsSubsequent,
+      conditionsSubsequentLogic,
     });
     setJustSubmitted(true);
   }
 
-  // Voting rule: use explicit IC basis (e.g. proposed total limit) when provided — else project amount
-  const amount =
-    project.icVoteBasisAmount ??
-    (project.requestedAmountCurrency === "IDR" ? project.requestedAmount : project.requestedAmount * 16000);
-  // Concentration stretch tier overrides the amount tiers: full Investment Committee sign-off.
-  const stretchTier = project.limitCheck?.outcome === "stretch";
-  const votingRule: 1 | 2 | 3 = stretchTier
-    ? 3
-    : amount <= 4_000_000_000
-    ? 1
-    : amount <= 6_000_000_000
-    ? 2
-    : 3;
-  const requiredVoteCount = votingRule === 1 ? 1 : votingRule === 2 ? 2 : 3;
+  // Voting rule: amount-tiered quorum (lib/icVoting.ts is the single source of truth for the thresholds).
+  const requiredVoteCount = requiredVotes(project);
+  const votingRule = requiredVoteCount as 1 | 2 | 3;
 
   function isRequired(v: { memberId: string; isPrincipal: boolean }): boolean {
     if (votingRule === 1) return v.isPrincipal;
@@ -108,14 +219,12 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
     2: "IDR 4B–6B — 2 IC votes required, including Principal",
     3: "> IDR 6B — All 3 IC votes required, including Principal",
   };
-  const ruleLabel = stretchTier
-    ? "Concentration stretch tier — full Investment Committee sign-off required (all 3 votes)"
-    : RULE_LABELS[votingRule];
+  const ruleLabel = RULE_LABELS[votingRule];
 
   // Other section items per CSV (Funding Source, Tax Withholdings)
   const isMembersProject = project.fundingSource.includes("Members");
   const taxNotWithheld = project.taxWithholdings === "No";
-  const prevTaxNotWithheld = false; // would come from past projects in production
+  const priorNoWithholdingProject = brandHistoryFor(project.brandName).find((p) => p.taxWithholdings === "No");
 
   return (
     <SectionCard title="Other">
@@ -158,9 +267,9 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
               {taxNotWithheld && (
                 <div className="text-xs text-red-600 mt-0.5">Warning: Karmapreneur will NOT withhold taxes</div>
               )}
-              {prevTaxNotWithheld && (
+              {priorNoWithholdingProject && (
                 <div className="text-xs text-red-600 mt-0.5">
-                  Warning: Karmapreneur is NOT withholding taxes on a previous project
+                  Warning: Karmapreneur is NOT withholding taxes on project {priorNoWithholdingProject.projectName}
                 </div>
               )}
             </div>
@@ -177,7 +286,8 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
           <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 rounded-lg px-4 py-3">
             <CheckCircle className="w-5 h-5 text-emerald-600" />
             <div className="text-sm font-semibold text-emerald-800">
-              Approved by IC{decidedAt ? ` on ${fmtDate(decidedAt)}` : ""} — handed off to Legal
+              Approved by IC{decidedAt ? ` on ${fmtDate(decidedAt)}` : ""} — handed off to Finance
+              (Slotting)
             </div>
           </div>
         )}
@@ -195,14 +305,8 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
         )}
 
         {/* Voting rule banner */}
-        <div
-          className={`flex items-center gap-2 text-xs border rounded-lg px-3 py-2 ${
-            stretchTier
-              ? "bg-purple-50 border-purple-200 text-purple-800"
-              : "bg-gray-50 border-gray-200 text-gray-600"
-          }`}
-        >
-          <span className={`font-semibold ${stretchTier ? "text-purple-800" : "text-gray-700"}`}>Rule:</span>
+        <div className="flex items-center gap-2 text-xs border rounded-lg px-3 py-2 bg-gray-50 border-gray-200 text-gray-600">
+          <span className="font-semibold text-gray-700">Rule:</span>
           <span>{ruleLabel}</span>
           <span className="ml-auto text-gray-400">
             {votes.filter((v) => v.vote === "Approve").length}/{requiredVoteCount} required vote
@@ -283,60 +387,41 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
           )}
         </div>
 
+        {/* Conditions Precedent — analyst draft; IC revises before vote (prototype) */}
+        <ConditionsTable
+          title="Conditions Precedent"
+          description={
+            <>
+              Drafted by the <strong className="text-gray-600">Investments Team</strong> (e.g. from diligence).{" "}
+              <strong className="text-gray-600">IC</strong> may edit or add items here before submitting a vote; new
+              rows default Approver to Legal.
+            </>
+          }
+          rows={canVote && !justSubmitted ? conditionsPrecedent : workflow.conditionsPrecedent ?? project.conditionsPrecedent}
+          onRowsChange={setConditionsPrecedent}
+          logic={canVote && !justSubmitted ? conditionsPrecedentLogic : workflow.conditionsPrecedentLogic ?? project.conditionsPrecedentLogic}
+          onLogicChange={setConditionsPrecedentLogic}
+          defaultApprover="Legal"
+          editable={canVote && !justSubmitted}
+        />
+
         {/* Conditions Subsequent — analyst draft; IC revises before vote (prototype) */}
-        <div>
-          <div className="text-xs text-gray-500 mb-1">Conditions Subsequent</div>
-          <p className="text-xs text-gray-500 mb-2 leading-relaxed">
-            Drafted by the <strong className="text-gray-600">Investments Team</strong> (e.g. from diligence).{" "}
-            <strong className="text-gray-600">IC</strong> may edit or add items here before submitting a vote; in production
-            this would write back to the Project row.
-          </p>
-          {canVote && !justSubmitted ? (
-            <div className="space-y-2">
-              {conditionsSubsequent.length === 0 && (
-                <p className="text-xs text-gray-400 italic">No conditions yet — add if needed.</p>
-              )}
-              {conditionsSubsequent.map((c, i) => (
-                <div key={i} className="flex gap-2 items-start">
-                  <textarea
-                    value={c}
-                    onChange={(e) =>
-                      setConditionsSubsequent((prev) =>
-                        prev.map((line, j) => (j === i ? e.target.value : line))
-                      )
-                    }
-                    rows={2}
-                    className="flex-1 min-w-0 border border-gray-200 rounded-lg p-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-300 resize-y"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setConditionsSubsequent((prev) => prev.filter((_, j) => j !== i))}
-                    className="text-xs text-red-600 hover:text-red-800 shrink-0 pt-2"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-              <button
-                type="button"
-                onClick={() => setConditionsSubsequent((prev) => [...prev, ""])}
-                className="text-xs font-medium text-blue-600 hover:text-blue-800"
-              >
-                + Add condition
-              </button>
-            </div>
-          ) : (workflow.conditionsSubsequent ?? project.conditionsSubsequent).length > 0 ? (
-            <ul className="list-disc pl-5 space-y-1">
-              {(workflow.conditionsSubsequent ?? project.conditionsSubsequent).map((c, i) => (
-                <li key={i} className="text-sm text-gray-700 whitespace-pre-wrap">
-                  {c}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-400 italic">No conditions subsequent.</p>
-          )}
-        </div>
+        <ConditionsTable
+          title="Conditions Subsequent"
+          description={
+            <>
+              Drafted by the <strong className="text-gray-600">Investments Team</strong> (e.g. from diligence).{" "}
+              <strong className="text-gray-600">IC</strong> may edit or add items here before submitting a vote; in
+              production this would write back to the Project row.
+            </>
+          }
+          rows={canVote && !justSubmitted ? conditionsSubsequent : workflow.conditionsSubsequent ?? project.conditionsSubsequent}
+          onRowsChange={setConditionsSubsequent}
+          logic={canVote && !justSubmitted ? conditionsSubsequentLogic : workflow.conditionsSubsequentLogic ?? project.conditionsSubsequentLogic}
+          onLogicChange={setConditionsSubsequentLogic}
+          defaultApprover=""
+          editable={canVote && !justSubmitted}
+        />
 
         {/* Submit */}
         {canVote && !justSubmitted && (
@@ -360,7 +445,8 @@ export function ApprovalSection({ project, workflow, stageInfo, onWorkflowChange
             <div>
               <div className="text-sm font-semibold text-emerald-800">Vote recorded</div>
               <div className="text-xs text-emerald-600">
-                Waiting on the remaining required IC votes before the project moves to Legal.
+                Waiting on the remaining required IC votes before the project moves to Finance
+                (Slotting).
               </div>
             </div>
           </div>
