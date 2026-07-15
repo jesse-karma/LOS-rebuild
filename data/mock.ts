@@ -128,6 +128,8 @@ const projectHolycow: ICProject = {
     {
       id: "kpc-hc1",
       name: "Regina Tiffani",
+      whatsapp: "+62 - 811 2345 6781",
+      email: "regina.tiffani@steakhotelbyholycow.com",
       role: "Direktur Utama / Co-Founder",
       notesOnPerson:
         "Co-founder Holycow sejak 2010. Background marketing — bertanggung jawab atas ekspansi brand dan hubungan investor. Sangat komunikatif dan responsif dalam proses due diligence. Menanggani operasional seluruh outlet.",
@@ -141,6 +143,8 @@ const projectHolycow: ICProject = {
     {
       id: "kpc-hc2",
       name: "Syifa Sarini",
+      whatsapp: "+62 - 812 3344 5566",
+      email: "syifa.sarini@steakhotelbyholycow.com",
       role: "CFO / Direktur Keuangan",
       notesOnPerson:
         "Bergabung 2018. Ex-Deloitte (4 tahun), sebelumnya konsultan F&B di Jakarta. Penanggung jawab laporan keuangan, rekening koran, dan hubungan dengan perbankan. Sangat transparan dalam disclosure.",
@@ -154,6 +158,8 @@ const projectHolycow: ICProject = {
     {
       id: "kpc-hc3",
       name: "Iswanda Mardio",
+      whatsapp: "+62 - 813 4455 6677",
+      email: "iswanda.mardio@steakhotelbyholycow.com",
       role: "General Manager",
       notesOnPerson:
         "GM operasional untuk outlet luar Jakarta. Penanggung jawab ekspansi Medan. Menandatangani perjanjian sebagai kuasa direksi.",
@@ -166,6 +172,8 @@ const projectHolycow: ICProject = {
     {
       id: "kpc-hc4",
       name: "Erwynda Semiartie",
+      whatsapp: "+62 - 814 5566 7788",
+      email: "erwynda.semiartie@steakhotelbyholycow.com",
       role: "Finance & Admin Manager",
       notesOnPerson:
         "Bertanggung jawab atas rekening koran dan koordinasi pembayaran di outlet luar Jakarta.",
@@ -456,6 +464,8 @@ const projectShushu: ICProject = {
     {
       id: "kpc-ss1",
       name: "Sandy Wiguna",
+      whatsapp: "+62 - 815 6677 8899",
+      email: "sandy.wiguna@shushu.id",
       role: "Founder / Direktur Utama",
       notesOnPerson:
         "Founder Shushu, 31 tahun. Background barista dan F&B ops — pernah bekerja di Kopi Kenangan sebagai area manager sebelum keluar dan build brand sendiri 2023. Sangat detail soal produk dan operasional. Handles semua aspek bisnis sendiri dengan 1 manajer operasional.",
@@ -690,6 +700,8 @@ const projectCUM: ICProject = {
     {
       id: "kpc-cum1",
       name: "Dwi Wicaksono Wibowo",
+      whatsapp: "+62 - 816 7788 9900",
+      email: "dwi.wicaksono@ciptausahamedia.co.id",
       role: "Direktur Utama",
       notesOnPerson:
         "Founder dan Direktur Utama CUM. Background di bidang HR outsourcing dan logistik sejak 2010. Sangat berpengalaman dalam mengelola kontrak korporat besar — klien utama termasuk Orang Tua Group, Indofood, dan Wings. Responsif dan profesional dalam semua komunikasi.",
@@ -703,6 +715,8 @@ const projectCUM: ICProject = {
     {
       id: "kpc-cum2",
       name: "Nofriwan",
+      whatsapp: "+62 - 817 8899 0011",
+      email: "nofriwan@ciptausahamedia.co.id",
       role: "Direktur Operasional",
       notesOnPerson:
         "Co-founder. Penanggung jawab operasional lapangan — koordinasi tim workforce dan delivery. Memegang 35% saham.",
@@ -1068,6 +1082,8 @@ const projectCEA: ICProject = {
     {
       id: "kpc-cea1",
       name: "KP signatory (from diligence)",
+      whatsapp: "",
+      email: "",
       role: "Direktur Utama",
       notesOnPerson:
         "Prototype placeholder — sync full KP contact grid from Coda in production. Oil & gas services; primary relationship with Aztech Group POs.",
@@ -1287,6 +1303,8 @@ const projectAssetDPlafond: ICProject = {
     {
       id: "kpc-maju-1",
       name: "KP signatory (sync People from Coda)",
+      whatsapp: "",
+      email: "",
       role: "Direktur Utama",
       notesOnPerson:
         "Replace with People row linked from Coda for i-_5laC-0qZa. Placeholder keeps IC card shape only.",
