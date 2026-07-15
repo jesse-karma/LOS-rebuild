@@ -20,20 +20,37 @@ import { ProjectTerms } from "@/components/sections/ProjectTerms";
 import { CreditMemoNotes } from "@/components/sections/CreditMemoNotes";
 import { PTDetails } from "@/components/sections/PTDetails";
 import { ApprovalSection } from "@/components/sections/ApprovalSection";
+import { LegalSection } from "@/components/sections/LegalSection";
+import { FinanceSlottingSection } from "@/components/sections/FinanceSlottingSection";
+import { FinanceDisbursementSection } from "@/components/sections/FinanceDisbursementSection";
+import { StageStepper } from "@/components/ui/StageStepper";
+import { useProfile } from "@/lib/profileStore";
+import { canSee } from "@/lib/access";
+import {
+  getWorkflow,
+  ProjectWorkflow,
+  saveWorkflow,
+  stageInfo as stageInfoFor,
+} from "@/lib/workflowStore";
+import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
 import { ChevronLeft } from "lucide-react";
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
+  const { user } = useProfile();
   // Mock projects resolve immediately; browser-stored submissions resolve after mount.
   const [project, setProject] = useState<ICProject | null | undefined>(
     () => getProjectById(id) ?? undefined
   );
+  const [workflow, setWorkflow] = useState<ProjectWorkflow | null>(null);
 
   useEffect(() => {
+    seedDefaultLimitConfigs();
     setProject(getReviewProjectById(id) ?? null);
+    setWorkflow(getWorkflow(id));
   }, [id]);
 
-  if (project === undefined) {
+  if (project === undefined || (project && workflow === null)) {
     return <p className="text-sm text-gray-400">Loading review…</p>;
   }
 
@@ -48,6 +65,15 @@ export default function ProjectPage() {
     );
   }
 
+  const wf = workflow!;
+  const stage = stageInfoFor(project, wf);
+  const showSlik = canSee(user.team, "slik", stage.stage);
+
+  function handleWorkflowChange(next: ProjectWorkflow) {
+    saveWorkflow(id, next);
+    setWorkflow(next);
+  }
+
   const warnings = computeWarnings(project);
   const errors = warnings.filter((w) => w.level === "error");
   const warnItems = warnings.filter((w) => w.level === "warn");
@@ -59,6 +85,11 @@ export default function ProjectPage() {
         <ChevronLeft className="w-4 h-4" />
         All submissions
       </Link>
+
+      {/* Lifecycle stage */}
+      <div className="mb-4">
+        <StageStepper stage={stage.stage} rejected={stage.rejected} />
+      </div>
 
       {/* Global warnings banner */}
       {errors.length > 0 && (
@@ -99,7 +130,7 @@ export default function ProjectPage() {
 
       {/* KP Contacts */}
       <div className="mb-4">
-        <KPContacts project={project} />
+        <KPContacts project={project} showSlik={showSlik} />
       </div>
 
       {/* Past Projects */}
@@ -118,20 +149,67 @@ export default function ProjectPage() {
 
       {/* Credit Memo & Notes */}
       <div className="mb-4">
-        <CreditMemoNotes project={project} />
+        <CreditMemoNotes
+          key={user.id}
+          project={project}
+          workflow={wf}
+          onWorkflowChange={handleWorkflowChange}
+        />
       </div>
 
       {/* PT Details */}
       <div className="mb-4">
-        <PTDetails project={project} />
+        <PTDetails project={project} showSlik={showSlik} />
       </div>
 
-      {/* Approval — always last, sticky feel */}
-      <div className="mb-8">
-        <ApprovalSection project={project} />
+      {/* IC decision — keyed by profile so switching users resets the section's local edit state */}
+      <div className="mb-4">
+        <ApprovalSection
+          key={user.id}
+          project={project}
+          workflow={wf}
+          stageInfo={stage}
+          onWorkflowChange={handleWorkflowChange}
+        />
       </div>
 
-      <div className="text-xs text-center text-gray-400 pb-8">
+      {/* Post-IC stages appear once the project reaches them */}
+      {(stage.stage === "finance_slotting" ||
+        stage.stage === "legal" ||
+        stage.stage === "finance_disbursement" ||
+        stage.stage === "onboarded") && (
+        <div className="mb-4">
+          <FinanceSlottingSection
+            key={user.id}
+            project={project}
+            workflow={wf}
+            stageInfo={stage}
+            onWorkflowChange={handleWorkflowChange}
+          />
+        </div>
+      )}
+      {(stage.stage === "legal" || stage.stage === "finance_disbursement" || stage.stage === "onboarded") && (
+        <div className="mb-4">
+          <LegalSection
+            key={user.id}
+            workflow={wf}
+            stageInfo={stage}
+            onWorkflowChange={handleWorkflowChange}
+          />
+        </div>
+      )}
+      {(stage.stage === "finance_disbursement" || stage.stage === "onboarded") && (
+        <div className="mb-4">
+          <FinanceDisbursementSection
+            key={user.id}
+            workflow={wf}
+            stageInfo={stage}
+            onWorkflowChange={handleWorkflowChange}
+          />
+        </div>
+      )}
+
+      <div className="text-xs text-center text-gray-400 pb-8 pt-4">
         IC Review App — Prototype · Mocked data · Phase 1 concept
       </div>
     </div>

@@ -15,6 +15,7 @@ import {
   approvalTypesForAssetClass,
   returnTypesForApprovalType,
   subSectorsForSector,
+  typeLabelForAssetClass,
 } from "@/data/masterData";
 import { isAssetAOrD, isAssetB } from "@/lib/assetClass";
 import {
@@ -31,8 +32,13 @@ import {
   requestedAmountWarning,
   saveSubmission,
   deleteSubmission,
+  mostRecentBrandProject,
+  getAllBrands,
+  brandHistoryFor,
 } from "@/lib/submissionsStore";
-import { isAnalystRole, useProfile } from "@/lib/profileStore";
+import { useProfile } from "@/lib/profileStore";
+import { canEdit } from "@/lib/access";
+import { existingUboExposure, uboExposureLevel } from "@/lib/exposure";
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -183,12 +189,13 @@ function fmtIdr(n: number): string {
 function contactIsBlank(c: SubmissionContactRow): boolean {
   return (
     !c.name.trim() &&
+    !c.whatsapp.trim() &&
+    !c.email.trim() &&
     !c.role.trim() &&
     !c.notesOnPerson.trim() &&
     !c.slikFileUrl.trim() &&
     !c.slikExecSummary.trim() &&
-    !c.isKeyPerson &&
-    c.uboExposure === 0
+    !c.isKeyPerson
   );
 }
 
@@ -228,16 +235,29 @@ function payorIsBlank(r: SubmissionPayorRow): boolean {
 
 // Blank-row factories, shared by the [+] buttons and the starter rows.
 
+function isValidWhatsApp(value: string): boolean {
+  if (!value.trim()) return true; // Allow empty
+  const waRegex = /^\+\d{1,3}\s-\s[\d\s]+$/;
+  return waRegex.test(value.trim());
+}
+
+function isValidEmail(value: string): boolean {
+  if (!value.trim()) return true; // Allow empty
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(value.trim());
+}
+
 function blankContact(): SubmissionContactRow {
   return {
     id: newRowId(),
     name: "",
+    whatsapp: "",
+    email: "",
     role: "",
     notesOnPerson: "",
     isKeyPerson: false,
     slikFileUrl: "",
     slikExecSummary: "",
-    uboExposure: 0,
   };
 }
 
@@ -311,13 +331,14 @@ interface Props {
 export function SubmissionForm({ submission, isNew = false }: Props) {
   const router = useRouter();
   const { user } = useProfile();
+  // A draft sits in the Funding Lead stage: only the Investments Team can fill it.
+  const readOnly = !canEdit(user.team, "submission", "funding_lead");
   // Merge over defaults so drafts saved before new fields existed stay controlled.
   const [form, setForm] = useState<SubmissionFormData>(() =>
     withStarterRows({
       ...emptySubmissionForm(),
       ...submission.form,
-      // A submission carries exactly one PT; older drafts may have stored more.
-      ptDetails: (submission.form.ptDetails ?? []).slice(0, 1),
+      ptDetails: submission.form.ptDetails ?? [],
     })
   );
   const [amountText, setAmountText] = useState(
@@ -337,6 +358,37 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       : "",
   });
   const [errors, setErrors] = useState<string[]>([]);
+  const [brandSearch, setBrandSearch] = useState(form.brandName);
+  const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
+  
+  // Extract the free text part from the existing project name (for edit mode)
+  const existingFreeText = (() => {
+    const parts = form.projectName.split(" - ");
+    if (parts.length > 3) {
+      return parts.slice(3).join(" - ");
+    }
+    return "";
+  })();
+  const [projectFreeText, setProjectFreeText] = useState(existingFreeText);
+  
+  const allBrands = getAllBrands();
+  const filteredBrands = allBrands.filter((b) =>
+    b.toLowerCase().includes(brandSearch.toLowerCase())
+  );
+  
+  // Calculate project number: length of brand history + 1
+  const projectNumber = brandHistoryFor(form.brandName).length + 1;
+  // Get the type label from asset class
+  const typeLabel = typeLabelForAssetClass(form.assetClass);
+  
+  // Build the full project name
+  const generateProjectName = () => {
+    const baseParts = [form.brandName, `#${projectNumber}`, typeLabel];
+    if (projectFreeText.trim()) {
+      baseParts.push(projectFreeText.trim());
+    }
+    return baseParts.join(" - ");
+  };
 
   // On a brand-new form, the creator becomes Created by and the default Primary Analyst (spec S8).
   useEffect(() => {
@@ -344,17 +396,41 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       setForm((f) => ({
         ...f,
         createdBy: user.name,
-        primaryAnalyst: isAnalystRole(user.role) ? user.name : f.primaryAnalyst,
+        primaryAnalyst: user.team === "Investments Team" ? user.name : f.primaryAnalyst,
       }));
     }
   }, [isNew, user]);
+
+  // Sync brand search with form brandName when it changes
+  useEffect(() => {
+    if (form.brandName !== brandSearch) {
+      setBrandSearch(form.brandName);
+    }
+  }, [form.brandName]);
+
+  // Update the form's projectName whenever the parts change
+  useEffect(() => {
+    const newProjectName = generateProjectName();
+    if (form.projectName !== newProjectName) {
+      set("projectName", newProjectName);
+    }
+  }, [form.brandName, projectNumber, typeLabel, projectFreeText]);
+  
+  // Extract free text from projectName if it's updated externally (e.g., initial load)
+  useEffect(() => {
+    const parts = form.projectName.split(" - ");
+    if (parts.length > 3) {
+      const freeTextFromName = parts.slice(3).join(" - ");
+      if (freeTextFromName !== projectFreeText) {
+        setProjectFreeText(freeTextFromName);
+      }
+    }
+  }, [form.projectName]);
 
   const hasPlafond = form.approvalType.includes("Plafond");
   const isProjectType = form.approvalType !== "Plafond";
   // The A&D spec sections (contacts, terms, PT, memos) only apply to Asset A / D submissions.
   const isAD = isAssetAOrD(form.assetClass);
-  /** Single PT per submission — the starter effect guarantees one exists for A/D. */
-  const ptDetail = form.ptDetails[0];
   const isB = isAssetB(form.assetClass);
   // Which deal-terms subsection the selected Return Type calls for
   const wantsRevShare = form.returnType.includes("Revenue Share") || form.returnType === "Profit Share";
@@ -371,11 +447,14 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     ...form,
     requestedAmount: parseAmount(amountText),
     proposedTotalLimit: parseAmount(plafondTexts.total),
+    finReviewLimitCurrent: parseAmount(finReviewTexts.current),
   });
   const filledDisbursements = form.disbursements.filter((d) => !disbursementIsBlank(d));
   const disbursementSum = filledDisbursements.reduce((sum, d) => sum + d.amount, 0);
   const disbursementMismatch =
     filledDisbursements.length > 0 && disbursementSum !== parseAmount(amountText);
+  const proposedIDR =
+    form.requestedAmountCurrency === "IDR" ? parseAmount(amountText) : parseAmount(amountText) * 16000;
 
   function set<K extends keyof SubmissionFormData>(key: K, value: SubmissionFormData[K]) {
     setForm((f) => ({ ...f, [key]: value }));
@@ -442,6 +521,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     setForm((f) => ({ ...f, kpContacts: [...f.kpContacts, blankContact()] }));
   }
 
+  function addPT() {
+    setForm((f) => ({ ...f, ptDetails: [...f.ptDetails, blankPT()] }));
+  }
+
   function addDisbursement() {
     setForm((f) => ({ ...f, disbursements: [...f.disbursements, blankDisbursement()] }));
   }
@@ -491,7 +574,6 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   function validate(): string[] {
     const errs: string[] = [];
     if (!form.brandName.trim()) errs.push("Brand is required.");
-    if (!form.projectName.trim()) errs.push("Project Name is required.");
     if (isProjectType && parseAmount(amountText) <= 0) errs.push("Requested Amount must be greater than zero.");
     if (hasPlafond && parseAmount(plafondTexts.total) <= 0)
       errs.push("Proposed Total Limit must be greater than zero for a Plafond submission.");
@@ -499,6 +581,38 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       errs.push("Financial Review: state which financial reports were reviewed.");
     if (!form.finReviewPeriodEnding)
       errs.push("Financial Review: the reports' period ending date is required.");
+
+    form.kpContacts.filter((c) => !contactIsBlank(c)).forEach((c, i) => {
+      if (!c.name.trim()) errs.push(`Karmapreneur Contact ${i + 1}: Name is required.`);
+      if (!c.role.trim()) errs.push(`Karmapreneur Contact ${i + 1}: Role is required.`);
+      if (!isValidWhatsApp(c.whatsapp))
+        errs.push(`Karmapreneur Contact ${i + 1} (${c.name || "unnamed"}): WhatsApp must be in format +[Country Code] - [Number].`);
+      if (!isValidEmail(c.email))
+        errs.push(`Karmapreneur Contact ${i + 1} (${c.name || "unnamed"}): Must be a valid email address.`);
+      if (c.isKeyPerson && !c.slikFileUrl.trim())
+        errs.push(`Karmapreneur Contact ${i + 1} (${c.name || "unnamed"}): SLIK-Key Person File URL is required for a Key Person.`);
+      if (c.isKeyPerson && !c.slikExecSummary.trim())
+        errs.push(`Karmapreneur Contact ${i + 1} (${c.name || "unnamed"}): SLIK-Key Person Exec Summary is required for a Key Person.`);
+    });
+
+    form.ptDetails.filter((pt) => !ptIsBlank(pt)).forEach((pt, i) => {
+      if (!pt.name.trim()) errs.push(`PT Detail ${i + 1}: Name is required.`);
+    });
+
+    form.disbursements.filter((d) => !disbursementIsBlank(d)).forEach((d, i) => {
+      if (!d.plannedDate) errs.push(`Disbursement ${i + 1}: Planned Disbursement Date is required.`);
+      if (d.amount <= 0) errs.push(`Disbursement ${i + 1}: Disbursement Amount is required.`);
+    });
+
+    form.branches.filter((b) => !branchIsBlank(b)).forEach((b, i) => {
+      if (!b.area.trim()) errs.push(`Branch ${i + 1} (${b.name || "unnamed"}): Branch Area is required.`);
+      if (!b.gmapsLink.trim()) errs.push(`Branch ${i + 1} (${b.name || "unnamed"}): Gmaps Link is required.`);
+      if (!b.type) errs.push(`Branch ${i + 1} (${b.name || "unnamed"}): Type is required.`);
+    });
+
+    if (!form.kpCreditMemo.trim()) errs.push("Karmapreneur Credit Memo is required.");
+    if (!form.projectCreditMemo.trim()) errs.push("Project Credit Memo is required.");
+
     return errs;
   }
 
@@ -533,7 +647,9 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Analyst Submission</h1>
         <p className="text-sm text-gray-500 mt-1">
-          Fill in the project details, then submit to IC. You can save a draft at any time.
+          {readOnly
+            ? `View only — submissions are filled and submitted by the Investments Team (you are on the ${user.team}).`
+            : "Fill in the project details, then submit to IC. You can save a draft at any time."}
         </p>
         <div className="flex items-center gap-4 mt-3 text-xs text-gray-500 flex-wrap">
           <span className="inline-flex items-center gap-1.5">
@@ -547,33 +663,175 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         </div>
       </div>
 
-      <div className="space-y-4">
-        <FormSection title="What are we reviewing?">
+      {/* fieldset[disabled] enforces the field-level rule: every input inside is read-only for non-Investments teams */}
+      <fieldset disabled={readOnly} className="space-y-4 min-w-0">
+        {/* PIC and Karmapreneur Details side by side */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormSection title="PIC">
+            <Field label="Created by" source="free" hint="Set automatically to the card creator">
+              <input className={`${inputCls} bg-gray-50 text-gray-500`} value={form.createdBy || "—"} readOnly />
+            </Field>
+            {/* Spec C8: Submitted by is not shown prior to the IC submission stage. */}
+            <Field label="Primary Analyst" source="master" hint="From the Karma Team table">
+              <select
+                className={inputCls}
+                value={form.primaryAnalyst}
+                onChange={(e) => set("primaryAnalyst", e.target.value)}
+              >
+                {ANALYSTS.map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Secondary Analyst" source="master" hint="From the Karma Team table">
+              <select
+                className={inputCls}
+                value={form.secondaryAnalyst}
+                onChange={(e) => set("secondaryAnalyst", e.target.value)}
+              >
+                <option value="">— None —</option>
+                {ANALYSTS.filter((a) => a !== form.primaryAnalyst).map((a) => (
+                  <option key={a} value={a}>
+                    {a}
+                  </option>
+                ))}
+              </select>
+            </Field>
+          </FormSection>
+
+          <FormSection title="Karmapreneur Details">
+            <Field label="Referral Source" source="master">
+              <select
+                className={inputCls}
+                value={form.referralSource}
+                onChange={(e) => set("referralSource", e.target.value)}
+              >
+                {REFERRAL_SOURCES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Specific Referror" source="free" hint="Who referred this Karmapreneur (optional)">
+              <input
+                className={inputCls}
+                value={form.specificReferror}
+                onChange={(e) => set("specificReferror", e.target.value)}
+                placeholder="e.g. Iman Kusumaputra"
+              />
+            </Field>
+            <Field label="Referror belongs to KP / Brand" source="free" hint="Optional">
+              <input
+                className={inputCls}
+                value={form.referrorBelongsToKP}
+                onChange={(e) => set("referrorBelongsToKP", e.target.value)}
+                placeholder="e.g. Kopi Kalyan"
+              />
+            </Field>
+          </FormSection>
+        </div>
+
+        <FormSection title="Project's Application">
           <Field label="Brand" source="free" hint="Lookup to Karmapreneur — type a new name to create it">
+            <div className="relative">
+              <input
+                className={inputCls}
+                value={brandSearch}
+                onChange={(e) => {
+                  setBrandSearch(e.target.value);
+                  const recent = mostRecentBrandProject(e.target.value);
+                  setForm((f) => ({
+                    ...f,
+                    brandName: e.target.value,
+                    // Pre-fill "[Brand] - " while the analyst hasn't typed a custom name
+                    projectName:
+                      !f.projectName || f.projectName === `${f.brandName} - `
+                        ? `${e.target.value} - `
+                        : f.projectName,
+                    // Pre-fill Sector/Sub-Sector and Tax Withholdings from the brand's most recent
+                    // project, while the analyst hasn't touched them from their defaults.
+                    mainSector: recent?.sector && f.mainSector === "F&B" ? recent.sector : f.mainSector,
+                    subSector: recent?.subSector && !f.subSector ? recent.subSector : f.subSector,
+                    taxWithholdings:
+                      recent?.taxWithholdings && f.taxWithholdings === "Yes"
+                        ? recent.taxWithholdings
+                        : f.taxWithholdings,
+                  }));
+                }}
+                onFocus={() => setIsBrandDropdownOpen(true)}
+                onBlur={() => setTimeout(() => setIsBrandDropdownOpen(false), 200)}
+                placeholder="e.g. Kopi Tuku"
+              />
+              {isBrandDropdownOpen && filteredBrands.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {filteredBrands.map((brand) => (
+                    <div
+                      key={brand}
+                      className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+                      onClick={() => {
+                        setBrandSearch(brand);
+                        const recent = mostRecentBrandProject(brand);
+                        setForm((f) => ({
+                          ...f,
+                          brandName: brand,
+                          // Pre-fill "[Brand] - " while the analyst hasn't typed a custom name
+                          projectName:
+                            !f.projectName || f.projectName === `${f.brandName} - `
+                              ? `${brand} - `
+                              : f.projectName,
+                          // Pre-fill Sector/Sub-Sector and Tax Withholdings from the brand's most recent
+                          // project, while the analyst hasn't touched them from their defaults.
+                          mainSector: recent?.sector && f.mainSector === "F&B" ? recent.sector : f.mainSector,
+                          subSector: recent?.subSector && !f.subSector ? recent.subSector : f.subSector,
+                          taxWithholdings:
+                            recent?.taxWithholdings && f.taxWithholdings === "Yes"
+                              ? recent.taxWithholdings
+                              : f.taxWithholdings,
+                        }));
+                        setIsBrandDropdownOpen(false);
+                      }}
+                    >
+                      {brand}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {(() => {
+                const recent = mostRecentBrandProject(form.brandName);
+                if (!form.brandName.trim()) {
+                  return null;
+                }
+                if (recent) {
+                  return (
+                    <div className="mt-2 text-xs text-green-700 bg-green-50 border border-green-200 rounded px-3 py-1.5 flex items-center gap-1.5">
+                      ✓ Existing Karmapreneur/Brand
+                    </div>
+                  );
+                }
+                return (
+                  <div className="mt-2 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-3 py-1.5 flex items-center gap-1.5">
+                    ➕ New Karmapreneur/Brand
+                  </div>
+                );
+              })()}
+            </div>
+          </Field>
+          <Field label="Project Name (Auto-generated)" source="free">
             <input
-              className={inputCls}
-              value={form.brandName}
-              onChange={(e) => {
-                const brand = e.target.value;
-                setForm((f) => ({
-                  ...f,
-                  brandName: brand,
-                  // Pre-fill "[Brand] - " while the analyst hasn't typed a custom name
-                  projectName:
-                    !f.projectName || f.projectName === `${f.brandName} - `
-                      ? `${brand} - `
-                      : f.projectName,
-                }));
-              }}
-              placeholder="e.g. Kopi Tuku"
+              className={`${inputCls} bg-gray-50 text-gray-500`}
+              value={form.projectName}
+              readOnly
             />
           </Field>
-          <Field label="Project Name" source="free">
+          <Field label="Project Description" source="free" hint="Main purpose of the project">
             <input
               className={inputCls}
-              value={form.projectName}
-              onChange={(e) => set("projectName", e.target.value)}
-              placeholder="e.g. Kopi Tuku - Blok A"
+              value={projectFreeText}
+              onChange={(e) => setProjectFreeText(e.target.value)}
+              placeholder="e.g. Blok A Expansion"
             />
           </Field>
           <Field label="Asset Class" source="master" hint="Changing it filters the allowed Types">
@@ -589,113 +847,56 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               ))}
             </select>
           </Field>
-          <Field
-            label="Type"
-            source="master"
-            hint={`Allowed for Asset ${form.assetClass}: ${approvalTypeOptions.join(", ")}`}
-          >
-            <select
-              className={inputCls}
-              value={form.approvalType}
-              onChange={(e) => setApprovalType(e.target.value as ApprovalType)}
-            >
-              {approvalTypeOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="New Karmapreneur?" source="free">
-            <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-              <input
-                type="checkbox"
-                checked={form.brandIsNew}
-                onChange={(e) => set("brandIsNew", e.target.checked)}
-                className="rounded border-gray-300"
-              />
-              First project for this brand
-            </label>
-          </Field>
-        </FormSection>
-
-        <FormSection title="PIC">
-          <Field label="Created by" source="free" hint="Set automatically to the card creator">
-            <input className={`${inputCls} bg-gray-50 text-gray-500`} value={form.createdBy || "—"} readOnly />
-          </Field>
-          {/* Spec C8: Submitted by is not shown prior to the IC submission stage. */}
-          <Field label="Primary Analyst" source="master" hint="From the Karma Team table">
-            <select
-              className={inputCls}
-              value={form.primaryAnalyst}
-              onChange={(e) => set("primaryAnalyst", e.target.value)}
-            >
-              {ANALYSTS.map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Secondary Analyst" source="master" hint="From the Karma Team table">
-            <select
-              className={inputCls}
-              value={form.secondaryAnalyst}
-              onChange={(e) => set("secondaryAnalyst", e.target.value)}
-            >
-              <option value="">— None —</option>
-              {ANALYSTS.filter((a) => a !== form.primaryAnalyst).map((a) => (
-                <option key={a} value={a}>
-                  {a}
-                </option>
-              ))}
-            </select>
-          </Field>
-        </FormSection>
-
-        <FormSection title="Karmapreneur Details">
-          <Field label="Referral Source" source="master">
-            <select
-              className={inputCls}
-              value={form.referralSource}
-              onChange={(e) => set("referralSource", e.target.value)}
-            >
-              {REFERRAL_SOURCES.map((r) => (
-                <option key={r} value={r}>
-                  {r}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Specific Referror" source="free" hint="Who referred this Karmapreneur (optional)">
+          <Field label="Type" source="master" hint="Auto-filled from Asset Class">
             <input
-              className={inputCls}
-              value={form.specificReferror}
-              onChange={(e) => set("specificReferror", e.target.value)}
-              placeholder="e.g. Iman Kusumaputera"
+              className={`${inputCls} bg-gray-50 text-gray-500`}
+              value={typeLabelForAssetClass(form.assetClass)}
+              readOnly
             />
           </Field>
-          <Field label="Referror belongs to KP / Brand" source="free" hint="Optional">
-            <input
-              className={inputCls}
-              value={form.referrorBelongsToKP}
-              onChange={(e) => set("referrorBelongsToKP", e.target.value)}
-              placeholder="e.g. Kopi Kalyan"
-            />
-          </Field>
-        </FormSection>
-
-        {isProjectType && (
-          <FormSection title="Project Details">
-            <Field label="Sector" source="master">
-              <select className={inputCls} value={form.mainSector} onChange={(e) => setSector(e.target.value)}>
-                {SECTORS.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
-                  </option>
-                ))}
+          <Field label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
+            <div className="flex gap-2">
+              <select
+                className={`${inputCls} !w-24`}
+                value={form.requestedAmountCurrency}
+                onChange={(e) => set("requestedAmountCurrency", e.target.value as "IDR" | "USD")}
+              >
+                <option value="IDR">Rp</option>
+                <option value="USD">USD</option>
               </select>
+              <input
+                className={`${inputCls} font-mono`}
+                inputMode="numeric"
+                value={amountText}
+                onChange={(e) => {
+                  const formatted = formatAmountInput(e.target.value);
+                  setAmountText(formatted);
+                  set("requestedAmount", parseAmount(formatted));
+                }}
+                placeholder="2.000.000.000"
+              />
+            </div>
+            {amountWarning && <InlineWarning message={amountWarning} />}
+          </Field>
+          <Field label="Sector" source="master">
+            <select className={inputCls} value={form.mainSector} onChange={(e) => setSector(e.target.value)}>
+              {SECTORS.map((s) => (
+                <option key={s} value={s}>
+                  {s}
+                </option>
+              ))}
+            </select>
+          </Field>
+          {form.mainSector === "Other" ? (
+            <Field label="Sub-sector" source="free" hint="Free text — no sub-sector list under Other">
+              <input
+                className={inputCls}
+                value={form.subSector}
+                onChange={(e) => set("subSector", e.target.value)}
+                placeholder="e.g. Pet Grooming"
+              />
             </Field>
+          ) : (
             <Field label="Sub-sector" source="master" hint={`${subSectorOptions.length} sub-sectors under ${form.mainSector}`}>
               <select
                 className={inputCls}
@@ -710,81 +911,27 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                 ))}
               </select>
             </Field>
-            <Field label="Syariah Project?" source="free">
-              <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-                <input
-                  type="checkbox"
-                  checked={form.syariah}
-                  onChange={(e) => set("syariah", e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                Syariah
-              </label>
-            </Field>
-            {form.syariah && (
-              <Field label="Syariah Notes" source="free" hint="Shown on the IC card next to the Syariah tag">
-                <textarea
-                  className={`${inputCls} min-h-20 resize-y`}
-                  value={form.syariahNotes}
-                  onChange={(e) => set("syariahNotes", e.target.value)}
-                  placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
-                />
-              </Field>
-            )}
-            <Field label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
-              <div className="flex gap-2">
-                <select
-                  className={`${inputCls} !w-24`}
-                  value={form.requestedAmountCurrency}
-                  onChange={(e) =>
-                    set("requestedAmountCurrency", e.target.value as "IDR" | "USD")
-                  }
-                >
-                  <option value="IDR">Rp</option>
-                  <option value="USD">USD</option>
-                </select>
-                <input
-                  className={`${inputCls} font-mono`}
-                  inputMode="numeric"
-                  value={amountText}
-                  onChange={(e) => setAmountText(formatAmountInput(e.target.value))}
-                  placeholder="2.000.000.000"
-                />
-              </div>
-              {amountWarning && <InlineWarning message={amountWarning} />}
-            </Field>
-            <Field label="Financing Use" source="master" hint="Structured Loan Use enum">
-              <select
-                className={inputCls}
-                value={form.financingUse}
-                onChange={(e) => set("financingUse", e.target.value)}
-              >
-                {STRUCTURED_LOAN_USES.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field
-              label="Financing Type"
-              source="master"
-              hint={`Return Types allowed for ${form.approvalType}: ${returnTypeOptions.join(", ")}`}
-            >
-              <select
-                className={inputCls}
-                value={form.returnType}
-                onChange={(e) => setReturnType(e.target.value)}
-              >
-                {returnTypeOptions.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </Field>
-          </FormSection>
-        )}
+          )}
+          <Field label="Syariah Project?" source="free">
+            <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
+              <input
+                type="checkbox"
+                checked={form.syariah}
+                onChange={(e) => set("syariah", e.target.checked)}
+                className="rounded border-gray-300"
+              />
+              Syariah
+            </label>
+          </Field>
+          <Field label="Syariah Notes" source="free" hint="Shown on the IC card next to the Syariah tag">
+            <textarea
+              className={`${inputCls} min-h-20 resize-y`}
+              value={form.syariahNotes}
+              onChange={(e) => set("syariahNotes", e.target.value)}
+              placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
+            />
+          </Field>
+        </FormSection>
 
         <FormSection title="Plafond & Financial Review">
           {hasPlafond && (
@@ -937,6 +1084,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                 headers={[
                   "#",
                   "Name",
+                  "WhatsApp",
+                  "Email",
                   "Role",
                   "Notes",
                   "Key Person?",
@@ -945,7 +1094,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                   "UBO Exposure (Rp)",
                   "",
                 ]}
-                minWidthCls="min-w-[960px]"
+                minWidthCls="min-w-[1200px]"
               >
                 {form.kpContacts.map((c, i) => (
                   <tr key={c.id} className="align-top">
@@ -957,6 +1106,34 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         onChange={(e) => updateRow("kpContacts", c.id, { name: e.target.value })}
                         placeholder="e.g. Tyo Kusumaputera"
                       />
+                    </td>
+                    <td className="py-2 px-2 min-w-32">
+                      <div>
+                        <input
+                          className={cellInputCls}
+                          inputMode="tel"
+                          value={c.whatsapp}
+                          onChange={(e) => updateRow("kpContacts", c.id, { whatsapp: e.target.value })}
+                          placeholder="+62 - 812..."
+                        />
+                        {!isValidWhatsApp(c.whatsapp) && (
+                          <InlineWarning message="Format: +[Country Code] - [Number]" />
+                        )}
+                      </div>
+                    </td>
+                    <td className="py-2 px-2 min-w-40">
+                      <div>
+                        <input
+                          className={cellInputCls}
+                          inputMode="email"
+                          value={c.email}
+                          onChange={(e) => updateRow("kpContacts", c.id, { email: e.target.value })}
+                          placeholder="tyo@example.com"
+                        />
+                        {!isValidEmail(c.email) && (
+                          <InlineWarning message="Must be a valid email (e.g., name@mail.com)" />
+                        )}
+                      </div>
                     </td>
                     <td className="py-2 px-2 min-w-24">
                       <input
@@ -998,16 +1175,27 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         placeholder="e.g. Kol 1, no arrears"
                       />
                     </td>
-                    <td className="py-2 px-2 min-w-32">
-                      <input
-                        className={`${cellInputCls} font-mono`}
-                        inputMode="numeric"
-                        value={c.uboExposure ? formatAmountInput(String(c.uboExposure)) : ""}
-                        onChange={(e) =>
-                          updateRow("kpContacts", c.id, { uboExposure: parseAmount(e.target.value) })
-                        }
-                        placeholder="500.000.000"
-                      />
+                    <td className="py-2 px-2 min-w-32 pt-3.5 text-xs">
+                      {(() => {
+                        if (!c.name.trim()) return <span className="text-gray-300">—</span>;
+                        const existing = existingUboExposure(c.name);
+                        const includingProposed = proposedIDR > 0 ? existing + proposedIDR : existing;
+                        const level = uboExposureLevel(includingProposed);
+                        return (
+                          <span
+                            className={
+                              level === "over"
+                                ? "font-medium text-red-700"
+                                : level === "stretch"
+                                ? "font-medium text-amber-700"
+                                : "text-gray-700"
+                            }
+                          >
+                            {formatAmountInput(String(existing)) || "0"}
+                            {proposedIDR > 0 && ` (${formatAmountInput(String(includingProposed))} incl.)`}
+                          </span>
+                        );
+                      })()}
                     </td>
                     <td className="py-2 px-2">
                       <RemoveRowButton onClick={() => removeRow("kpContacts", c.id)} />
@@ -1019,6 +1207,92 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
             <p className="text-[10px] text-gray-400 mt-1">
               SLIK File URL is required before approval for key persons.
             </p>
+          </FormSection>
+        )}
+
+        {isAD && (
+          <FormSection title="PT Details">
+            <p className="text-xs text-gray-500 mb-3">
+              The legal entities (PTs) receiving disbursements and their bank accounts. The
+              accountholder name should match the PT name — mismatches are flagged to IC.
+            </p>
+            <EditTable
+              headers={[
+                "#",
+                "PT Name",
+                "Bank",
+                "Account Number",
+                "Accountholder Name",
+                "SLIK-PT File URL",
+                "SLIK-PT Exec Summary",
+                "",
+              ]}
+              minWidthCls="min-w-[960px]"
+            >
+              {form.ptDetails.map((pt, i) => (
+                <tr key={pt.id} className="align-top">
+                  <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                  <td className="py-2 px-2 min-w-40">
+                    <input
+                      className={cellInputCls}
+                      value={pt.name}
+                      onChange={(e) => updateRow("ptDetails", pt.id, { name: e.target.value })}
+                      placeholder="e.g. PT Tuku Sejahtera"
+                    />
+                  </td>
+                  <td className="py-2 px-2 min-w-24">
+                    <input
+                      className={cellInputCls}
+                      value={pt.bank}
+                      onChange={(e) => updateRow("ptDetails", pt.id, { bank: e.target.value })}
+                      placeholder="e.g. BCA"
+                    />
+                  </td>
+                  <td className="py-2 px-2 min-w-32">
+                    <input
+                      className={cellInputCls}
+                      inputMode="numeric"
+                      value={pt.accountNumber}
+                      onChange={(e) => updateRow("ptDetails", pt.id, { accountNumber: e.target.value })}
+                      placeholder="e.g. 5271038812"
+                    />
+                  </td>
+                  <td className="py-2 px-2 min-w-40">
+                    <input
+                      className={cellInputCls}
+                      value={pt.accountholderName}
+                      onChange={(e) => updateRow("ptDetails", pt.id, { accountholderName: e.target.value })}
+                      placeholder="e.g. PT Tuku Sejahtera"
+                    />
+                    {pt.name.trim() &&
+                      pt.accountholderName.trim() &&
+                      pt.name.trim() !== pt.accountholderName.trim() && (
+                        <InlineWarning message="Mismatch on accountholder and PT names" />
+                      )}
+                  </td>
+                  <td className="py-2 px-2 min-w-40">
+                    <input
+                      className={cellInputCls}
+                      value={pt.slikFileUrl}
+                      onChange={(e) => updateRow("ptDetails", pt.id, { slikFileUrl: e.target.value })}
+                      placeholder="https://drive.google.com/…"
+                    />
+                  </td>
+                  <td className="py-2 px-2 min-w-40">
+                    <input
+                      className={cellInputCls}
+                      value={pt.slikExecSummary}
+                      onChange={(e) => updateRow("ptDetails", pt.id, { slikExecSummary: e.target.value })}
+                      placeholder="e.g. Kol 1, no arrears"
+                    />
+                  </td>
+                  <td className="py-2 px-2">
+                    <RemoveRowButton onClick={() => removeRow("ptDetails", pt.id)} />
+                  </td>
+                </tr>
+              ))}
+            </EditTable>
+            <AddRowButton label="Add PT" onClick={addPT} />
           </FormSection>
         )}
 
@@ -1588,71 +1862,6 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
           </FormSection>
         )}
 
-        {isAD && ptDetail && (
-          <FormSection title="PT Details">
-            <p className="text-xs text-gray-500 mb-3">
-              The legal entity (PT) receiving the disbursement and its bank account. The
-              accountholder name should match the PT name — mismatches are flagged to IC.
-            </p>
-            <Field label="PT Name" source="free">
-              <input
-                className={inputCls}
-                value={ptDetail.name}
-                onChange={(e) => updateRow("ptDetails", ptDetail.id, { name: e.target.value })}
-                placeholder="e.g. PT Tuku Sejahtera"
-              />
-            </Field>
-            <Field label="Bank" source="free">
-              <input
-                className={inputCls}
-                value={ptDetail.bank}
-                onChange={(e) => updateRow("ptDetails", ptDetail.id, { bank: e.target.value })}
-                placeholder="e.g. BCA"
-              />
-            </Field>
-            <Field label="Account Number" source="free">
-              <input
-                className={inputCls}
-                inputMode="numeric"
-                value={ptDetail.accountNumber}
-                onChange={(e) => updateRow("ptDetails", ptDetail.id, { accountNumber: e.target.value })}
-                placeholder="e.g. 5271038812"
-              />
-            </Field>
-            <Field label="Accountholder Name" source="free">
-              <input
-                className={inputCls}
-                value={ptDetail.accountholderName}
-                onChange={(e) =>
-                  updateRow("ptDetails", ptDetail.id, { accountholderName: e.target.value })
-                }
-                placeholder="e.g. PT Tuku Sejahtera"
-              />
-              {ptDetail.name.trim() &&
-                ptDetail.accountholderName.trim() &&
-                ptDetail.name.trim() !== ptDetail.accountholderName.trim() && (
-                  <InlineWarning message="Mismatch on accountholder and PT names" />
-                )}
-            </Field>
-            <Field label="SLIK-PT File URL" source="free">
-              <input
-                className={inputCls}
-                value={ptDetail.slikFileUrl}
-                onChange={(e) => updateRow("ptDetails", ptDetail.id, { slikFileUrl: e.target.value })}
-                placeholder="https://drive.google.com/…"
-              />
-            </Field>
-            <Field label="SLIK-PT Exec Summary" source="free">
-              <input
-                className={inputCls}
-                value={ptDetail.slikExecSummary}
-                onChange={(e) => updateRow("ptDetails", ptDetail.id, { slikExecSummary: e.target.value })}
-                placeholder="e.g. Kol 1, no arrears"
-              />
-            </Field>
-          </FormSection>
-        )}
-
         <FormSection title="Credit Memo and Notes">
           {isAD && (
             <Field
@@ -1703,57 +1912,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
           </Field>
         </FormSection>
 
-        <FormSection title="Other">
-          <Field label="Funding Source" source="master">
-            <select
-              className={inputCls}
-              value={form.fundingSource}
-              onChange={(e) => set("fundingSource", e.target.value)}
-            >
-              {FUNDING_SOURCES.map((f) => (
-                <option key={f} value={f}>
-                  {f}
-                </option>
-              ))}
-            </select>
-            {form.fundingSource === "Members" && (
-              <InlineWarning message="Warning: this is a Members project" />
-            )}
-          </Field>
-          <Field label="Tax Withholdings" source="master">
-            <select
-              className={inputCls}
-              value={form.taxWithholdings}
-              onChange={(e) =>
-                set("taxWithholdings", e.target.value as SubmissionFormData["taxWithholdings"])
-              }
-            >
-              <option value="TBD">TBD</option>
-              <option value="Yes">Karmapreneur will withhold</option>
-              <option value="No">Karmapreneur will NOT withhold</option>
-            </select>
-            {form.taxWithholdings === "No" && (
-              <InlineWarning message="Warning: Karmapreneur will NOT withhold taxes" />
-            )}
-          </Field>
-          {/* Spec C101: only display if Funding Source includes Members */}
-          {form.fundingSource === "Members" && (
-            <Field label="Bank Details for PT (Members)" source="free">
-              <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-                <input
-                  type="checkbox"
-                  checked={form.bankDetailsReviewed}
-                  onChange={(e) => set("bankDetailsReviewed", e.target.checked)}
-                  className="rounded border-gray-300"
-                />
-                Bank details for PT reviewed by Finance / Analyst
-              </label>
-              {!form.bankDetailsReviewed && (
-                <InlineWarning message="Bank Details Not Yet Reviewed by Finance/Analyst and going to Members" />
-              )}
-            </Field>
-          )}
-        </FormSection>
+
 
         {errors.length > 0 && (
           <div className="border border-red-200 bg-red-50 rounded-lg px-4 py-3 space-y-1">
@@ -1765,35 +1924,44 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
           </div>
         )}
 
-        {/* Action bar */}
-        <div className="sticky bottom-0 bg-white border border-gray-200 rounded-xl shadow-md px-5 py-4 flex items-center gap-3 flex-wrap">
-          <button
-            type="button"
-            onClick={handleSubmitToIC}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Submit to IC
-          </button>
-          <button
-            type="button"
-            onClick={handleSaveDraft}
-            className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
-          >
-            Save Draft
-          </button>
-          <button
-            type="button"
-            onClick={handleDeleteDraft}
-            className="ml-auto text-sm text-red-500 hover:text-red-700 transition-colors"
-          >
-            Delete draft
-          </button>
-          <span className="w-full text-xs text-gray-400">
-            Submitting moves the request to IC Credit Review (Request State: Pending review). Prototype:
-            data is stored in your browser only.
-          </span>
-        </div>
-      </div>
+        {/* Action bar — Investments Team only (submission buttons are field-level controls too) */}
+        {readOnly ? (
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md px-5 py-4 mt-4">
+            <span className="text-xs text-gray-400">
+              View only — the Investments Team fills and submits this form while the lead is in
+              preparation.
+            </span>
+          </div>
+        ) : (
+          <div className="bg-white border border-gray-200 rounded-xl shadow-md px-5 py-4 mt-4 flex items-center gap-3 flex-wrap">
+            <button
+              type="button"
+              onClick={handleSubmitToIC}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+            >
+              Submit to IC
+            </button>
+            <button
+              type="button"
+              onClick={handleSaveDraft}
+              className="border border-gray-300 hover:bg-gray-50 text-gray-700 text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
+            >
+              Save Draft
+            </button>
+            <button
+              type="button"
+              onClick={handleDeleteDraft}
+              className="ml-auto text-sm text-red-500 hover:text-red-700 transition-colors"
+            >
+              Delete draft
+            </button>
+            <span className="w-full text-xs text-gray-400">
+              Submitting moves the request to IC Credit Review (Request State: Pending review). Prototype:
+              data is stored in your browser only.
+            </span>
+          </div>
+        )}
+      </fieldset>
     </div>
   );
 }

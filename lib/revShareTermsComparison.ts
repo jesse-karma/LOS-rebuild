@@ -11,7 +11,24 @@ export function toRevShareSnapshot(rst: RevenueShareTerms): RevShareTermsSnapsho
     minReturn: rst.minReturn,
     minReturnMultiple: rst.minReturnMultiple,
     minReturnPayableMonths: rst.minReturnPayableMonths,
+    carryType: rst.carryType,
+    carryPct: rst.carryPct,
+    sourceOfRevenueAccrued: rst.sourceOfRevenueAccrued,
+    frequency: rst.frequency,
+    dueDate: rst.dueDate,
   };
+}
+
+/**
+ * The most recent non-proposed project of the same financing type — the comparison baseline for
+ * the "different from previous project of the same Financing Type" recap warnings.
+ */
+export function previousProjectOfSameType(project: ICProject, projects: PastProject[]): PastProject | null {
+  return (
+    projects.find(
+      (p) => !p.isCurrentSubmission && p.status !== "Proposed" && p.returnType === project.returnType
+    ) ?? null
+  );
 }
 
 /** Proposed row uses live `project.revenueShareTerms`; historical rows use `revShareTermsSnapshot` when present. */

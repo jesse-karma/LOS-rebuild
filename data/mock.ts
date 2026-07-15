@@ -137,7 +137,6 @@ const projectHolycow: ICProject = {
       slikFileUrl: "https://drive.google.com/file/slik-regina-tiffani",
       slikExecSummary:
         "KTP Jakarta Selatan. KPR di BCA (aktif, performing). Tidak ada kredit konsumer lain. SLIK bersih per Februari 2026.",
-      uboExposure: 3_200_000_000,
     },
     {
       id: "kpc-hc2",
@@ -151,7 +150,6 @@ const projectHolycow: ICProject = {
       slikFileUrl: "https://drive.google.com/file/slik-syifa-sarini",
       slikExecSummary:
         "KTP Jakarta Pusat. Kredit motor lunas 2022. Tidak ada catatan negatif. SLIK bersih per Februari 2026.",
-      uboExposure: 0,
     },
     {
       id: "kpc-hc3",
@@ -164,7 +162,6 @@ const projectHolycow: ICProject = {
       isKeyPerson: false,
       slikFileUrl: null,
       slikExecSummary: null,
-      uboExposure: 0,
     },
     {
       id: "kpc-hc4",
@@ -177,7 +174,6 @@ const projectHolycow: ICProject = {
       isKeyPerson: false,
       slikFileUrl: null,
       slikExecSummary: null,
-      uboExposure: 0,
     },
   ],
 
@@ -208,6 +204,11 @@ const projectHolycow: ICProject = {
         minReturn: null,
         minReturnMultiple: null,
         minReturnPayableMonths: null,
+        carryType: "Fixed Platform Fee",
+        carryPct: 2.0,
+        sourceOfRevenueAccrued: "Sales setelah dikurangi diskon, sebelum PB1/PPN, sebelum Service Charge",
+        frequency: "Monthly",
+        dueDate: "Tanggal 15 setiap bulan",
       },
     },
     {
@@ -215,6 +216,9 @@ const projectHolycow: ICProject = {
       projectName: "Steak Hotel by Holycow (#2) — Working Capital, Fatmawati",
       status: "Active",
       icApprovalDate: "2022-11-20",
+      sector: "F&B",
+      subSector: "Full Service Resto",
+      taxWithholdings: "Yes",
       returnType: "Revenue Share (Return-Capped)",
       amount: 2_000_000_000,
       outstandingAmount: 1_340_000_000,
@@ -239,6 +243,12 @@ const projectHolycow: ICProject = {
         minReturn: 1.25,
         minReturnMultiple: null,
         minReturnPayableMonths: 20,
+        carryType: "Fixed Platform Fee",
+        carryPct: 2.16,
+        sourceOfRevenueAccrued:
+          "Sales setelah dikurangi diskon, sebelum PB1/PPN, sebelum Service Charge, sebelum komisi online dan biaya EDC/QRIS",
+        frequency: "Monthly",
+        dueDate: "Tanggal 15 setiap bulan",
       },
     },
     {
@@ -315,18 +325,21 @@ const projectHolycow: ICProject = {
     {
       author: "Priska Ponggawa",
       date: "2026-04-07",
+      noteType: "Project Note",
       content:
         "Rev. 7 Apr 2026: Update dari KP — kontraktor renovasi sudah mulai. Estimasi selesai akhir Mei 2026. KCF split masih belum resolved, sedang di-follow up oleh tim Finance.",
     },
     {
       author: "Priska Ponggawa",
       date: "2026-03-12",
+      noteType: "Project Note",
       content:
         "Rev. 12 Mar 2026: Site visit Sun Plaza Medan — lokasi strategis di lantai 3 dekat bioskop. Traffic makan siang dan malam kuat. Kompetitor terdekat: Abuba Steak (lantai 1) tapi segmen berbeda. KP sangat yakin dengan performa Medan.",
     },
     {
       author: "Priska Ponggawa",
       date: "2026-02-24",
+      noteType: "Project Note",
       content:
         "24 Feb 2026: Submission pertama. Semua dokumen lengkap. Financial review selesai hari ini. Calculator file sudah diekstrak — data valid. KCF split belum diisi, perlu konfirmasi ke tim Finance.",
     },
@@ -357,11 +370,19 @@ const projectHolycow: ICProject = {
   approvalNotes: "",
   specialNotesForIC:
     "⚠️ KF:KCF Disbursement Split belum valid — harus diselesaikan sebelum disbursement. IC dapat approve dengan CS ini.\n\nProyek ini melebihi sisa plafond saat ini (IDR 1.78B remaining vs IDR 3.1B requested) — namun ini adalah proyek tunggal tanpa request kenaikan plafond. Perlu konfirmasi dari tim Finance apakah plafond perlu di-update.",
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
   conditionsSubsequent: [
-    "Selesaikan KF:KCF Disbursement Split sebelum disbursement",
-    "Submit executed renovation contract sebelum disbursement",
-    "Submit updated bank statements Q1 2026 untuk PT Ahara Bhadranaya",
+    { letter: "A", name: "", condition: "Selesaikan KF:KCF Disbursement Split sebelum disbursement", approver: "" },
+    { letter: "B", name: "", condition: "Submit executed renovation contract sebelum disbursement", approver: "" },
+    {
+      letter: "C",
+      name: "",
+      condition: "Submit updated bank statements Q1 2026 untuk PT Ahara Bhadranaya",
+      approver: "",
+    },
   ],
+  conditionsSubsequentLogic: "",
 };
 
 // ─── Project 2: Shushu ────────────────────────────────────────────────────────
@@ -444,7 +465,6 @@ const projectShushu: ICProject = {
       slikFileUrl: "https://drive.google.com/file/slik-sandy-wiguna",
       slikExecSummary:
         "KTP Tangerang Utara. Kredit motor lunas 2022. Tidak ada KPR. SLIK bersih per April 2026.",
-      uboExposure: 0,
     },
   ],
 
@@ -511,12 +531,14 @@ const projectShushu: ICProject = {
     {
       author: "Juang Angger Pamungkas",
       date: "2026-04-02",
+      noteType: "Project Note",
       content:
         "2 Apr 2026: Submission. Semua dokumen lengkap. Financial review selesai hari ini. KP mereview agreement — sedang dalam proses Legal. Target disbursement 9 Apr.",
     },
     {
       author: "Sharfina Nindita",
       date: "2026-01-28",
+      noteType: "KP Note",
       content:
         "28 Jan 2026: First meeting dengan Sandy Wiguna di PIK2. Outlet bersih dan terkelola dengan baik. Traffic peak di weekend dan sore hari. Sandy sangat paham P&L dan sangat antusias untuk ekspansi.",
     },
@@ -546,11 +568,24 @@ const projectShushu: ICProject = {
   approvalNotes:
     "Approved unanimously. KP pertama dengan fixed return — amount kecil, risiko terkendali. Perlu dipantau progress renovasi dan performa revenue post-renovation.",
   specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
   conditionsSubsequent: [
-    "Submit executed renovation invoice / work order sebelum disbursement",
-    "Submit financial statements Q1 2026 sebelum disbursement",
-    "Update performa revenue 3 bulan post-renovation (Juli 2026)",
+    {
+      letter: "A",
+      name: "",
+      condition: "Submit executed renovation invoice / work order sebelum disbursement",
+      approver: "",
+    },
+    { letter: "B", name: "", condition: "Submit financial statements Q1 2026 sebelum disbursement", approver: "" },
+    {
+      letter: "C",
+      name: "",
+      condition: "Update performa revenue 3 bulan post-renovation (Juli 2026)",
+      approver: "",
+    },
   ],
+  conditionsSubsequentLogic: "",
 };
 
 // ─── Project 3: Cipta Usaha Media — PO Financing (Orang Tua) ─────────────────
@@ -664,7 +699,6 @@ const projectCUM: ICProject = {
       slikFileUrl: "https://drive.google.com/file/slik-dwi-wicaksono",
       slikExecSummary:
         "KTP Jakarta Timur. KPR di BNI (aktif, performing). Kredit kendaraan lunas 2021. Tidak ada catatan negatif. SLIK bersih per Maret 2026.",
-      uboExposure: 323_172_379,
     },
     {
       id: "kpc-cum2",
@@ -678,7 +712,6 @@ const projectCUM: ICProject = {
       slikFileUrl: "https://drive.google.com/file/slik-nofriwan",
       slikExecSummary:
         "KTP Bekasi. Tidak ada kredit aktif. SLIK bersih per Maret 2026.",
-      uboExposure: 0,
     },
   ],
 
@@ -766,6 +799,9 @@ const projectCUM: ICProject = {
       projectName: "Cipta Usaha Media (#25) — PO - Orang Tua (Jan 2026)",
       status: "Active",
       icApprovalDate: "2026-01-12",
+      sector: "Agencies",
+      subSector: "Workforce Outsourcing",
+      taxWithholdings: "Yes",
       bRecapKind: "B-PO",
       payors: ["Orang Tua Group"],
       lateFeeRecap: {
@@ -872,12 +908,14 @@ const projectCUM: ICProject = {
     {
       author: "Nila Layla Melinda",
       date: "2026-04-09",
+      noteType: "Project Note",
       content:
         "[DRAFT] Project Note: 9 Apr 2026. Proyek #26 disetujui IC. KF:KCF Disbursement Letter dalam proses. Target disbursement akhir pekan ini.",
     },
     {
       author: "Nila Layla Melinda",
       date: "2026-03-31",
+      noteType: "Project Note",
       content:
         "Submission proyek #26 — PO Orang Tua April cycle. CUM masih belum bisa produce balance sheet terbaru (accounting team baru belum fully onboarded). Bank statements Jan–Mar 2026 sudah ada dan cashflow konsisten. Koordinasi dengan Legal untuk persiapan contract.",
     },
@@ -924,11 +962,19 @@ const projectCUM: ICProject = {
     "Approved unanimously. PO financing rutin dari KP yang track record-nya sangat baik. Catatan: balance sheet terbaru belum tersedia — perlu disubmit sebagai CS sebelum disbursement cycle berikutnya.",
   specialNotesForIC:
     "⚠️ KF:KCF Disbursement Letter masih missing — perlu dilengkapi sebelum disbursement.\n\n⚠️ Balance sheet formal belum dapat diproduksi oleh KP (tim akuntan baru). Bank statements digunakan sebagai proxy. Perlu laporan keuangan formal sebelum disbursement proyek berikutnya.",
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
   conditionsSubsequent: [
-    "KF:KCF Disbursement Letter harus dilengkapi sebelum disbursement",
-    "Submit balance sheet formal (per Des 2025 atau Mar 2026) sebelum proyek #27",
-    "Submit PO / Invoice dari Orang Tua sebelum disbursement",
+    { letter: "A", name: "", condition: "KF:KCF Disbursement Letter harus dilengkapi sebelum disbursement", approver: "" },
+    {
+      letter: "B",
+      name: "",
+      condition: "Submit balance sheet formal (per Des 2025 atau Mar 2026) sebelum proyek #27",
+      approver: "",
+    },
+    { letter: "C", name: "", condition: "Submit PO / Invoice dari Orang Tua sebelum disbursement", approver: "" },
   ],
+  conditionsSubsequentLogic: "",
 };
 
 // ─── Project 4: Cahaya Energi Asia — Aztech #1 (PO/Invoice + Plafond) ─────────
@@ -1030,7 +1076,6 @@ const projectCEA: ICProject = {
       isKeyPerson: true,
       slikFileUrl: null,
       slikExecSummary: "SLIK on file per diligence folder (prototype).",
-      uboExposure: 6_000_000_000,
     },
   ],
 
@@ -1088,6 +1133,7 @@ const projectCEA: ICProject = {
     {
       author: "Junaidi",
       date: "2025-10-22",
+      noteType: "Project Note",
       content:
         "Submission PO/Invoice + Plafond. Calculator extracted — rates match term sheet. Plafond headroom perlu IC tinjau bersamaan dengan tranche.",
     },
@@ -1133,10 +1179,18 @@ const projectCEA: ICProject = {
   approvalNotes: "",
   specialNotesForIC:
     "⚠️ Combined IC: tranche IDR 6B (Daily Interest) + plafond line (naik ke IDR 15B PO sub-limit dari IDR 12B aktif). Outstanding KP IDR 6B — sisa headroom setelah approval tercermin di baris Proposed.",
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
   conditionsSubsequent: [
-    "Execute PO / underlying invoice documentation before first disbursement",
-    "Confirm plafond registry update in Coda after IC approval",
+    {
+      letter: "A",
+      name: "",
+      condition: "Execute PO / underlying invoice documentation before first disbursement",
+      approver: "",
+    },
+    { letter: "B", name: "", condition: "Confirm plafond registry update in Coda after IC approval", approver: "" },
   ],
+  conditionsSubsequentLogic: "",
 };
 
 // ─── Project 5: Maju — Asset D, Project + Plafond ────────────────────────────
@@ -1242,7 +1296,6 @@ const projectAssetDPlafond: ICProject = {
       slikFileUrl: "https://drive.google.com/file/maju-kp-slik-placeholder",
       slikExecSummary:
         "Replace with SLIK exec summary from diligence / People. Placeholder text for mock only.",
-      uboExposure: 900_000_000,
     },
   ],
 
@@ -1252,6 +1305,8 @@ const projectAssetDPlafond: ICProject = {
       projectName: "Maju (#3) — Prior facility",
       status: "Completed",
       icApprovalDate: "2025-08-01",
+      sector: "Consumer Goods",
+      taxWithholdings: "Yes",
       returnType: "Revenue Share (Return-Capped)",
       amount: 1_200_000_000,
       outstandingAmount: 0,
@@ -1274,6 +1329,12 @@ const projectAssetDPlafond: ICProject = {
         minReturn: null,
         minReturnMultiple: null,
         minReturnPayableMonths: null,
+        carryType: "Variable Platform Fee",
+        carryPct: 2.0,
+        sourceOfRevenueAccrued:
+          "KP net sales (after discounts, before VAT) as booked in management accounts — working-capital facility; revenue definition per term sheet",
+        frequency: "Monthly",
+        dueDate: "10th calendar day",
       },
       lateFeeRecap: {
         basis: "Overdue Amount",
@@ -1343,6 +1404,7 @@ const projectAssetDPlafond: ICProject = {
     {
       author: "Armeno Devan",
       date: "2026-06-01",
+      noteType: "Project Note",
       content:
         "Submission Project+Plafond for Maju #4 - Working Capital (i-_5laC-0qZa). Sync plafond + PT bank details from Coda before disbursement.",
     },
@@ -1372,10 +1434,18 @@ const projectAssetDPlafond: ICProject = {
   approvalNotes: "",
   specialNotesForIC:
     "⚠️ Combined IC: Maju #4 - Working Capital — tranche IDR 1.8B (Revenue Share Return-Capped 1.35×) + plafond line (WC sub-limit naik ke IDR 4B dari IDR 2.5B aktif, contoh mock). Outstanding KP IDR 900jt — sisa headroom setelah approval tercermin di baris Proposed.\n\nCoda Project row: i-_5laC-0qZa.",
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
   conditionsSubsequent: [
-    "Execute tranche documentation and milestone sign-off before each disbursement",
-    "Confirm plafond registry update in Coda after IC approval",
+    {
+      letter: "A",
+      name: "",
+      condition: "Execute tranche documentation and milestone sign-off before each disbursement",
+      approver: "",
+    },
+    { letter: "B", name: "", condition: "Confirm plafond registry update in Coda after IC approval", approver: "" },
   ],
+  conditionsSubsequentLogic: "",
 };
 
 // ─── Export ───────────────────────────────────────────────────────────────────

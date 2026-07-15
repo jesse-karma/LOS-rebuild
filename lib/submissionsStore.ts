@@ -1,4 +1,4 @@
-import { ApprovalType, ICProject, ReturnType } from "@/data/types";
+import { ApprovalType, ICProject, PastProject, ReturnType } from "@/data/types";
 import { mockProjects } from "@/data/mock";
 import { isAssetB } from "@/lib/assetClass";
 import {
@@ -17,12 +17,13 @@ import {
 export interface SubmissionContactRow {
   id: string;
   name: string;
+  whatsapp: string;
+  email: string;
   role: string;
   notesOnPerson: string;
   isKeyPerson: boolean;
   slikFileUrl: string;
   slikExecSummary: string;
-  uboExposure: number; // IDR
 }
 
 export interface SubmissionDisbursementRow {
@@ -256,7 +257,9 @@ export function emptySubmissionForm(): SubmissionFormData {
     financialsLink: "",
     kpCreditMemo: "",
     bankDetailsReviewed: false,
-    taxWithholdings: "TBD",
+    // Spec default: "Karmapreneur will withhold" unless the brand's history says otherwise (see
+    // mostRecentBrandProject — SubmissionForm pre-fills this live once a brand with history is typed).
+    taxWithholdings: "Yes",
     termSheetLink: "",
     projectCreditMemo: "",
     specialNotesForIC: "",
@@ -275,7 +278,19 @@ export function listSubmissions(): StoredSubmission[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as StoredSubmission[]) : [];
+    const subs = raw ? (JSON.parse(raw) as StoredSubmission[]) : [];
+    // Migrate existing contacts to have whatsapp/email fields
+    return subs.map((sub) => ({
+      ...sub,
+      form: {
+        ...sub.form,
+        kpContacts: sub.form.kpContacts.map((c) => ({
+          ...c,
+          whatsapp: (c as any).whatsapp || "",
+          email: (c as any).email || "",
+        })),
+      },
+    }));
   } catch {
     return [];
   }
@@ -341,12 +356,13 @@ function demoDrafts(): StoredSubmission[] {
           {
             id: "row-demo-sks-1",
             name: "Rizky Pratama",
+            whatsapp: "+62 - 812 3456 7890",
+            email: "rizky@satekhas.com",
             role: "Owner / Director",
             notesOnPerson: "Founder; runs day-to-day ops across 4 outlets.",
             isKeyPerson: true,
             slikFileUrl: "",
             slikExecSummary: "",
-            uboExposure: 0,
           },
         ],
       },
@@ -479,15 +495,50 @@ function ptWarnings(pt: SubmissionPTRow): string[] {
 
 /** Spec U19 Warning 2: Project Target Amount vs Proposed Plafond (Project+Plafond only). */
 export function requestedAmountWarning(f: SubmissionFormData): string | null {
-  if (
-    f.approvalType === "Project+Plafond" &&
-    f.requestedAmountCurrency === "IDR" &&
-    f.proposedTotalLimit > 0 &&
-    f.requestedAmount > f.proposedTotalLimit
-  ) {
+  // USD requests are compared against the (IDR) plafond limits at the same JISDOR-equivalent
+  // rate used elsewhere in this file, rather than skipping the check entirely.
+  const requestedIDR =
+    f.requestedAmountCurrency === "IDR" ? f.requestedAmount : f.requestedAmount * 16000;
+
+  if (f.approvalType === "Project+Plafond" && f.proposedTotalLimit > 0 && requestedIDR > f.proposedTotalLimit) {
     return "Warning: Project Target Amount exceeds Proposed Plafond";
   }
+  if (f.approvalType === "Project" && f.finReviewLimitCurrent > 0 && requestedIDR > f.finReviewLimitCurrent) {
+    return "Warning: Project Target Amount exceeds Current Plafond";
+  }
   return null;
+}
+
+/** A brand's past projects across all mock history (deduped by id). */
+export function brandHistoryFor(brandName: string): PastProject[] {
+  const brandKey = brandName.trim().toLowerCase();
+  const seenPastIds = new Set<string>();
+  return mockProjects
+    .filter((p) => p.brandName.trim().toLowerCase() === brandKey)
+    .flatMap((p) => p.pastProjects.filter((pp) => !pp.isCurrentSubmission))
+    .filter((pp) => (seenPastIds.has(pp.id) ? false : (seenPastIds.add(pp.id), true)));
+}
+
+/** The brand's most recent past project (by IC approval date) — basis for pre-fill/default lookups. */
+export function getAllBrands(): string[] {
+  const seenBrands = new Set<string>();
+  // Add brands from mock projects
+  mockProjects.forEach((p) => seenBrands.add(p.brandName));
+  // Add brands from stored submissions
+  listSubmissions().forEach((s) => {
+    if (s.form.brandName.trim()) seenBrands.add(s.form.brandName);
+  });
+  return Array.from(seenBrands).sort();
+}
+
+export function mostRecentBrandProject(brandName: string): PastProject | null {
+  const history = brandHistoryFor(brandName);
+  if (history.length === 0) return null;
+  return [...history].sort((a, b) => {
+    const ta = a.icApprovalDate ? Date.parse(a.icApprovalDate) : -Infinity;
+    const tb = b.icApprovalDate ? Date.parse(b.icApprovalDate) : -Infinity;
+    return tb - ta;
+  })[0];
 }
 
 export function submissionToICProject(sub: StoredSubmission): ICProject {
@@ -571,12 +622,22 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
 
   // Recap is core IC content regardless of analyst input: pull the brand's
   // history from the KP's known projects so Proposed sits alongside it.
-  const brandKey = f.brandName.trim().toLowerCase();
-  const seenPastIds = new Set<string>();
-  const brandHistory = mockProjects
-    .filter((p) => p.brandName.trim().toLowerCase() === brandKey)
-    .flatMap((p) => p.pastProjects.filter((pp) => !pp.isCurrentSubmission))
-    .filter((pp) => (seenPastIds.has(pp.id) ? false : (seenPastIds.add(pp.id), true)));
+  const brandHistory = brandHistoryFor(f.brandName);
+
+  // Sector/sub-sector mismatch vs. this brand's past projects (skips rows with no recorded sector).
+  const sectorMismatches = brandHistory.filter(
+    (p) => p.sector && (p.sector !== f.mainSector || (p.subSector ?? "") !== (f.subSector || ""))
+  );
+  const sectorWarningMsg =
+    sectorMismatches.length > 0
+      ? `Warning: Previous project${sectorMismatches.length > 1 ? "s" : ""} ${sectorMismatches
+          .map((p) => `"${p.projectName}"`)
+          .join(", ")} had a sector/sub-sector of ${sectorMismatches
+          .map((p) => (p.subSector ? `${p.sector}/${p.subSector}` : p.sector))
+          .join("; ")} which are different from current setting (${
+          f.subSector ? `${f.mainSector}/${f.subSector}` : f.mainSector
+        }). Check that the current settings are accurate.`
+      : null;
 
   return {
     id: sub.id,
@@ -606,7 +667,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     requestedAmount: f.requestedAmount,
     amountWarning: requestedAmountWarning(f),
     financingUse: f.financingUse,
-    sectorWarning: null,
+    sectorWarning: sectorWarningMsg,
 
     plafond: {
       proposed: hasPlafond
@@ -634,6 +695,8 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     kpContacts: f.kpContacts.map((c) => ({
       id: c.id,
       name: c.name,
+      whatsapp: (c as any).whatsapp || "",
+      email: (c as any).email || "",
       role: c.role,
       notesOnPerson: c.notesOnPerson,
       referredProjects: [],
@@ -641,7 +704,6 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
       isKeyPerson: c.isKeyPerson,
       slikFileUrl: c.slikFileUrl || null,
       slikExecSummary: c.slikExecSummary || null,
-      uboExposure: c.uboExposure,
     })),
 
     pastProjects: [
@@ -732,6 +794,9 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     icVotes: IC_MEMBERS.map((m) => ({ ...m, vote: null, votedAt: null })),
     approvalNotes: "",
     specialNotesForIC: f.specialNotesForIC || null,
+    conditionsPrecedent: [],
+    conditionsPrecedentLogic: "",
     conditionsSubsequent: [],
+    conditionsSubsequentLogic: "",
   };
 }

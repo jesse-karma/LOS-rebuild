@@ -88,6 +88,8 @@ export interface FinancialReview {
 export interface KPContact {
   id: string;
   name: string;
+  whatsapp: string;
+  email: string;
   role: string;
   notesOnPerson: string;
   referredProjects: string[];
@@ -95,13 +97,12 @@ export interface KPContact {
   isKeyPerson: boolean;
   slikFileUrl: string | null;
   slikExecSummary: string | null;
-  uboExposure: number; // IDR
 }
 
 export interface OverdueEvent {
   dueDate: string; // ISO date
   daysOverdue: number;
-  status: "Paid" | "Unpaid";
+  status: "Paid" | "Unpaid" | "Partial Paid";
 }
 
 /** Economics slice stored on past recap rows for Asset A/D cross-project comparison. */
@@ -127,6 +128,12 @@ export interface RevShareTermsSnapshot {
   minReturn: number | null;
   minReturnMultiple: number | null;
   minReturnPayableMonths: number | null;
+  /** Optional — absent on older recap rows predating the "different from previous project" comparison. */
+  carryType?: string;
+  carryPct?: number;
+  sourceOfRevenueAccrued?: string;
+  frequency?: string;
+  dueDate?: string;
 }
 
 export interface PastProject {
@@ -154,6 +161,13 @@ export interface PastProject {
   overdueHistory?: OverdueEvent[];
   /** At IC time: terms as executed (or as modeled) for this row — used in Asset A/D revenue-share recap comparison. */
   revShareTermsSnapshot?: RevShareTermsSnapshot;
+  /**
+   * At IC time: the brand's sector/sub-sector and tax-withholding stance on this project — used for
+   * sector-mismatch warnings and Tax Withholdings pre-fill. Optional: absent on older recap rows.
+   */
+  sector?: string;
+  subSector?: string;
+  taxWithholdings?: "Yes" | "No";
   /**
    * B_MOD recap: row classification. When omitted on an Asset B brand card, UI infers from the viewed project’s asset class.
    */
@@ -357,7 +371,7 @@ export interface ICProject {
   kpCreditMemo: string;
   projectCreditMemo: string;
   financialsLink: string | null;
-  projectNotes: Array<{ author: string; date: string; content: string }>;
+  projectNotes: NoteEntry[];
 
   // PT
   ptDetails: PTInfo[];
@@ -372,5 +386,54 @@ export interface ICProject {
   icVotes: ICVoteRecord[];
   approvalNotes: string;
   specialNotesForIC: string | null;
-  conditionsSubsequent: string[];
+  conditionsPrecedent: ConditionRow[];
+  conditionsPrecedentLogic: string;
+  conditionsSubsequent: ConditionRow[];
+  conditionsSubsequentLogic: string;
+}
+
+/** One lettered row of a Conditions Precedent/Subsequent table (letters are assigned once and persist). */
+export interface ConditionRow {
+  letter: string;
+  name: string;
+  condition: string;
+  approver: string;
+}
+
+/** One entry in the Notes Feed — a running comment thread anyone on the deal can add to. */
+export interface NoteEntry {
+  author: string;
+  date: string; // ISO
+  content: string;
+  noteType: "Project Note" | "KP Note";
+}
+
+// ─── Concentration limit check (policy: Concentration Limits) ────────────────
+
+export interface LimitDimensionCheck {
+  dimension: "project" | "entrepreneur" | "ubo";
+  label: string;
+  /** Existing exposure before this submission (IDR). */
+  existing: number;
+  /** Existing + proposed (IDR) — what the limits are compared against. */
+  cumulative: number;
+  /** Normal maximum in IDR; null when the entity has no normal tier for this dimension. */
+  normalLimit: number | null;
+  /** Hard maximum in IDR (stretch max / fund limit). */
+  maxLimit: number;
+  status: "ok" | "stretch" | "over";
+}
+
+export interface ConcentrationCheck {
+  entity: string;
+  entityName: string;
+  basisLabel: string;
+  /** The configured base (Net Assets / Aggregate Capital Commitments) the check ran against. */
+  baseAmount: number;
+  quarterLabel: string;
+  configSetAt: string;
+  proposedAmount: number;
+  dims: LimitDimensionCheck[];
+  /** ok = proceed · stretch = full Investment Committee sign-off required · blocked = cannot proceed. */
+  outcome: "ok" | "stretch" | "blocked";
 }

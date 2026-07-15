@@ -74,6 +74,21 @@ export function approvalTypesForAssetClass(assetClass: string): string[] {
     .map(([type]) => type);
 }
 
+// ─── §6 Type label → derived from Asset Class ────────────────────────────────
+// The "Type" tag shown to users (home table, project header, KP page) describes
+// the financing shape, not the Approval Type enum — auto-derived from Asset Class.
+
+const ASSET_CLASS_TYPE_LABELS: Record<MasterAssetClass, string> = {
+  A: "Branch Opening",
+  "B - I": "Invoice Financing",
+  "B - PO": "PO Financing",
+  D: "Working Capital",
+};
+
+export function typeLabelForAssetClass(assetClass: string): string {
+  return ASSET_CLASS_TYPE_LABELS[assetClass as MasterAssetClass] ?? assetClass;
+}
+
 // ─── §5 Return Types → applicable approval types ─────────────────────────────
 
 export const RETURN_TYPE_APPROVAL_TYPES: Record<string, string[]> = {
