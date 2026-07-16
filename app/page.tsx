@@ -26,7 +26,6 @@ import {
   stageInfo,
 } from "@/lib/workflowStore";
 import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
-import { ASSET_CLASSES, APPROVAL_TYPE_ASSET_CLASSES } from "@/data/masterData";
 
 function fmt(n: number): string {
   return `IDR ${new Intl.NumberFormat("id-ID").format(n)}`;
@@ -147,9 +146,9 @@ function FlowTable({
           <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
             <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
             <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
-            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
             <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
-            <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
+            <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Requested Amount</th>
             <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Status</th>
             {voteMemberName && <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Vote</th>}
           </tr>
@@ -174,10 +173,10 @@ function FlowTable({
                 </td>
                 <td className="py-2.5 px-2.5 font-medium text-gray-900">{p.projectName}</td>
                 <td className="py-2.5 px-2.5">
-                  <Tag label={p.approvalType} variant={approvalTypeVariant(p.approvalType)} />
+                  <Tag label={`Asset ${p.assetClass}`} variant={assetClassVariant(p.assetClass)} />
                 </td>
                 <td className="py-2.5 px-2.5">
-                  <Tag label={`Asset ${p.assetClass}`} variant={assetClassVariant(p.assetClass)} />
+                  <Tag label={p.approvalType} variant={approvalTypeVariant(p.approvalType)} />
                 </td>
                 <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
                   {projectAmount(p)}
@@ -210,8 +209,6 @@ export default function HomePage() {
   // Workflows load after mount (localStorage) — empty map matches the server render.
   const [workflows, setWorkflows] = useState<Record<string, ProjectWorkflow>>({});
   const [query, setQuery] = useState("");
-  const [assetFilter, setAssetFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
   const [tab, setTab] = useState<TabKey>("ic");
 
   useEffect(() => {
@@ -227,11 +224,9 @@ export default function HomePage() {
   // Everyone on a team sees the whole pipeline — access is by Role Type, not person.
   const isIC = user.team === "Investment Committee";
 
-  // Search + filters
+  // Search
   const matching = projects
     .filter((p) => matchesQuery(query, p.brandName, p.projectName))
-    .filter((p) => !assetFilter || p.assetClass === assetFilter)
-    .filter((p) => !typeFilter || p.approvalType === typeFilter)
     // Asset A/D float to the top, Asset B sinks to the bottom; within that, grouped by
     // KP/Brand (rows for the same brand sit together), then oldest-first within a brand.
     .sort(
@@ -260,8 +255,6 @@ export default function HomePage() {
 
   const visibleDrafts = drafts
     .filter((d) => matchesQuery(query, d.form.brandName, d.form.projectName))
-    .filter((d) => !assetFilter || d.form.assetClass === assetFilter)
-    .filter((d) => !typeFilter || d.form.approvalType === typeFilter)
     .sort(
       (a, b) =>
         assetSortRank(a.form.assetClass) - assetSortRank(b.form.assetClass) ||
@@ -294,32 +287,6 @@ export default function HomePage() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
-        <select
-          className="border border-gray-300 rounded-lg px-2.5 py-2 text-sm bg-white text-gray-700"
-          value={assetFilter}
-          onChange={(e) => setAssetFilter(e.target.value)}
-          aria-label="Filter by asset class"
-        >
-          <option value="">Asset Class</option>
-          {ASSET_CLASSES.map((a) => (
-            <option key={a} value={a}>
-              Asset {a}
-            </option>
-          ))}
-        </select>
-        <select
-          className="border border-gray-300 rounded-lg px-2.5 py-2 text-sm bg-white text-gray-700"
-          value={typeFilter}
-          onChange={(e) => setTypeFilter(e.target.value)}
-          aria-label="Filter by project type"
-        >
-          <option value="">Project Types</option>
-          {Object.keys(APPROVAL_TYPE_ASSET_CLASSES).map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
         {canCreateSubmission(user.team) && (
           <Link
             href="/submission/new"
@@ -364,11 +331,10 @@ export default function HomePage() {
               <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
                 <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project&apos;s Name</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Type</th>
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
-                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Created at</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Last updated</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
+                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Requested Amount</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Idle</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
@@ -395,10 +361,10 @@ export default function HomePage() {
                     {d.form.projectName || "Untitled submission"}
                   </td>
                   <td className="py-2.5 px-2.5">
-                    <Tag label={d.form.approvalType} variant={approvalTypeVariant(d.form.approvalType)} />
+                    <Tag label={`Asset ${d.form.assetClass}`} variant={assetClassVariant(d.form.assetClass)} />
                   </td>
                   <td className="py-2.5 px-2.5">
-                    <Tag label={`Asset ${d.form.assetClass}`} variant={assetClassVariant(d.form.assetClass)} />
+                    <Tag label={d.form.approvalType} variant={approvalTypeVariant(d.form.approvalType)} />
                   </td>
                   <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
                     {d.form.requestedAmount > 0
@@ -407,9 +373,8 @@ export default function HomePage() {
                         : `USD ${d.form.requestedAmount.toLocaleString()}`
                       : <span className="text-gray-400 font-normal">—</span>}
                   </td>
-                  <td className="py-2.5 px-2.5 text-gray-500 whitespace-nowrap">{fmtDate(d.createdAt)}</td>
                   <td className="py-2.5 px-2.5 text-gray-500 whitespace-nowrap">
-                    {fmtDate(d.updatedAt ?? d.createdAt)}
+                    {daysWaiting(d.updatedAt ?? d.createdAt)}d
                   </td>
                 </tr>
               ))}

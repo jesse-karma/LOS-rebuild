@@ -1479,6 +1479,2153 @@ const projectAssetDPlafond: ICProject = {
   conditionsSubsequentLogic: "",
 };
 
+// ─── Project 6: Ayam Geprek Juara — Asset A, IC Review (no votes yet) ────────
+// F&B / QSR - Full Meal | Asset A | Branch Opening/Expansion | IDR 2.2B
+// Return: Revenue Share | new KP, first submission, sitting in IC Review
+
+const projectAyamGeprek: ICProject = {
+  id: "proj-ayam-geprek",
+  brandName: "Ayam Geprek Juara",
+  brandIsNew: true,
+  projectName: "Ayam Geprek Juara (#1) — Branch Opening: Depok",
+  approvalType: "Project",
+  submittedAt: "2026-06-20T09:00:00Z",
+
+  pic: {
+    submitter: "Sharfina Nindita",
+    primaryAnalyst: "Sharfina Nindita",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "F&B",
+  subSector: "🍔QSR - Full Meal",
+  syariah: false,
+  assetClass: "A",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 2_200_000_000,
+  amountWarning: null,
+  financingUse: "Branch Opening/Expansion",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-06-18",
+      financialReportsReviewed: "Management Accounts Jan–May 2026",
+      periodEndingDate: "2026-05-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Revenue outlet pertama (Bekasi) IDR 480jt/bulan, GM ~62%. Cashflow bersih, tidak ada hutang bank. Dana diajukan untuk pembukaan outlet ke-2 di Depok.",
+    },
+  ],
+
+  referralSource: "Karmapreneur",
+  specificReferror: "Regina Tiffani",
+  referrorBelongsToKP: "Steak Hotel by Holycow, Shushu",
+  otherReferees: [],
+
+  submissionProjectedBEPMonths: 11,
+
+  kpContacts: [
+    {
+      id: "kpc-ag1",
+      name: "Fajar Nugroho",
+      whatsapp: "+62 - 818 2233 4455",
+      email: "fajar.nugroho@ayamgeprekjuara.id",
+      role: "Founder / Direktur Utama",
+      notesOnPerson:
+        "Founder Ayam Geprek Juara, membuka outlet pertama di Bekasi 2024. Background operasional QSR — pernah jadi area supervisor di jaringan ayam goreng nasional. Sangat detail soal food cost dan SOP dapur.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-fajar-nugroho",
+      slikExecSummary: "KTP Bekasi. Kredit motor lunas 2023. Tidak ada catatan negatif. SLIK bersih per Juni 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-ag-1",
+      projectName: "Ayam Geprek Juara (#1) — Branch Opening: Depok [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-06-20",
+      isCurrentSubmission: true,
+      returnType: "Revenue Share (Return-Capped)",
+      amount: 2_200_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 22,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.8,
+      otfMOIC: null,
+      projectedMOIC: "1.35x",
+      projectedBEPMonths: 11,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Revenue Share (Return-Capped)",
+  disbursements: [{ tranche: 1, plannedAmount: 2_200_000_000, plannedDate: "2026-07-10" }],
+  branches: [
+    {
+      id: "br-ag1",
+      name: "Depok — Margonda Raya",
+      area: "Depok, Jawa Barat",
+      gmapsLink: "https://maps.google.com/?q=Margonda+Raya+Depok",
+      notes:
+        "Outlet ke-2. Lokasi dekat kampus, traffic mahasiswa tinggi. Area 80m², kapasitas 40 covers. Kontrak sewa 3 tahun.",
+      type: "Opening Branch",
+    },
+  ],
+  revenueShareTerms: {
+    sourceOfRevenueAccrued: "Sales setelah dikurangi diskon, sebelum PB1/PPN, sebelum biaya EDC/QRIS",
+    frequency: "Monthly",
+    dueDate: "Tanggal 10 setiap bulan",
+    capType: "Return Cap",
+    capMultiple: 1.35,
+    capTimePeriodMonths: null,
+    revShareStartType: "Anchored to Branch Opening",
+    revShareStartDate: null,
+    preBEPRevSharePct: 7.5,
+    postBEPRevSharePct: 8.0,
+    carryType: "Fixed Platform Fee",
+    carryPct: 2.0,
+    minReturn: null,
+    minReturnMultiple: null,
+    minReturnPayableMonths: null,
+    revProjectionArray: monthsRevenueProjection(22, 220_000_000),
+  },
+  fixedReturnTerms: null,
+  lateFee: {
+    basis: "Overdue Amount",
+    gracePeriodDays: 5,
+    dailyPctInvestors: 0.08,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Ayam Geprek Juara**\n\nKP baru, submission pertama. Outlet Bekasi (dibuka 2024) sudah profitable dengan GM ~62%. Founder berpengalaman di operasional QSR. Tidak ada hutang bank. Dana diajukan untuk ekspansi outlet ke-2 di Depok, area kampus dengan traffic tinggi.",
+  projectCreditMemo:
+    "**Project Credit Memo — Branch Opening: Depok**\n\nProyek pertama. Revenue Share return-capped 1.35x. Proyeksi revenue IDR 220jt/bulan setelah ramp-up. IRR proyeksi 20.8%, MOIC 1.35x.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-ayam-geprek-calc",
+  projectNotes: [
+    {
+      author: "Sharfina Nindita",
+      date: "2026-06-20",
+      noteType: "Project Note",
+      content:
+        "Submission pertama Ayam Geprek Juara. Semua dokumen lengkap. Menunggu review IC — belum ada vote masuk.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-ag1",
+      name: "PT Geprek Juara Nusantara",
+      bank: "BCA",
+      accountNumber: "5310029981",
+      accountholderName: "GEPREK JUARA NUSANTARA",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-geprek-juara",
+      slikExecSummary: "PT aktif sejak 2024. Rekening BCA digunakan untuk semua transaksi outlet. SLIK bersih per Juni 2026.",
+      warnings: [],
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Execute lease agreement for Depok outlet before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 7: Tekstil Makmur Sentosa — Asset B-I, IC Review (no votes) ─────
+// Assorted B2B Services and Manufacturing / Clothing Manufacturing | Asset B-I | Domestic Invoice Financing | IDR 350jt
+
+const projectTekstilMakmur: ICProject = {
+  id: "proj-tekstil-makmur",
+  brandName: "Tekstil Makmur Sentosa",
+  brandIsNew: true,
+  projectName: "Tekstil Makmur Sentosa (#1) — Invoice Financing: Uniqlo Indonesia",
+  approvalType: "PO/Invoice",
+  submittedAt: "2026-06-22T10:30:00Z",
+
+  pic: {
+    submitter: "Juang Angger Pamungkas",
+    primaryAnalyst: "Juang Angger Pamungkas",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Assorted B2B Services and Manufacturing",
+  subSector: "🎽Clothing Manufacturing",
+  syariah: false,
+  assetClass: "B - I",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 350_000_000,
+  trancheTargetAmount: 350_000_000,
+  amountWarning: null,
+  financingUse: "Domestic Invoice Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-06-20",
+      financialReportsReviewed: "Bank Statements Mar–May 2026",
+      periodEndingDate: "2026-05-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Kontrak manufaktur garmen dengan Uniqlo Indonesia sudah berjalan 2 tahun. Cashflow konsisten dengan volume invoice historis.",
+    },
+  ],
+
+  referralSource: "Cold calling",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-tms1",
+      name: "Hendra Wijaya Kusuma",
+      whatsapp: "+62 - 819 3344 5566",
+      email: "hendra.kusuma@tekstilmakmur.co.id",
+      role: "Direktur Utama",
+      notesOnPerson:
+        "Founder pabrik konveksi sejak 2015. Kontrak manufaktur dengan Uniqlo Indonesia dan beberapa brand lokal. Responsif dalam proses diligence.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-hendra-kusuma",
+      slikExecSummary: "KTP Bandung. Tidak ada kredit aktif. SLIK bersih per Juni 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-tms-1",
+      projectName: "Tekstil Makmur Sentosa (#1) — Invoice Financing: Uniqlo Indonesia [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-06-22",
+      isCurrentSubmission: true,
+      bRecapKind: "B-I",
+      payors: ["Uniqlo Indonesia"],
+      returnType: "Daily Interest",
+      amount: 350_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.5,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 350_000_000, plannedDate: "2026-07-01" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.6,
+    serviceFee30DayPct: 0.6,
+    tenorDays: 60,
+    minInterestPeriodDays: 30,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.1,
+    dailyPctASN: 0,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Tekstil Makmur Sentosa**\n\nKP baru, submission pertama. Pabrik konveksi garmen dengan kontrak manufaktur ke Uniqlo Indonesia selama 2 tahun terakhir. Bank statements menunjukkan cashflow konsisten dengan volume invoice historis.",
+  projectCreditMemo:
+    "**Project Credit Memo — Invoice Financing: Uniqlo Indonesia**\n\nProyek pertama. Underlying invoice ke Uniqlo Indonesia. Daily interest 1.6%/bulan (KF), 0.6%/bulan (KCF). Tenor 2 bulan. MOIC 1.03x, IRR 20.5%.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-tekstil-makmur-calc",
+  projectNotes: [
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-06-22",
+      noteType: "Project Note",
+      content: "Submission pertama. Menunggu review IC — belum ada vote masuk.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-tms1",
+      name: "PT Tekstil Makmur Sentosa",
+      bank: "BNI",
+      accountNumber: "0198877665",
+      accountholderName: "PT Tekstil Makmur Sentosa",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-tms",
+      slikExecSummary: "PT aktif sejak 2015. Rekening BNI aktif, tidak ada pinjaman korporat. SLIK bersih per Juni 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-tms-1",
+      payorLabel: "Uniqlo Indonesia",
+      poOrInvoiceNumber: "INV-UNQ-2026-06-0088",
+      dueDate: "2026-08-21",
+      amount: 350_000_000,
+      currency: "IDR",
+      payorType: "Corporate Invoice (whitelisted)",
+      payeeProjects: "Tekstil Makmur Sentosa (#1)",
+      notes: "Underlying invoice for June 2026 production batch.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit executed invoice / PO documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 8: Distribusi Pangan Sejahtera — Asset B-PO, IC Review (no votes) ─
+// Commodities Trading, Processing & Distribution / FMCG Distribution | Asset B-PO | Domestic PO Financing | IDR 400jt
+
+const projectDistribusiPangan: ICProject = {
+  id: "proj-distribusi-pangan",
+  brandName: "Distribusi Pangan Sejahtera",
+  brandIsNew: true,
+  projectName: "Distribusi Pangan Sejahtera (#1) — PO Financing: Indofood",
+  approvalType: "PO/Invoice",
+  submittedAt: "2026-06-24T08:15:00Z",
+
+  pic: {
+    submitter: "Wesly Simatupang",
+    primaryAnalyst: "Wesly Simatupang",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Commodities Trading, Processing, & Distribution",
+  subSector: "🥨FMCG Distribution",
+  syariah: false,
+  assetClass: "B - PO",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 400_000_000,
+  trancheTargetAmount: 400_000_000,
+  amountWarning: null,
+  financingUse: "Domestic PO Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-06-22",
+      financialReportsReviewed: "Bank Statements Mar–May 2026",
+      periodEndingDate: "2026-05-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Distributor FMCG dengan kontrak PO rutin dari Indofood. Cashflow konsisten dengan volume PO historis.",
+    },
+  ],
+
+  referralSource: "KarmaClub Member",
+  specificReferror: "Wesly Simatupang",
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-dps1",
+      name: "Anita Rahmawati Putri",
+      whatsapp: "+62 - 821 4455 6677",
+      email: "anita.putri@distribusipangan.co.id",
+      role: "Direktur Utama",
+      notesOnPerson:
+        "Founder distributor FMCG sejak 2017. Kontrak PO rutin dengan Indofood untuk area Jawa Barat. Sangat kooperatif dalam diligence.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-anita-putri",
+      slikExecSummary: "KTP Bandung. Kredit mobil aktif, performing. SLIK bersih per Juni 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-dps-1",
+      projectName: "Distribusi Pangan Sejahtera (#1) — PO Financing: Indofood [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-06-24",
+      isCurrentSubmission: true,
+      bRecapKind: "B-PO",
+      payors: ["Indofood"],
+      returnType: "Daily Interest",
+      amount: 400_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.9,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 400_000_000, plannedDate: "2026-07-05" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.6,
+    serviceFee30DayPct: 0.6,
+    tenorDays: 60,
+    minInterestPeriodDays: 30,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.1,
+    dailyPctASN: 0,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Distribusi Pangan Sejahtera**\n\nKP baru, submission pertama. Distributor FMCG dengan kontrak PO rutin dari Indofood area Jawa Barat sejak 2017. Bank statements menunjukkan cashflow konsisten.",
+  projectCreditMemo:
+    "**Project Credit Memo — PO Financing: Indofood**\n\nProyek pertama. Underlying PO dari Indofood. Daily interest 1.6%/bulan (KF), 0.6%/bulan (KCF). Tenor 2 bulan. MOIC 1.03x, IRR 20.9%.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-distribusi-pangan-calc",
+  projectNotes: [
+    {
+      author: "Wesly Simatupang",
+      date: "2026-06-24",
+      noteType: "Project Note",
+      content: "Submission pertama. Menunggu review IC — belum ada vote masuk.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-dps1",
+      name: "PT Distribusi Pangan Sejahtera",
+      bank: "BCA",
+      accountNumber: "4460098123",
+      accountholderName: "PT Distribusi Pangan Sejahtera",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-dps",
+      slikExecSummary: "PT aktif sejak 2017. Rekening BCA aktif. SLIK bersih per Juni 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-dps-1",
+      payorLabel: "Indofood",
+      poOrInvoiceNumber: "PO-IDF-2026-06-0231",
+      dueDate: "2026-08-24",
+      amount: 400_000_000,
+      currency: "IDR",
+      payorType: "Corporate PO (whitelisted)",
+      payeeProjects: "Distribusi Pangan Sejahtera (#1)",
+      notes: "Underlying PO aligned to June 2026 distribution cycle.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit executed PO documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 9: Karya Logistik Prima — Asset B-I, Finance Slotting ───────────
+// Assorted B2B Services and Manufacturing / Logistics | Asset B-I | Domestic Invoice Financing | IDR 300jt
+// Baked-in Principal approval (1 vote required, ≤4B tier) reaches Finance Slotting with no workflow override.
+
+const projectKaryaLogistik: ICProject = {
+  id: "proj-karya-logistik",
+  brandName: "Karya Logistik Prima",
+  brandIsNew: true,
+  projectName: "Karya Logistik Prima (#1) — Invoice Financing: JNE Express",
+  approvalType: "PO/Invoice",
+  submittedAt: "2026-06-10T09:45:00Z",
+
+  pic: {
+    submitter: "Priska Ponggawa",
+    primaryAnalyst: "Priska Ponggawa",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Assorted B2B Services and Manufacturing",
+  subSector: "🚚Logistics",
+  syariah: false,
+  assetClass: "B - I",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 300_000_000,
+  trancheTargetAmount: 300_000_000,
+  amountWarning: null,
+  financingUse: "Domestic Invoice Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-06-08",
+      financialReportsReviewed: "Bank Statements Mar–May 2026",
+      periodEndingDate: "2026-05-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Perusahaan logistik pihak ketiga dengan kontrak subkontrak dari JNE Express. Cashflow konsisten.",
+    },
+  ],
+
+  referralSource: "Karma Node",
+  specificReferror: "Dian Kusuma",
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-klp1",
+      name: "Bayu Setiawan Halim",
+      whatsapp: "+62 - 822 5566 7788",
+      email: "bayu.halim@karyalogistikprima.co.id",
+      role: "Direktur Utama",
+      notesOnPerson: "Founder perusahaan logistik pihak ketiga sejak 2019. Kontrak subkontrak dengan JNE Express untuk area Jabodetabek.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-bayu-halim",
+      slikExecSummary: "KTP Tangerang. Tidak ada kredit aktif. SLIK bersih per Juni 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-klp-1",
+      projectName: "Karya Logistik Prima (#1) — Invoice Financing: JNE Express [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-06-10",
+      isCurrentSubmission: true,
+      bRecapKind: "B-I",
+      payors: ["JNE Express"],
+      returnType: "Daily Interest",
+      amount: 300_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.6,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 300_000_000, plannedDate: "2026-06-25" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.6,
+    serviceFee30DayPct: 0.6,
+    tenorDays: 60,
+    minInterestPeriodDays: 30,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.1,
+    dailyPctASN: 0,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Karya Logistik Prima**\n\nKP baru, submission pertama. Perusahaan logistik pihak ketiga dengan kontrak subkontrak JNE Express sejak 2019. Bank statements menunjukkan cashflow konsisten.",
+  projectCreditMemo:
+    "**Project Credit Memo — Invoice Financing: JNE Express**\n\nProyek pertama. Underlying invoice ke JNE Express. Daily interest 1.6%/bulan (KF), 0.6%/bulan (KCF). Tenor 2 bulan. MOIC 1.03x, IRR 20.6%.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-karya-logistik-calc",
+  projectNotes: [
+    {
+      author: "Priska Ponggawa",
+      date: "2026-06-10",
+      noteType: "Project Note",
+      content: "Submission pertama. Approved by Principal — menunggu Finance untuk KF:KCF split.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-klp1",
+      name: "PT Karya Logistik Prima",
+      bank: "Bank Maybank",
+      accountNumber: "2201155678",
+      accountholderName: "KARYA LOGISTIK PRIMA",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-klp",
+      slikExecSummary: "PT aktif sejak 2019. Rekening Maybank aktif. SLIK bersih per Juni 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-klp-1",
+      payorLabel: "JNE Express",
+      poOrInvoiceNumber: "INV-JNE-2026-06-0512",
+      dueDate: "2026-08-09",
+      amount: 300_000_000,
+      currency: "IDR",
+      payorType: "Corporate Invoice (whitelisted)",
+      payeeProjects: "Karya Logistik Prima (#1)",
+      notes: "Underlying invoice for June 2026 subcontract cycle.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: "Approve", votedAt: "2026-06-12T09:00:00Z" },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved by Principal — amount kecil, KP baru dengan kontrak subkontrak yang jelas.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit executed invoice / PO documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 10: Elektronik Jaya Abadi — Asset B-PO, Finance Slotting ────────
+// Commodities Trading, Processing & Distribution / Electronics Distribution | Asset B-PO | Domestic PO Financing | IDR 280jt
+
+const projectElektronikJaya: ICProject = {
+  id: "proj-elektronik-jaya",
+  brandName: "Elektronik Jaya Abadi",
+  brandIsNew: true,
+  projectName: "Elektronik Jaya Abadi (#1) — PO Financing: Electronic City",
+  approvalType: "PO/Invoice",
+  submittedAt: "2026-06-11T11:20:00Z",
+
+  pic: {
+    submitter: "Nila Layla Melinda",
+    primaryAnalyst: "Nila Layla Melinda",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Commodities Trading, Processing, & Distribution",
+  subSector: "🔌Electronics Distribution",
+  syariah: false,
+  assetClass: "B - PO",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 280_000_000,
+  trancheTargetAmount: 280_000_000,
+  amountWarning: null,
+  financingUse: "Domestic PO Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-06-09",
+      financialReportsReviewed: "Bank Statements Mar–May 2026",
+      periodEndingDate: "2026-05-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Distributor elektronik dengan kontrak PO rutin dari Electronic City. Cashflow konsisten.",
+    },
+  ],
+
+  referralSource: "Potential Karmapreneur",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-eja1",
+      name: "Rendra Kusumo Aji",
+      whatsapp: "+62 - 823 6677 8899",
+      email: "rendra.aji@elektronikjayaabadi.co.id",
+      role: "Direktur Utama",
+      notesOnPerson: "Founder distributor elektronik sejak 2016. Kontrak PO rutin dengan Electronic City area Surabaya.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-rendra-aji",
+      slikExecSummary: "KTP Surabaya. Kredit mobil lunas 2022. SLIK bersih per Juni 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-eja-1",
+      projectName: "Elektronik Jaya Abadi (#1) — PO Financing: Electronic City [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-06-11",
+      isCurrentSubmission: true,
+      bRecapKind: "B-PO",
+      payors: ["Electronic City"],
+      returnType: "Daily Interest",
+      amount: 280_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.7,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 280_000_000, plannedDate: "2026-06-26" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.6,
+    serviceFee30DayPct: 0.6,
+    tenorDays: 60,
+    minInterestPeriodDays: 30,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.1,
+    dailyPctASN: 0,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Elektronik Jaya Abadi**\n\nKP baru, submission pertama. Distributor elektronik dengan kontrak PO rutin dari Electronic City area Surabaya sejak 2016. Cashflow konsisten dengan volume PO historis.",
+  projectCreditMemo:
+    "**Project Credit Memo — PO Financing: Electronic City**\n\nProyek pertama. Underlying PO dari Electronic City. Daily interest 1.6%/bulan (KF), 0.6%/bulan (KCF). Tenor 2 bulan. MOIC 1.03x, IRR 20.7%.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-elektronik-jaya-calc",
+  projectNotes: [
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-06-11",
+      noteType: "Project Note",
+      content: "Submission pertama. Approved by Principal — menunggu Finance untuk KF:KCF split.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-eja1",
+      name: "PT Elektronik Jaya Abadi",
+      bank: "BNI",
+      accountNumber: "0177665544",
+      accountholderName: "PT Elektronik Jaya Abadi",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-eja",
+      slikExecSummary: "PT aktif sejak 2016. Rekening BNI aktif. SLIK bersih per Juni 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-eja-1",
+      payorLabel: "Electronic City",
+      poOrInvoiceNumber: "PO-ECT-2026-06-0077",
+      dueDate: "2026-08-10",
+      amount: 280_000_000,
+      currency: "IDR",
+      payorType: "Corporate PO (whitelisted)",
+      payeeProjects: "Elektronik Jaya Abadi (#1)",
+      notes: "Underlying PO aligned to June 2026 distribution cycle.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: "Approve", votedAt: "2026-06-13T09:00:00Z" },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved by Principal — PO financing rutin dengan payor whitelisted.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit executed PO documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 11: Griya Sehat Farma — Asset D, Finance Slotting ───────────────
+// Healthcare and Petcare Clinics / Pharmacy | Asset D | Working Capital | IDR 1.5B
+
+const projectGriyaSehat: ICProject = {
+  id: "proj-griya-sehat",
+  brandName: "Griya Sehat Farma",
+  brandIsNew: true,
+  projectName: "Griya Sehat Farma (#1) — Working Capital",
+  approvalType: "Project",
+  submittedAt: "2026-06-13T09:00:00Z",
+
+  pic: {
+    submitter: "Armeno Devan",
+    primaryAnalyst: "Armeno Devan",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Healthcare and Petcare Clinics",
+  subSector: "Pharmacy",
+  syariah: false,
+  assetClass: "D",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 1_500_000_000,
+  amountWarning: null,
+  financingUse: "Working Capital Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-06-11",
+      financialReportsReviewed: "Management Accounts Jan–May 2026",
+      periodEndingDate: "2026-05-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Jaringan apotek dengan 3 outlet di Bandung. Cashflow konsisten, dana untuk restock inventory.",
+    },
+  ],
+
+  referralSource: "Ex-Karma Staff",
+  specificReferror: "Maya Kusuma",
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  submissionProjectedBEPMonths: 12,
+
+  kpContacts: [
+    {
+      id: "kpc-gsf1",
+      name: "Dewi Anggraeni Suryana",
+      whatsapp: "+62 - 824 7788 9900",
+      email: "dewi.suryana@griyasehatfarma.co.id",
+      role: "Direktur Utama",
+      notesOnPerson: "Founder jaringan apotek sejak 2019, kini 3 outlet di Bandung. Background farmasi — apoteker bersertifikat.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-dewi-suryana",
+      slikExecSummary: "KTP Bandung. KPR di BCA, performing. SLIK bersih per Juni 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-gsf-1",
+      projectName: "Griya Sehat Farma (#1) — Working Capital [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-06-13",
+      isCurrentSubmission: true,
+      returnType: "Revenue Share (Return-Capped)",
+      amount: 1_500_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 20,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 19.8,
+      otfMOIC: null,
+      projectedMOIC: "1.32x",
+      projectedBEPMonths: 12,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Revenue Share (Return-Capped)",
+  disbursements: [{ tranche: 1, plannedAmount: 1_500_000_000, plannedDate: "2026-06-28" }],
+  branches: [],
+  revenueShareTerms: {
+    sourceOfRevenueAccrued: "KP net sales (after discounts, before VAT) as booked in management accounts",
+    frequency: "Monthly",
+    dueDate: "Tanggal 5 setiap bulan",
+    capType: "Return Cap",
+    capMultiple: 1.32,
+    capTimePeriodMonths: null,
+    revShareStartType: "Fixed",
+    revShareStartDate: "2026-07-05",
+    preBEPRevSharePct: 7.0,
+    postBEPRevSharePct: 7.5,
+    carryType: "Variable Platform Fee",
+    carryPct: 2.0,
+    minReturn: null,
+    minReturnMultiple: null,
+    minReturnPayableMonths: null,
+    revProjectionArray: monthsRevenueProjection(20, 200_000_000),
+  },
+  fixedReturnTerms: null,
+  lateFee: {
+    basis: "Overdue Amount",
+    gracePeriodDays: 5,
+    dailyPctInvestors: 0.08,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Griya Sehat Farma**\n\nKP baru, submission pertama. Jaringan apotek dengan 3 outlet di Bandung, berdiri sejak 2019. Founder apoteker bersertifikat. Cashflow konsisten, tidak ada hutang bank.",
+  projectCreditMemo:
+    "**Project Credit Memo — Working Capital**\n\nProyek pertama. Revenue Share return-capped 1.32x. Dana untuk restock inventory 3 outlet. IRR proyeksi 19.8%, MOIC 1.32x.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-griya-sehat-calc",
+  projectNotes: [
+    {
+      author: "Armeno Devan",
+      date: "2026-06-13",
+      noteType: "Project Note",
+      content: "Submission pertama. Approved by Principal — menunggu Finance untuk KF:KCF split.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-gsf1",
+      name: "PT Griya Sehat Farma",
+      bank: "BCA",
+      accountNumber: "6650012234",
+      accountholderName: "PT Griya Sehat Farma",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-gsf",
+      slikExecSummary: "PT aktif sejak 2019. Rekening BCA aktif. SLIK bersih per Juni 2026.",
+      warnings: [],
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: "Approve", votedAt: "2026-06-15T09:00:00Z" },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved by Principal — jaringan apotek dengan cashflow stabil.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit updated inventory report before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 12: Konveksi Berkah Jaya — Asset B-I, Legal ─────────────────────
+// Assorted B2B Services and Manufacturing / Clothing Manufacturing | Asset B-I | Domestic Invoice Financing | IDR 320jt
+// IC-approved + KF/KCF slotted via seedDefaultWorkflows(), awaiting Legal.
+
+const projectKonveksiBerkah: ICProject = {
+  id: "proj-konveksi-berkah",
+  brandName: "Konveksi Berkah Jaya",
+  brandIsNew: true,
+  projectName: "Konveksi Berkah Jaya (#1) — Invoice Financing: Matahari Department Store",
+  approvalType: "PO/Invoice",
+  submittedAt: "2026-05-20T09:30:00Z",
+
+  pic: {
+    submitter: "Sharfina Nindita",
+    primaryAnalyst: "Sharfina Nindita",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Assorted B2B Services and Manufacturing",
+  subSector: "🎽Clothing Manufacturing",
+  syariah: false,
+  assetClass: "B - I",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 320_000_000,
+  trancheTargetAmount: 320_000_000,
+  amountWarning: null,
+  financingUse: "Domestic Invoice Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-05-18",
+      financialReportsReviewed: "Bank Statements Feb–Apr 2026",
+      periodEndingDate: "2026-04-30",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Konveksi garmen dengan kontrak supply ke Matahari Department Store. Cashflow konsisten.",
+    },
+  ],
+
+  referralSource: "Karma Staff",
+  specificReferror: "Wesly Simatupang",
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-kbj1",
+      name: "Yoga Pratama Nugraha",
+      whatsapp: "+62 - 825 8899 0011",
+      email: "yoga.nugraha@konveksiberkahjaya.co.id",
+      role: "Direktur Utama",
+      notesOnPerson: "Founder konveksi garmen sejak 2014. Kontrak supply rutin ke Matahari Department Store.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-yoga-nugraha",
+      slikExecSummary: "KTP Bandung. Tidak ada kredit aktif. SLIK bersih per Mei 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-kbj-1",
+      projectName: "Konveksi Berkah Jaya (#1) — Invoice Financing: Matahari Department Store [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-05-22",
+      isCurrentSubmission: true,
+      bRecapKind: "B-I",
+      payors: ["Matahari Department Store"],
+      returnType: "Daily Interest",
+      amount: 320_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.4,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 320_000_000, plannedDate: "2026-06-02" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.6,
+    serviceFee30DayPct: 0.6,
+    tenorDays: 60,
+    minInterestPeriodDays: 30,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.1,
+    dailyPctASN: 0,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Konveksi Berkah Jaya**\n\nKP baru, submission pertama. Konveksi garmen dengan kontrak supply ke Matahari Department Store sejak 2014. Cashflow konsisten.",
+  projectCreditMemo:
+    "**Project Credit Memo — Invoice Financing: Matahari Department Store**\n\nProyek pertama. Underlying invoice ke Matahari Department Store. Daily interest 1.6%/bulan (KF), 0.6%/bulan (KCF). Tenor 2 bulan. MOIC 1.03x, IRR 20.4%.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-konveksi-berkah-calc",
+  projectNotes: [
+    {
+      author: "Sharfina Nindita",
+      date: "2026-05-26",
+      noteType: "Project Note",
+      content: "Disetujui IC, KF:KCF split selesai. Menunggu Legal untuk persiapan kontrak.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-kbj1",
+      name: "PT Konveksi Berkah Jaya",
+      bank: "BNI",
+      accountNumber: "0166554433",
+      accountholderName: "PT Konveksi Berkah Jaya",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-kbj",
+      slikExecSummary: "PT aktif sejak 2014. Rekening BNI aktif. SLIK bersih per Mei 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-kbj-1",
+      payorLabel: "Matahari Department Store",
+      poOrInvoiceNumber: "INV-MDS-2026-05-0344",
+      dueDate: "2026-07-21",
+      amount: 320_000_000,
+      currency: "IDR",
+      payorType: "Corporate Invoice (whitelisted)",
+      payeeProjects: "Konveksi Berkah Jaya (#1)",
+      notes: "Underlying invoice for May 2026 supply cycle.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved unanimously. KP baru dengan kontrak supply yang jelas dan payor whitelisted.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit executed invoice / PO documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 13: Agro Makmur Distribusi — Asset B-PO, Legal ──────────────────
+// Commodities Trading, Processing & Distribution / FMCG Distribution | Asset B-PO | Domestic PO Financing | IDR 260jt
+
+const projectAgroMakmur: ICProject = {
+  id: "proj-agro-makmur",
+  brandName: "Agro Makmur Distribusi",
+  brandIsNew: true,
+  projectName: "Agro Makmur Distribusi (#1) — PO Financing: Wings Group",
+  approvalType: "PO/Invoice",
+  submittedAt: "2026-05-22T10:00:00Z",
+
+  pic: {
+    submitter: "Wesly Simatupang",
+    primaryAnalyst: "Wesly Simatupang",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Commodities Trading, Processing, & Distribution",
+  subSector: "🥨FMCG Distribution",
+  syariah: false,
+  assetClass: "B - PO",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 260_000_000,
+  trancheTargetAmount: 260_000_000,
+  amountWarning: null,
+  financingUse: "Domestic PO Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-05-20",
+      financialReportsReviewed: "Bank Statements Feb–Apr 2026",
+      periodEndingDate: "2026-04-30",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Distributor agro dengan kontrak PO rutin dari Wings Group. Cashflow konsisten.",
+    },
+  ],
+
+  referralSource: "2nd+ Project",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-amd1",
+      name: "Siti Nurhaliza Putri",
+      whatsapp: "+62 - 826 9900 1122",
+      email: "siti.putri@agromakmur.co.id",
+      role: "Direktur Utama",
+      notesOnPerson: "Founder distributor agro sejak 2018. Kontrak PO rutin dengan Wings Group area Jawa Tengah.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-siti-putri",
+      slikExecSummary: "KTP Semarang. Tidak ada kredit aktif. SLIK bersih per Mei 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-amd-1",
+      projectName: "Agro Makmur Distribusi (#1) — PO Financing: Wings Group [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-05-24",
+      isCurrentSubmission: true,
+      bRecapKind: "B-PO",
+      payors: ["Wings Group"],
+      returnType: "Daily Interest",
+      amount: 260_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.3,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 260_000_000, plannedDate: "2026-06-05" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.6,
+    serviceFee30DayPct: 0.6,
+    tenorDays: 60,
+    minInterestPeriodDays: 30,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.1,
+    dailyPctASN: 0,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Agro Makmur Distribusi**\n\nKP baru, submission pertama. Distributor agro dengan kontrak PO rutin dari Wings Group area Jawa Tengah sejak 2018. Cashflow konsisten.",
+  projectCreditMemo:
+    "**Project Credit Memo — PO Financing: Wings Group**\n\nProyek pertama. Underlying PO dari Wings Group. Daily interest 1.6%/bulan (KF), 0.6%/bulan (KCF). Tenor 2 bulan. MOIC 1.03x, IRR 20.3%.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-agro-makmur-calc",
+  projectNotes: [
+    {
+      author: "Wesly Simatupang",
+      date: "2026-05-28",
+      noteType: "Project Note",
+      content: "Disetujui IC, KF:KCF split selesai. Menunggu Legal untuk persiapan kontrak.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-amd1",
+      name: "PT Agro Makmur Distribusi",
+      bank: "BCA",
+      accountNumber: "7780034512",
+      accountholderName: "PT Agro Makmur Distribusi",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-amd",
+      slikExecSummary: "PT aktif sejak 2018. Rekening BCA aktif. SLIK bersih per Mei 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-amd-1",
+      payorLabel: "Wings Group",
+      poOrInvoiceNumber: "PO-WG-2026-05-0198",
+      dueDate: "2026-07-24",
+      amount: 260_000_000,
+      currency: "IDR",
+      payorType: "Corporate PO (whitelisted)",
+      payeeProjects: "Agro Makmur Distribusi (#1)",
+      notes: "Underlying PO aligned to May 2026 distribution cycle.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved unanimously. PO financing dengan payor whitelisted.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit executed PO documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 14: Klinik Sehat Keluarga — Asset D, Legal ──────────────────────
+// Healthcare and Petcare Clinics / Doctor Clinic | Asset D | Working Capital | IDR 900jt
+// Fixed Amount Repayment terms (for variety vs. the Revenue Share D examples above).
+
+const projectKlinikSehat: ICProject = {
+  id: "proj-klinik-sehat",
+  brandName: "Klinik Sehat Keluarga",
+  brandIsNew: true,
+  projectName: "Klinik Sehat Keluarga (#1) — Working Capital",
+  approvalType: "Project",
+  submittedAt: "2026-05-15T09:00:00Z",
+
+  pic: {
+    submitter: "Juang Angger Pamungkas",
+    primaryAnalyst: "Juang Angger Pamungkas",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Healthcare and Petcare Clinics",
+  subSector: "🩺Doctor Clinic (GP and Specialist)",
+  syariah: false,
+  assetClass: "D",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 900_000_000,
+  amountWarning: null,
+  financingUse: "Working Capital Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-05-13",
+      financialReportsReviewed: "Management Accounts Jan–Apr 2026",
+      periodEndingDate: "2026-04-30",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Klinik keluarga dengan 2 cabang di Yogyakarta. Dana untuk restock alat medis dan obat.",
+    },
+  ],
+
+  referralSource: "Karmapreneur",
+  specificReferror: "Sinta Wulandari",
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  submissionProjectedBEPMonths: 10,
+
+  kpContacts: [
+    {
+      id: "kpc-ksk1",
+      name: "dr. Ratna Kusumawardhani",
+      whatsapp: "+62 - 827 0011 2233",
+      email: "ratna.kusumawardhani@kliniksehatkeluarga.co.id",
+      role: "Direktur Utama / Dokter Penanggung Jawab",
+      notesOnPerson: "Founder dan dokter penanggung jawab klinik keluarga sejak 2020, kini 2 cabang di Yogyakarta.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-ratna-kusumawardhani",
+      slikExecSummary: "KTP Yogyakarta. Tidak ada kredit aktif. SLIK bersih per Mei 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-ksk-1",
+      projectName: "Klinik Sehat Keluarga (#1) — Working Capital [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-05-17",
+      isCurrentSubmission: true,
+      returnType: "Fixed Return",
+      amount: 900_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 12,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 22.0,
+      otfMOIC: null,
+      projectedMOIC: "1.20x",
+      projectedBEPMonths: 10,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Fixed Return",
+  disbursements: [{ tranche: 1, plannedAmount: 900_000_000, plannedDate: "2026-05-30" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: {
+    repaymentSchedule: fixedReturnScheduleFromTotals(12, 900_000_000, 165_600_000, 18_000_000),
+    totalRepayment: 1_083_600_000,
+    totalPrincipal: 900_000_000,
+    totalInterest: 165_600_000,
+    carry: 18_000_000,
+  },
+  lateFee: {
+    basis: "Overdue Amount",
+    gracePeriodDays: 5,
+    dailyPctInvestors: 0.08,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Klinik Sehat Keluarga**\n\nKP baru, submission pertama. Klinik keluarga dengan 2 cabang di Yogyakarta, berdiri sejak 2020. Founder dokter penanggung jawab langsung. Cashflow konsisten, tidak ada hutang bank.",
+  projectCreditMemo:
+    "**Project Credit Memo — Working Capital**\n\nProyek pertama. Fixed Amount Repayment, 12 kali cicilan. MOIC 1.20x, IRR 22.0%. Dana untuk restock alat medis dan obat.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-klinik-sehat-calc",
+  projectNotes: [
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-05-19",
+      noteType: "Project Note",
+      content: "Disetujui IC, KF:KCF split selesai. Menunggu Legal untuk persiapan kontrak.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-ksk1",
+      name: "PT Klinik Sehat Keluarga",
+      bank: "BCA",
+      accountNumber: "8890045671",
+      accountholderName: "PT Klinik Sehat Keluarga",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-ksk",
+      slikExecSummary: "PT aktif sejak 2020. Rekening BCA aktif. SLIK bersih per Mei 2026.",
+      warnings: [],
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved unanimously. Klinik dengan dokter penanggung jawab yang jelas dan cashflow stabil.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit updated inventory report before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 15: Bakmi Naga Emas — Asset A, Finance Disbursed ────────────────
+// F&B / Full Service Resto | Asset A | Branch Opening/Expansion | IDR 1.8B
+// IC-approved, through Legal, awaiting Finance Disbursement.
+
+const projectBakmiNaga: ICProject = {
+  id: "proj-bakmi-naga",
+  brandName: "Bakmi Naga Emas",
+  brandIsNew: true,
+  projectName: "Bakmi Naga Emas (#1) — Branch Opening: Semarang",
+  approvalType: "Project",
+  submittedAt: "2026-04-10T09:00:00Z",
+
+  pic: {
+    submitter: "Priska Ponggawa",
+    primaryAnalyst: "Priska Ponggawa",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "F&B",
+  subSector: "🍲Full Service Resto",
+  syariah: false,
+  assetClass: "A",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 1_800_000_000,
+  amountWarning: null,
+  financingUse: "Branch Opening/Expansion",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-04-08",
+      financialReportsReviewed: "Management Accounts Jan–Mar 2026",
+      periodEndingDate: "2026-03-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Outlet pertama (Solo) profitable sejak 2023. Dana untuk pembukaan outlet ke-2 di Semarang.",
+    },
+  ],
+
+  referralSource: "Karma.Club Website",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  submissionProjectedBEPMonths: 12,
+
+  kpContacts: [
+    {
+      id: "kpc-bne1",
+      name: "Cahyo Adi Wibowo",
+      whatsapp: "+62 - 828 1122 3344",
+      email: "cahyo.wibowo@bakminagaemas.co.id",
+      role: "Founder / Direktur Utama",
+      notesOnPerson: "Founder Bakmi Naga Emas, membuka outlet pertama di Solo 2023. Sangat detail soal resep dan konsistensi rasa antar outlet.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-cahyo-wibowo",
+      slikExecSummary: "KTP Solo. Tidak ada kredit aktif. SLIK bersih per April 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-bne-1",
+      projectName: "Bakmi Naga Emas (#1) — Branch Opening: Semarang [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-04-14",
+      isCurrentSubmission: true,
+      returnType: "Revenue Share (Return-Capped)",
+      amount: 1_800_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 22,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 21.5,
+      otfMOIC: null,
+      projectedMOIC: "1.38x",
+      projectedBEPMonths: 12,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Revenue Share (Return-Capped)",
+  disbursements: [{ tranche: 1, plannedAmount: 1_800_000_000, plannedDate: "2026-05-05" }],
+  branches: [
+    {
+      id: "br-bne1",
+      name: "Semarang — Simpang Lima",
+      area: "Semarang, Jawa Tengah",
+      gmapsLink: "https://maps.google.com/?q=Simpang+Lima+Semarang",
+      notes: "Outlet ke-2. Lokasi pusat kota, traffic tinggi. Area 120m², kapasitas 60 covers. Kontrak sewa 4 tahun.",
+      type: "Opening Branch",
+    },
+  ],
+  revenueShareTerms: {
+    sourceOfRevenueAccrued: "Sales setelah dikurangi diskon, sebelum PB1/PPN, sebelum biaya EDC/QRIS",
+    frequency: "Monthly",
+    dueDate: "Tanggal 12 setiap bulan",
+    capType: "Return Cap",
+    capMultiple: 1.38,
+    capTimePeriodMonths: null,
+    revShareStartType: "Anchored to Branch Opening",
+    revShareStartDate: null,
+    preBEPRevSharePct: 7.5,
+    postBEPRevSharePct: 8.0,
+    carryType: "Fixed Platform Fee",
+    carryPct: 2.0,
+    minReturn: null,
+    minReturnMultiple: null,
+    minReturnPayableMonths: null,
+    revProjectionArray: monthsRevenueProjection(22, 190_000_000),
+  },
+  fixedReturnTerms: null,
+  lateFee: {
+    basis: "Overdue Amount",
+    gracePeriodDays: 5,
+    dailyPctInvestors: 0.08,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Bakmi Naga Emas**\n\nKP baru, submission pertama. Outlet Solo (dibuka 2023) profitable dengan traffic konsisten. Founder detail soal konsistensi rasa. Dana untuk ekspansi outlet ke-2 di Semarang.",
+  projectCreditMemo:
+    "**Project Credit Memo — Branch Opening: Semarang**\n\nProyek pertama. Revenue Share return-capped 1.38x. Proyeksi revenue IDR 190jt/bulan setelah ramp-up. IRR proyeksi 21.5%, MOIC 1.38x.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-bakmi-naga-calc",
+  projectNotes: [
+    {
+      author: "Priska Ponggawa",
+      date: "2026-04-20",
+      noteType: "Project Note",
+      content: "Legal selesai, kontrak sudah ditandatangani. Menunggu Finance untuk disbursement.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-bne1",
+      name: "PT Bakmi Naga Emas Nusantara",
+      bank: "Bank Maybank",
+      accountNumber: "2299887766",
+      accountholderName: "BAKMI NAGA EMAS NUSANTARA",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-bne",
+      slikExecSummary: "PT aktif sejak 2023. Rekening Maybank aktif. SLIK bersih per April 2026.",
+      warnings: [],
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved unanimously. KP baru dengan outlet pertama yang sudah profitable.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Execute lease agreement for Semarang outlet before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 16: Percetakan Media Cipta — Asset B-I, Finance Disbursed ───────
+// Assorted B2B Services and Manufacturing / Assorted Manufacturing | Asset B-I | Domestic Invoice Financing | IDR 340jt
+
+const projectPercetakanMedia: ICProject = {
+  id: "proj-percetakan-media",
+  brandName: "Percetakan Media Cipta",
+  brandIsNew: true,
+  projectName: "Percetakan Media Cipta (#1) — Invoice Financing: Gramedia",
+  approvalType: "PO/Invoice",
+  submittedAt: "2026-04-12T10:00:00Z",
+
+  pic: {
+    submitter: "Nila Layla Melinda",
+    primaryAnalyst: "Nila Layla Melinda",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Assorted B2B Services and Manufacturing",
+  subSector: "Assorted Manufacturing",
+  syariah: false,
+  assetClass: "B - I",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 340_000_000,
+  trancheTargetAmount: 340_000_000,
+  amountWarning: null,
+  financingUse: "Domestic Invoice Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-04-10",
+      financialReportsReviewed: "Bank Statements Jan–Mar 2026",
+      periodEndingDate: "2026-03-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Percetakan dengan kontrak cetak rutin untuk Gramedia. Cashflow konsisten.",
+    },
+  ],
+
+  referralSource: "2nd+ Project",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-pmc1",
+      name: "Agus Setiadi Halim",
+      whatsapp: "+62 - 829 2233 4455",
+      email: "agus.halim@percetakanmediacipta.co.id",
+      role: "Direktur Utama",
+      notesOnPerson: "Founder percetakan sejak 2012. Kontrak cetak rutin untuk Gramedia dan beberapa penerbit lokal.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-agus-halim",
+      slikExecSummary: "KTP Jakarta Barat. Tidak ada kredit aktif. SLIK bersih per April 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-pmc-1",
+      projectName: "Percetakan Media Cipta (#1) — Invoice Financing: Gramedia [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-04-16",
+      isCurrentSubmission: true,
+      bRecapKind: "B-I",
+      payors: ["Gramedia"],
+      returnType: "Daily Interest",
+      amount: 340_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.6,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 340_000_000, plannedDate: "2026-05-02" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.6,
+    serviceFee30DayPct: 0.6,
+    tenorDays: 60,
+    minInterestPeriodDays: 30,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.1,
+    dailyPctASN: 0,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Percetakan Media Cipta**\n\nKP baru, submission pertama. Percetakan dengan kontrak cetak rutin untuk Gramedia sejak 2012. Cashflow konsisten dengan volume invoice historis.",
+  projectCreditMemo:
+    "**Project Credit Memo — Invoice Financing: Gramedia**\n\nProyek pertama. Underlying invoice ke Gramedia. Daily interest 1.6%/bulan (KF), 0.6%/bulan (KCF). Tenor 2 bulan. MOIC 1.03x, IRR 20.6%.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-percetakan-media-calc",
+  projectNotes: [
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-04-22",
+      noteType: "Project Note",
+      content: "Legal selesai, kontrak sudah ditandatangani. Menunggu Finance untuk disbursement.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-pmc1",
+      name: "PT Percetakan Media Cipta",
+      bank: "BNI",
+      accountNumber: "0155443322",
+      accountholderName: "PT Percetakan Media Cipta",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-pmc",
+      slikExecSummary: "PT aktif sejak 2012. Rekening BNI aktif. SLIK bersih per April 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-pmc-1",
+      payorLabel: "Gramedia",
+      poOrInvoiceNumber: "INV-GRM-2026-04-0221",
+      dueDate: "2026-06-11",
+      amount: 340_000_000,
+      currency: "IDR",
+      payorType: "Corporate Invoice (whitelisted)",
+      payeeProjects: "Percetakan Media Cipta (#1)",
+      notes: "Underlying invoice for April 2026 print cycle.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved unanimously. Invoice financing rutin dengan payor whitelisted.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit executed invoice / PO documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 17: Toko Bangunan Sentosa — Asset D, Finance Disbursed ──────────
+// Assorted Retail Services / Home Improvement | Asset D | Working Capital | IDR 1.6B
+
+const projectTokoBangunan: ICProject = {
+  id: "proj-toko-bangunan",
+  brandName: "Toko Bangunan Sentosa",
+  brandIsNew: true,
+  projectName: "Toko Bangunan Sentosa (#1) — Working Capital",
+  approvalType: "Project",
+  submittedAt: "2026-04-15T09:00:00Z",
+
+  pic: {
+    submitter: "Armeno Devan",
+    primaryAnalyst: "Armeno Devan",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 1,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Assorted Retail Services",
+  subSector: "🎮Home Improvement",
+  syariah: false,
+  assetClass: "D",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 1_600_000_000,
+  amountWarning: null,
+  financingUse: "Working Capital Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: null,
+    outstandingTotal: 0,
+    remainingTotal: 0,
+    remainingPO: 0,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-04-13",
+      financialReportsReviewed: "Management Accounts Jan–Mar 2026",
+      periodEndingDate: "2026-03-31",
+      limitRecommendation: "Keep",
+      limitCurrentIdr: null,
+      reviewNotes:
+        "KP baru, belum ada plafond. Toko material bangunan dengan 2 outlet di Surabaya. Dana untuk restock inventory menjelang musim konstruksi.",
+    },
+  ],
+
+  referralSource: "Karma Node",
+  specificReferror: "Dian Kusuma",
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  submissionProjectedBEPMonths: 13,
+
+  kpContacts: [
+    {
+      id: "kpc-tbs1",
+      name: "Wahyu Setiadi Kurniawan",
+      whatsapp: "+62 - 830 3344 5566",
+      email: "wahyu.kurniawan@tokobangunansentosa.co.id",
+      role: "Direktur Utama",
+      notesOnPerson: "Founder toko material bangunan sejak 2015, kini 2 outlet di Surabaya. Sangat berpengalaman di industri konstruksi lokal.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-wahyu-kurniawan",
+      slikExecSummary: "KTP Surabaya. KPR di Bank Maybank, performing. SLIK bersih per April 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-tbs-1",
+      projectName: "Toko Bangunan Sentosa (#1) — Working Capital [PROPOSED]",
+      status: "Proposed",
+      icApprovalDate: "2026-04-19",
+      isCurrentSubmission: true,
+      returnType: "Revenue Share (Return-Capped)",
+      amount: 1_600_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 20,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 20.1,
+      otfMOIC: null,
+      projectedMOIC: "1.30x",
+      projectedBEPMonths: 13,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Revenue Share (Return-Capped)",
+  disbursements: [{ tranche: 1, plannedAmount: 1_600_000_000, plannedDate: "2026-05-06" }],
+  branches: [],
+  revenueShareTerms: {
+    sourceOfRevenueAccrued: "KP net sales (after discounts, before VAT) as booked in management accounts",
+    frequency: "Monthly",
+    dueDate: "Tanggal 8 setiap bulan",
+    capType: "Return Cap",
+    capMultiple: 1.3,
+    capTimePeriodMonths: null,
+    revShareStartType: "Fixed",
+    revShareStartDate: "2026-05-08",
+    preBEPRevSharePct: 7.0,
+    postBEPRevSharePct: 7.5,
+    carryType: "Variable Platform Fee",
+    carryPct: 2.0,
+    minReturn: null,
+    minReturnMultiple: null,
+    minReturnPayableMonths: null,
+    revProjectionArray: monthsRevenueProjection(20, 210_000_000),
+  },
+  fixedReturnTerms: null,
+  lateFee: {
+    basis: "Overdue Amount",
+    gracePeriodDays: 5,
+    dailyPctInvestors: 0.08,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Toko Bangunan Sentosa**\n\nKP baru, submission pertama. Toko material bangunan dengan 2 outlet di Surabaya, berdiri sejak 2015. Dana untuk restock inventory menjelang musim konstruksi.",
+  projectCreditMemo:
+    "**Project Credit Memo — Working Capital**\n\nProyek pertama. Revenue Share return-capped 1.3x. IRR proyeksi 20.1%, MOIC 1.30x.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-toko-bangunan-calc",
+  projectNotes: [
+    {
+      author: "Armeno Devan",
+      date: "2026-04-25",
+      noteType: "Project Note",
+      content: "Legal selesai, kontrak sudah ditandatangani. Menunggu Finance untuk disbursement.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-tbs1",
+      name: "PT Toko Bangunan Sentosa",
+      bank: "Bank Maybank",
+      accountNumber: "2255667788",
+      accountholderName: "TOKO BANGUNAN SENTOSA",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-tbs",
+      slikExecSummary: "PT aktif sejak 2015. Rekening Maybank aktif. SLIK bersih per April 2026.",
+      warnings: [],
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "Approved unanimously. Toko material dengan cashflow stabil menjelang musim konstruksi.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Submit updated inventory report before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 
 export const mockProjects: ICProject[] = [
@@ -1487,6 +3634,18 @@ export const mockProjects: ICProject[] = [
   projectCUM,
   projectCEA,
   projectAssetDPlafond,
+  projectAyamGeprek,
+  projectTekstilMakmur,
+  projectDistribusiPangan,
+  projectKaryaLogistik,
+  projectElektronikJaya,
+  projectGriyaSehat,
+  projectKonveksiBerkah,
+  projectAgroMakmur,
+  projectKlinikSehat,
+  projectBakmiNaga,
+  projectPercetakanMedia,
+  projectTokoBangunan,
 ];
 
 export function getProjectById(id: string): ICProject | undefined {

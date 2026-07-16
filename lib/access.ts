@@ -47,7 +47,7 @@ export const STAGE_ORDER: Stage[] = [
 ];
 
 export const STAGE_LABELS: Record<Stage, string> = {
-  funding_lead: "Funding Lead",
+  funding_lead: "Due Diligence",
   ic_review: "IC Review",
   finance_slotting: "Finance Split",
   legal: "Legal Agreement",

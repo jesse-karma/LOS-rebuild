@@ -862,31 +862,23 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         </div>
 
                         {r.name.trim() && (
-                          <>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
-                              {info.kind === "staff" && (
-                                <span className="text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-1">
-                                  🧑‍💼 Karma team member
-                                </span>
-                              )}
-                              {info.kind === "karmapreneur" && (
-                                <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-2 py-1">
-                                  🔗 Karmapreneur
-                                </span>
-                              )}
-                              {info.kind === "new" && (
-                                <span className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-1">
-                                  ➕ New / unrecognized
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-2">
-                              <span className="text-xs text-gray-400 block mb-1">Belongs to KP / Brand</span>
-                              <span className="text-sm text-gray-700">
-                                {info.kind === "karmapreneur" ? info.brands.join(", ") : "N/A"}
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            {info.kind === "staff" && (
+                              <span className="text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-1">
+                                🧑‍💼 Karma team member
                               </span>
-                            </div>
-                          </>
+                            )}
+                            {info.kind === "karmapreneur" && (
+                              <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-2 py-1">
+                                🔗 Karmapreneur — {info.brands.join(", ")}
+                              </span>
+                            )}
+                            {info.kind === "new" && (
+                              <span className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                                ➕ New / unrecognized
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     );

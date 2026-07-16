@@ -114,17 +114,17 @@ export function saveWorkflow(projectId: string, wf: ProjectWorkflow) {
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
 }
 
-const DEMO_SEED_FLAG = "kc-los-workflows-seeded";
-
 /**
  * Demo-only: advances a couple of mock projects further down the pipeline so
  * Finance Split / Legal Agreement / Finance Disbursed have example rows on
  * first load, instead of only ever being reachable by voting/editing in-app.
- * Runs once (flagged) and never overwrites a workflow the user already has.
+ * Each project is only seeded once (the `!all["proj-id"]` guard below) and
+ * never overwrites a workflow the user already has — safe to re-run on every
+ * load, so new demo projects added later still get backfilled in a browser
+ * that was already seeded under an older version of this function.
  */
 export function seedDefaultWorkflows() {
   if (typeof window === "undefined") return;
-  if (window.localStorage.getItem(DEMO_SEED_FLAG)) return;
   const all = loadAll();
 
   // Shushu — IC-approved, KF/KCF slotted, awaiting Legal.
@@ -173,8 +173,88 @@ export function seedDefaultWorkflows() {
     all["proj-cea-aztech"] = wf;
   }
 
+  // Konveksi Berkah Jaya — IC-approved, KF/KCF slotted, awaiting Legal.
+  if (!all["proj-konveksi-berkah"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Approve", votedAt: "2026-05-22T09:00:00Z" };
+    wf.finance.kfAmount = 200_000_000;
+    wf.finance.kcfAmount = 120_000_000;
+    wf.finance.slottedAt = "2026-05-24T10:00:00Z";
+    wf.finance.slottedBy = "Maya Kusuma";
+    all["proj-konveksi-berkah"] = wf;
+  }
+
+  // Agro Makmur Distribusi — IC-approved, KF/KCF slotted, awaiting Legal.
+  if (!all["proj-agro-makmur"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Approve", votedAt: "2026-05-24T09:00:00Z" };
+    wf.finance.kfAmount = 160_000_000;
+    wf.finance.kcfAmount = 100_000_000;
+    wf.finance.slottedAt = "2026-05-26T10:00:00Z";
+    wf.finance.slottedBy = "Bagus Santoso";
+    all["proj-agro-makmur"] = wf;
+  }
+
+  // Klinik Sehat Keluarga — IC-approved, KF/KCF slotted, awaiting Legal.
+  if (!all["proj-klinik-sehat"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Approve", votedAt: "2026-05-17T09:00:00Z" };
+    wf.finance.kfAmount = 550_000_000;
+    wf.finance.kcfAmount = 350_000_000;
+    wf.finance.slottedAt = "2026-05-19T10:00:00Z";
+    wf.finance.slottedBy = "Maya Kusuma";
+    all["proj-klinik-sehat"] = wf;
+  }
+
+  // Bakmi Naga Emas — through Legal, awaiting Finance Disbursement.
+  if (!all["proj-bakmi-naga"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Approve", votedAt: "2026-04-14T09:00:00Z" };
+    wf.finance.kfAmount = 1_100_000_000;
+    wf.finance.kcfAmount = 700_000_000;
+    wf.finance.slottedAt = "2026-04-17T10:00:00Z";
+    wf.finance.slottedBy = "Bagus Santoso";
+    wf.legal.termSheetSigned = true;
+    wf.legal.agreementDrafted = true;
+    wf.legal.agreementSigned = true;
+    wf.legal.completedAt = "2026-04-20T10:00:00Z";
+    wf.legal.completedBy = "Larasati Wibowo";
+    all["proj-bakmi-naga"] = wf;
+  }
+
+  // Percetakan Media Cipta — through Legal, awaiting Finance Disbursement.
+  if (!all["proj-percetakan-media"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Approve", votedAt: "2026-04-16T09:00:00Z" };
+    wf.finance.kfAmount = 210_000_000;
+    wf.finance.kcfAmount = 130_000_000;
+    wf.finance.slottedAt = "2026-04-18T10:00:00Z";
+    wf.finance.slottedBy = "Maya Kusuma";
+    wf.legal.termSheetSigned = true;
+    wf.legal.agreementDrafted = true;
+    wf.legal.agreementSigned = true;
+    wf.legal.completedAt = "2026-04-22T10:00:00Z";
+    wf.legal.completedBy = "Andre Sitompul";
+    all["proj-percetakan-media"] = wf;
+  }
+
+  // Toko Bangunan Sentosa — through Legal, awaiting Finance Disbursement.
+  if (!all["proj-toko-bangunan"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Approve", votedAt: "2026-04-19T09:00:00Z" };
+    wf.finance.kfAmount = 1_000_000_000;
+    wf.finance.kcfAmount = 600_000_000;
+    wf.finance.slottedAt = "2026-04-22T10:00:00Z";
+    wf.finance.slottedBy = "Bagus Santoso";
+    wf.legal.termSheetSigned = true;
+    wf.legal.agreementDrafted = true;
+    wf.legal.agreementSigned = true;
+    wf.legal.completedAt = "2026-04-25T10:00:00Z";
+    wf.legal.completedBy = "Larasati Wibowo";
+    all["proj-toko-bangunan"] = wf;
+  }
+
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
-  window.localStorage.setItem(DEMO_SEED_FLAG, "1");
 }
 
 // ─── Derived IC outcome & stage ───────────────────────────────────────────────
