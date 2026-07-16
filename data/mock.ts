@@ -476,6 +476,19 @@ const projectShushu: ICProject = {
       slikExecSummary:
         "KTP Tangerang Utara. Kredit motor lunas 2022. Tidak ada KPR. SLIK bersih per April 2026.",
     },
+    {
+      id: "kpc-ss2",
+      name: "Regina Tiffani",
+      whatsapp: "+62 - 813 2244 5566",
+      email: "regina.tiffani@gmail.com",
+      role: "Investor",
+      notesOnPerson: "Also an investor/contact on Steak Hotel by Holycow — cross-brand UBO exposure.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: false,
+      slikFileUrl: "",
+      slikExecSummary: "",
+    },
   ],
 
   pastProjects: [
