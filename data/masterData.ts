@@ -89,6 +89,30 @@ export function typeLabelForAssetClass(assetClass: string): string {
   return ASSET_CLASS_TYPE_LABELS[assetClass as MasterAssetClass] ?? assetClass;
 }
 
+// ─── §5b Financing Type → Asset Class ─────────────────────────────────────────
+// Per product spec: Asset A/D choose among four return types; Asset B is Daily
+// Interest only (values match the strings below, kept independent of §5 since
+// that mapping doesn't cleanly separate by asset class). B - I and B - PO share
+// the same allowed financing types.
+
+export type AssetClassGroup = "A" | "D" | "B";
+
+export function assetClassGroup(assetClass: string): AssetClassGroup {
+  if (assetClass === "A") return "A";
+  if (assetClass === "D") return "D";
+  return "B";
+}
+
+export const ASSET_CLASS_FINANCING_TYPES: Record<AssetClassGroup, string[]> = {
+  A: ["Revenue Share", "Fixed Amount Repayment", "Fixed Amount Repayment + Revenue Share", "Profit Share"],
+  D: ["Revenue Share", "Fixed Amount Repayment", "Fixed Amount Repayment + Revenue Share", "Profit Share"],
+  B: ["Daily Interest"],
+};
+
+export function financingTypesForAssetClass(assetClass: string): string[] {
+  return ASSET_CLASS_FINANCING_TYPES[assetClassGroup(assetClass)];
+}
+
 // ─── §5 Return Types → applicable approval types ─────────────────────────────
 
 export const RETURN_TYPE_APPROVAL_TYPES: Record<string, string[]> = {
@@ -124,6 +148,13 @@ export const REFERRAL_SOURCES = [
   "Karma Staff",
   "Potential Karmapreneur",
 ] as const;
+
+// ─── §13b Referral Source → Human / Marketing ────────────────────────────────
+// Marketing channels (cold outreach, the website) have no person behind them,
+// so there's no Referror to record. Every other source is a human, identified
+// by name on the submission form — see classifyReferror() there.
+
+export const MARKETING_REFERRAL_SOURCES = ["Cold calling", "Karma.Club Website"] as const;
 
 // ─── §16 Structured Loan Use (Financing Use) ─────────────────────────────────
 

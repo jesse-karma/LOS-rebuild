@@ -72,6 +72,15 @@ export interface SubmissionPTRow {
   slikExecSummary: string;
 }
 
+export interface SubmissionReferrorRow {
+  id: string;
+  name: string;
+  /** Auto-derived from the name — "Karma Staff", "Karmapreneur", or "Potential Karmapreneur" if unrecognized. */
+  relationType: string;
+  /** Brand(s) this person is tied to, when they're a recognized Karmapreneur — else null ("N/A"). */
+  belongsToKP: string | null;
+}
+
 export interface SubmissionFormData {
   brandName: string;
   brandIsNew: boolean;
@@ -85,10 +94,10 @@ export interface SubmissionFormData {
   submittedBy: string;
   primaryAnalyst: string;
   secondaryAnalyst: string;
-  /** Free text — the person who referred (spec E10). */
-  specificReferror: string;
-  /** KP/Brand the referror belongs to (spec E10). */
-  referrorBelongsToKP: string;
+  /** One or more people who referred this Karmapreneur (spec E10). */
+  referrors: SubmissionReferrorRow[];
+  /** True once the analyst has explicitly said this came from a marketing channel, not a person. */
+  isMarketingReferral: boolean;
   mainSector: string;
   subSector: string;
   syariah: boolean;
@@ -207,8 +216,8 @@ export function emptySubmissionForm(): SubmissionFormData {
     submittedBy: "",
     primaryAnalyst: "Priska Ponggawa",
     secondaryAnalyst: "",
-    specificReferror: "",
-    referrorBelongsToKP: "",
+    referrors: [{ id: newRowId(), name: "", relationType: "", belongsToKP: null }],
+    isMarketingReferral: false,
     mainSector: "F&B",
     subSector: "",
     syariah: false,
@@ -274,23 +283,50 @@ export function newRowId(): string {
 
 const STORAGE_KEY = "kc-los-submissions";
 
+/** Shape of a stored submission from before referrors became a list (localStorage migration only). */
+interface LegacySubmissionFormData {
+  referrors?: SubmissionReferrorRow[];
+  isMarketingReferral?: boolean;
+  specificReferror?: string;
+  referrorBelongsToKP?: string;
+}
+
 export function listSubmissions(): StoredSubmission[] {
   if (typeof window === "undefined") return [];
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const subs = raw ? (JSON.parse(raw) as StoredSubmission[]) : [];
     // Migrate existing contacts to have whatsapp/email fields
-    return subs.map((sub) => ({
-      ...sub,
-      form: {
-        ...sub.form,
-        kpContacts: sub.form.kpContacts.map((c) => ({
-          ...c,
-          whatsapp: (c as any).whatsapp || "",
-          email: (c as any).email || "",
-        })),
-      },
-    }));
+    return subs.map((sub) => {
+      const legacy = sub.form as unknown as LegacySubmissionFormData;
+      const referrors =
+        legacy.referrors ??
+        (legacy.specificReferror?.trim()
+          ? [
+              {
+                id: newRowId(),
+                name: legacy.specificReferror,
+                relationType: sub.form.referralSource,
+                belongsToKP: legacy.referrorBelongsToKP || null,
+              },
+            ]
+          : []);
+      return {
+        ...sub,
+        form: {
+          ...sub.form,
+          kpContacts: sub.form.kpContacts.map((c) => ({
+            ...c,
+            whatsapp: (c as any).whatsapp || "",
+            email: (c as any).email || "",
+          })),
+          // Migrate the old single specificReferror/referrorBelongsToKP fields to the referrors list.
+          referrors,
+          // Older saves without the flag: an empty list used to mean "marketing".
+          isMarketingReferral: legacy.isMarketingReferral ?? referrors.length === 0,
+        },
+      };
+    });
   } catch {
     return [];
   }
@@ -351,7 +387,14 @@ function demoDrafts(): StoredSubmission[] {
         requestedAmount: 2_500_000_000,
         financingUse: "Branch Opening/Expansion",
         returnType: "Revenue Share",
-        referralSource: "KarmaClub Member",
+        referrors: [
+          {
+            id: "row-demo-sks-ref-1",
+            name: "Sinta Wulandari",
+            relationType: "Potential Karmapreneur",
+            belongsToKP: null,
+          },
+        ],
         kpContacts: [
           {
             id: "row-demo-sks-1",
@@ -388,7 +431,14 @@ function demoDrafts(): StoredSubmission[] {
         requestedAmount: 1_200_000_000,
         financingUse: "Domestic PO Financing",
         returnType: "Daily Interest",
-        referralSource: "Karmapreneur",
+        referrors: [
+          {
+            id: "row-demo-spj-ref-1",
+            name: "Regina Tiffani",
+            relationType: "Karmapreneur",
+            belongsToKP: "Steak Hotel by Holycow, Shushu",
+          },
+        ],
         disbursements: [
           { id: "row-demo-spj-1", amount: 700_000_000, plannedDate: "2026-08-01" },
           { id: "row-demo-spj-2", amount: 500_000_000, plannedDate: "2026-09-01" },
@@ -416,7 +466,6 @@ function demoDrafts(): StoredSubmission[] {
         requestedAmount: 3_000_000_000,
         financingUse: "Working Capital Financing",
         returnType: "Fixed Amount Repayment",
-        referralSource: "2nd+ Project",
         proposedTotalLimit: 5_000_000_000,
         proposedPOSubLimit: 2_000_000_000,
         proposedWCSubLimit: 3_000_000_000,
@@ -539,6 +588,23 @@ export function mostRecentBrandProject(brandName: string): PastProject | null {
     const tb = b.icApprovalDate ? Date.parse(b.icApprovalDate) : -Infinity;
     return tb - ta;
   })[0];
+}
+
+/** Every distinct referror name recorded across mock + in-app submissions. */
+export function getAllReferrors(): string[] {
+  const seen = new Set<string>();
+  mockProjects.forEach((p) => {
+    if (p.specificReferror?.trim()) seen.add(p.specificReferror.trim());
+    p.otherReferees.forEach((name) => {
+      if (name.trim()) seen.add(name.trim());
+    });
+  });
+  listSubmissions().forEach((s) => {
+    s.form.referrors.forEach((r) => {
+      if (r.name.trim()) seen.add(r.name.trim());
+    });
+  });
+  return Array.from(seen).sort();
 }
 
 export function submissionToICProject(sub: StoredSubmission): ICProject {
@@ -687,10 +753,13 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
 
     financialReviews,
 
-    referralSource: f.referralSource,
-    specificReferror: f.specificReferror || null,
-    referrorBelongsToKP: f.referrorBelongsToKP || null,
-    otherReferees: [],
+    referralSource: f.referrors[0] ? f.referrors[0].relationType : f.referralSource,
+    specificReferror: f.referrors[0]?.name || null,
+    referrorBelongsToKP: f.referrors[0]?.belongsToKP || null,
+    otherReferees: f.referrors
+      .slice(1)
+      .filter((r) => r.name.trim())
+      .map((r) => (r.belongsToKP ? `${r.name} (${r.belongsToKP})` : r.name)),
 
     kpContacts: f.kpContacts.map((c) => ({
       id: c.id,

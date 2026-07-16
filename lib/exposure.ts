@@ -61,7 +61,7 @@ export function existingFundExposure(brandName: string): { kf: number; kcf: numb
 }
 
 /** Every distinct brand a person appears as a KP contact for, across mock + in-app submissions. */
-function brandsForPerson(personName: string): Set<string> {
+export function brandsForPerson(personName: string): Set<string> {
   const key = personName.trim().toLowerCase();
   const brands = new Set<string>();
   for (const p of mockProjects) {

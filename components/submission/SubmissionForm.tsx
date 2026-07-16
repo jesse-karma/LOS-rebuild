@@ -9,11 +9,11 @@ import {
   ANALYSTS,
   ASSET_CLASSES,
   FUNDING_SOURCES,
-  REFERRAL_SOURCES,
+  MARKETING_REFERRAL_SOURCES,
   SECTORS,
   STRUCTURED_LOAN_USES,
   approvalTypesForAssetClass,
-  returnTypesForApprovalType,
+  financingTypesForAssetClass,
   subSectorsForSector,
   typeLabelForAssetClass,
 } from "@/data/masterData";
@@ -27,6 +27,7 @@ import {
   SubmissionFixedRow,
   SubmissionPayorRow,
   SubmissionPTRow,
+  SubmissionReferrorRow,
   emptySubmissionForm,
   newRowId,
   requestedAmountWarning,
@@ -34,11 +35,12 @@ import {
   deleteSubmission,
   mostRecentBrandProject,
   getAllBrands,
+  getAllReferrors,
   brandHistoryFor,
 } from "@/lib/submissionsStore";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
-import { existingUboExposure, uboExposureLevel } from "@/lib/exposure";
+import { existingUboExposure, uboExposureLevel, brandsForPerson } from "@/lib/exposure";
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -160,6 +162,28 @@ function AddRowButton({ label, onClick }: { label: string; onClick: () => void }
       {label}
     </button>
   );
+}
+
+/** Auto-detect who a Specific Referror name is: Karma team, a known Karmapreneur (and which
+ *  Brand(s) they're tied to), or nobody we recognize yet ("new") — the name alone decides the
+ *  relation, so there's nothing left for the analyst to pick manually. */
+function classifyReferror(name: string): {
+  kind: "staff" | "karmapreneur" | "new";
+  brands: string[];
+  relationLabel: string;
+} {
+  const trimmed = name.trim();
+  if (!trimmed) return { kind: "new", brands: [], relationLabel: "" };
+  if (ANALYSTS.some((a) => a.toLowerCase() === trimmed.toLowerCase())) {
+    return { kind: "staff", brands: [], relationLabel: "Karma Staff" };
+  }
+  const brands = Array.from(brandsForPerson(trimmed));
+  if (brands.length > 0) return { kind: "karmapreneur", brands, relationLabel: "Karmapreneur" };
+  return { kind: "new", brands: [], relationLabel: "Potential Karmapreneur" };
+}
+
+function blankReferror(): SubmissionReferrorRow {
+  return { id: newRowId(), name: "", relationType: "", belongsToKP: null };
 }
 
 const inputCls =
@@ -319,6 +343,11 @@ function withStarterRows(f: SubmissionFormData): SubmissionFormData {
   if (isProject && f.returnType.includes("Fixed Amount Repayment") && next.fixedSchedule.length === 0) {
     next.fixedSchedule = [blankFixedRow()];
   }
+  // Default view is a name search box, not the marketing dropdown — always keep one row
+  // around to search in unless the analyst has explicitly picked a marketing channel.
+  if (!next.isMarketingReferral && next.referrors.length === 0) {
+    next.referrors = [blankReferror()];
+  }
   return next;
 }
 
@@ -360,7 +389,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const [errors, setErrors] = useState<string[]>([]);
   const [brandSearch, setBrandSearch] = useState(form.brandName);
   const [isBrandDropdownOpen, setIsBrandDropdownOpen] = useState(false);
-  
+  const [openReferrorRowId, setOpenReferrorRowId] = useState<string | null>(null);
+
   // Extract the free text part from the existing project name (for edit mode)
   const existingFreeText = (() => {
     const parts = form.projectName.split(" - ");
@@ -375,7 +405,11 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const filteredBrands = allBrands.filter((b) =>
     b.toLowerCase().includes(brandSearch.toLowerCase())
   );
-  
+
+  // Known referrors = past referror names + the Karma team directory (so staff are
+  // suggested even before they've ever been recorded as a referror).
+  const allReferrors = Array.from(new Set([...getAllReferrors(), ...ANALYSTS])).sort();
+
   // Calculate project number: length of brand history + 1
   const projectNumber = brandHistoryFor(form.brandName).length + 1;
   // Get the type label from asset class
@@ -439,7 +473,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
 
   // Dependent master-data option lists
   const approvalTypeOptions = approvalTypesForAssetClass(form.assetClass);
-  const returnTypeOptions = returnTypesForApprovalType(form.approvalType);
+  const financingTypeOptions = financingTypesForAssetClass(form.assetClass);
   const subSectorOptions = subSectorsForSector(form.mainSector);
 
   // Live warnings (spec column U)
@@ -460,14 +494,14 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
-  /** Asset Class drives allowed Approval Types (ENUM §3/§4); Approval Type drives Return Types (§5). */
+  /** Asset Class drives allowed Approval Types (ENUM §3/§4) and Financing Types (§5b). */
   function setAssetClass(assetClass: string) {
     setForm((f) => {
       const allowedTypes = approvalTypesForAssetClass(assetClass);
       const approvalType = (
         allowedTypes.includes(f.approvalType) ? f.approvalType : allowedTypes[0]
       ) as ApprovalType;
-      const allowedReturns = returnTypesForApprovalType(approvalType);
+      const allowedReturns = financingTypesForAssetClass(assetClass);
       const returnType = allowedReturns.includes(f.returnType) ? f.returnType : allowedReturns[0];
       return withStarterRows({ ...f, assetClass, approvalType, returnType });
     });
@@ -475,7 +509,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
 
   function setApprovalType(approvalType: ApprovalType) {
     setForm((f) => {
-      const allowedReturns = returnTypesForApprovalType(approvalType);
+      const allowedReturns = financingTypesForAssetClass(f.assetClass);
       const returnType = allowedReturns.includes(f.returnType) ? f.returnType : allowedReturns[0];
       return withStarterRows({ ...f, approvalType, returnType });
     });
@@ -488,10 +522,43 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     });
   }
 
+  function addReferrorRow() {
+    setForm((f) => ({ ...f, isMarketingReferral: false, referrors: [...f.referrors, blankReferror()] }));
+  }
+
+  /** Typing/selecting a referror's name auto-detects who they are — Karma team, a known
+   *  Karmapreneur (and which Brand(s) they're tied to), or "Potential Karmapreneur" if we don't
+   *  recognize them yet — the name alone decides the relation, nothing left to pick manually. */
+  function updateReferrorName(id: string, name: string) {
+    const info = classifyReferror(name);
+    updateRow("referrors", id, {
+      name,
+      relationType: info.relationLabel,
+      belongsToKP: info.kind === "karmapreneur" ? info.brands.join(", ") : null,
+    });
+  }
+
+  /** The Specific Referror search's pinned "Marketing" option — no person to search for. */
+  function selectMarketingChannel() {
+    setForm((f) => ({ ...f, isMarketingReferral: true, referrors: [], referralSource: "Cold calling" }));
+  }
+
+  /** Leaves Marketing mode to search for a specific person again. */
+  function switchBackToReferrorSearch() {
+    setForm((f) => ({ ...f, isMarketingReferral: false, referrors: [blankReferror()] }));
+  }
+
   // ── Dynamic row helpers ([+]/[✍️]/[-] pattern) ─────────────────────────────
 
   function updateRow<
-    K extends "kpContacts" | "disbursements" | "branches" | "ptDetails" | "fixedSchedule" | "payorInvoices"
+    K extends
+      | "kpContacts"
+      | "disbursements"
+      | "branches"
+      | "ptDetails"
+      | "fixedSchedule"
+      | "payorInvoices"
+      | "referrors"
   >(
     key: K,
     id: string,
@@ -506,7 +573,14 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   }
 
   function removeRow(
-    key: "kpContacts" | "disbursements" | "branches" | "ptDetails" | "fixedSchedule" | "payorInvoices",
+    key:
+      | "kpContacts"
+      | "disbursements"
+      | "branches"
+      | "ptDetails"
+      | "fixedSchedule"
+      | "payorInvoices"
+      | "referrors",
     id: string
   ) {
     setForm((f) =>
@@ -702,35 +776,125 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
           </FormSection>
 
           <FormSection title="Karmapreneur Details">
-            <Field label="Referral Source" source="master">
-              <select
-                className={inputCls}
-                value={form.referralSource}
-                onChange={(e) => set("referralSource", e.target.value)}
-              >
-                {REFERRAL_SOURCES.map((r) => (
-                  <option key={r} value={r}>
-                    {r}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Specific Referror" source="free" hint="Who referred this Karmapreneur (optional)">
-              <input
-                className={inputCls}
-                value={form.specificReferror}
-                onChange={(e) => set("specificReferror", e.target.value)}
-                placeholder="e.g. Iman Kusumaputra"
-              />
-            </Field>
-            <Field label="Referror belongs to KP / Brand" source="free" hint="Optional">
-              <input
-                className={inputCls}
-                value={form.referrorBelongsToKP}
-                onChange={(e) => set("referrorBelongsToKP", e.target.value)}
-                placeholder="e.g. Kopi Kalyan"
-              />
-            </Field>
+            {form.isMarketingReferral ? (
+              <Field label="Referral Source" source="master" hint="Which marketing channel brought them in">
+                <select
+                  className={inputCls}
+                  value={form.referralSource}
+                  onChange={(e) => set("referralSource", e.target.value)}
+                >
+                  {MARKETING_REFERRAL_SOURCES.map((r) => (
+                    <option key={r} value={r}>
+                      {r}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={switchBackToReferrorSearch}
+                  className="text-xs text-blue-600 hover:underline mt-1.5"
+                >
+                  Search for a person instead
+                </button>
+              </Field>
+            ) : (
+              <Field label="Specific Referror" source="free" hint="Search a known name — new names welcome too">
+                <div className="space-y-2">
+                  {form.referrors.map((r, i) => {
+                    const info = classifyReferror(r.name);
+                    return (
+                      <div key={r.id} className="border border-gray-200 rounded-lg p-2.5">
+                        <div className="flex items-start gap-2">
+                          <div className="flex-1 relative">
+                            <input
+                              className={inputCls}
+                              value={r.name}
+                              onChange={(e) => updateReferrorName(r.id, e.target.value)}
+                              onFocus={() => setOpenReferrorRowId(r.id)}
+                              onBlur={() =>
+                                setTimeout(
+                                  () => setOpenReferrorRowId((cur) => (cur === r.id ? null : cur)),
+                                  200
+                                )
+                              }
+                              placeholder="e.g. Regina Tiffani"
+                            />
+                            {openReferrorRowId === r.id && (
+                              <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-52 overflow-y-auto">
+                                {i === 0 && (
+                                  <div
+                                    className="px-3 py-2 cursor-pointer hover:bg-amber-50 text-sm text-amber-800 border-b border-gray-100 font-medium"
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={selectMarketingChannel}
+                                  >
+                                    🏷️ Marketing / cold outreach — no specific person
+                                  </div>
+                                )}
+                                {allReferrors
+                                  .filter((name) => name.toLowerCase().includes(r.name.toLowerCase()))
+                                  .filter(
+                                    (name) =>
+                                      !form.referrors.some(
+                                        (other) =>
+                                          other.id !== r.id &&
+                                          other.name.toLowerCase() === name.toLowerCase()
+                                      )
+                                  )
+                                  .map((name) => (
+                                    <div
+                                      key={name}
+                                      className="px-3 py-2 cursor-pointer hover:bg-gray-100 text-sm"
+                                      onMouseDown={(e) => e.preventDefault()}
+                                      onClick={() => {
+                                        updateReferrorName(r.id, name);
+                                        setOpenReferrorRowId(null);
+                                      }}
+                                    >
+                                      {name}
+                                    </div>
+                                  ))}
+                              </div>
+                            )}
+                          </div>
+                          {form.referrors.length > 1 && (
+                            <RemoveRowButton onClick={() => removeRow("referrors", r.id)} />
+                          )}
+                        </div>
+
+                        {r.name.trim() && (
+                          <>
+                            <div className="mt-2 flex flex-wrap items-center gap-2">
+                              {info.kind === "staff" && (
+                                <span className="text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-1">
+                                  🧑‍💼 Karma team member
+                                </span>
+                              )}
+                              {info.kind === "karmapreneur" && (
+                                <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-2 py-1">
+                                  🔗 Karmapreneur
+                                </span>
+                              )}
+                              {info.kind === "new" && (
+                                <span className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                                  ➕ New / unrecognized
+                                </span>
+                              )}
+                            </div>
+                            <div className="mt-2">
+                              <span className="text-xs text-gray-400 block mb-1">Belongs to KP / Brand</span>
+                              <span className="text-sm text-gray-700">
+                                {info.kind === "karmapreneur" ? info.brands.join(", ") : "N/A"}
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                  <AddRowButton label="Add another referror" onClick={addReferrorRow} />
+                </div>
+              </Field>
+            )}
           </FormSection>
         </div>
 
@@ -847,12 +1011,31 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               ))}
             </select>
           </Field>
-          <Field label="Type" source="master" hint="Auto-filled from Asset Class">
-            <input
-              className={`${inputCls} bg-gray-50 text-gray-500`}
-              value={typeLabelForAssetClass(form.assetClass)}
-              readOnly
-            />
+          <Field label="Submission Type" source="master" hint="Allowed options are filtered by Asset Class">
+            <select
+              className={inputCls}
+              value={form.approvalType}
+              onChange={(e) => setApprovalType(e.target.value as ApprovalType)}
+            >
+              {approvalTypeOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
+          </Field>
+          <Field label="Financing Type" source="master" hint="Allowed options are filtered by Asset Class">
+            <select
+              className={inputCls}
+              value={form.returnType}
+              onChange={(e) => setReturnType(e.target.value)}
+            >
+              {financingTypeOptions.map((t) => (
+                <option key={t} value={t}>
+                  {t}
+                </option>
+              ))}
+            </select>
           </Field>
           <Field label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
             <div className="flex gap-2">

@@ -10,6 +10,20 @@ import { existingUboExposure } from "@/lib/exposure";
 import { typeLabelForAssetClass } from "@/data/masterData";
 import { Tag, approvalTypeVariant, assetClassVariant } from "@/components/ui/Tag";
 import { fmt, fmtDate } from "@/components/ui/DataRow";
+import { PastProjectsRecap } from "@/components/sections/PastProjectsRecap";
+import { SectionCard } from "@/components/ui/SectionCard";
+
+function MemoBlock({ title, content }: { title: string; content: string }) {
+  if (!content.trim()) return null;
+  return (
+    <div className="mb-4 last:mb-0">
+      <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">{title}</div>
+      <div className="bg-gray-50 border border-gray-100 rounded-lg p-3 text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+        {content}
+      </div>
+    </div>
+  );
+}
 
 /** Minimal Karmapreneur page — everything hangs off the Brand in the LOS model. */
 export default function KPPage() {
@@ -160,10 +174,50 @@ export default function KPPage() {
         </>
       )}
 
-      <p className="text-xs text-gray-400 mt-8">
-        Prototype KP page — full Karmapreneur profile (notes, memos, PTs, project history) comes with the
-        production build.
-      </p>
+      {/* Previous projects & pricing — recap table already used on the IC project page, keyed off the latest submission */}
+      <div className="mb-8">
+        <PastProjectsRecap project={latest} />
+      </div>
+
+      {/* Notes — read-only: KP/Project credit memos + the notes feed from the latest submission */}
+      <div className="mb-8">
+        <SectionCard title="Notes">
+          <div className="mt-2">
+            <MemoBlock title="KP Credit Memo" content={latest.kpCreditMemo} />
+            <MemoBlock title="Project Credit Memo" content={latest.projectCreditMemo} />
+
+            {latest.projectNotes.length > 0 && (
+              <div className="mt-4">
+                <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
+                  Notes Feed
+                </div>
+                <div className="space-y-2">
+                  {[...latest.projectNotes]
+                    .sort((a, b) => b.date.localeCompare(a.date))
+                    .map((note, i) => (
+                      <div key={i} className="border border-gray-100 rounded-lg px-3 py-2">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <span className="text-xs font-medium text-gray-700">{note.author}</span>
+                          <div className="flex items-center gap-2 shrink-0">
+                            <Tag label={note.noteType} variant={note.noteType === "KP Note" ? "purple" : "blue"} />
+                            <span className="text-[11px] text-gray-400">{fmtDate(note.date)}</span>
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                          {note.content}
+                        </p>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+
+            {latest.projectNotes.length === 0 && !latest.kpCreditMemo.trim() && !latest.projectCreditMemo.trim() && (
+              <p className="text-sm text-gray-400 italic">No notes recorded for this Karmapreneur yet.</p>
+            )}
+          </div>
+        </SectionCard>
+      </div>
     </div>
   );
 }
