@@ -53,6 +53,20 @@ export default function KPPage() {
   const plafond = latest.plafond;
   const assetClasses = [...new Set(projects.map((p) => p.assetClass))];
 
+  // KP-level notes an analyst logged on ANY of this brand's submissions, not just the latest —
+  // project-specific notes live on the project page instead, not here.
+  const seenNotes = new Set<string>();
+  const kpNotes = projects
+    .flatMap((p) => p.projectNotes)
+    .filter((n) => n.noteType === "KP Note")
+    .filter((n) => {
+      const key = `${n.author}|${n.date}|${n.content}`;
+      if (seenNotes.has(key)) return false;
+      seenNotes.add(key);
+      return true;
+    })
+    .sort((a, b) => b.date.localeCompare(a.date));
+
   return (
     <div>
       <Link
@@ -119,25 +133,49 @@ export default function KPPage() {
         In IC Review ({projects.length})
       </h2>
       <div className="space-y-3 mb-8">
-        {projects.map((p) => (
-          <Link
-            key={p.id}
-            href={`/project/${p.id}`}
-            className="block bg-white border border-gray-200 rounded-xl px-6 py-4 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
-          >
-            <div className="flex items-center justify-between gap-4 flex-wrap">
-              <div>
-                <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
-                  {p.projectName}
-                </h3>
-                <span className="text-sm text-gray-500">
-                  {fmt(p.trancheTargetAmount ?? p.requestedAmount, p.requestedAmountCurrency)}
-                </span>
+        {projects.map((p) => {
+          const projPlafond = p.plafond.current?.totalLimit ?? p.plafond.proposed?.totalLimit ?? null;
+          const projRemaining = p.plafond.current ? p.plafond.remainingTotal : null;
+          return (
+            <Link
+              key={p.id}
+              href={`/project/${p.id}`}
+              className="block bg-white border border-gray-200 rounded-xl px-6 py-4 shadow-sm hover:shadow-md hover:border-blue-200 transition-all group"
+            >
+              <div className="flex items-center justify-between gap-4 flex-wrap">
+                <div>
+                  <h3 className="text-base font-semibold text-gray-900 group-hover:text-blue-700 transition-colors">
+                    {p.projectName}
+                  </h3>
+                  <span className="text-sm text-gray-500">
+                    {fmt(p.trancheTargetAmount ?? p.requestedAmount, p.requestedAmountCurrency)}
+                  </span>
+                </div>
+                <Tag label={typeLabelForAssetClass(p.assetClass)} variant={approvalTypeVariant(p.approvalType)} />
               </div>
-              <Tag label={typeLabelForAssetClass(p.assetClass)} variant={approvalTypeVariant(p.approvalType)} />
-            </div>
-          </Link>
-        ))}
+
+              {/* Plafond / Remaining — same stat-block layout as the Brand page's cards, for consistency */}
+              <div className="grid grid-cols-2 gap-3 mt-3 pt-3 border-t border-gray-100 max-w-xs">
+                <div>
+                  <div className="text-[10px] text-gray-400 uppercase tracking-wide">Plafond</div>
+                  <div className="text-sm font-medium text-gray-800">
+                    {projPlafond !== null ? fmt(projPlafond) : "—"}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-[10px] text-gray-400 uppercase tracking-wide">Remaining</div>
+                  <div
+                    className={`text-sm font-medium ${
+                      projRemaining !== null && projRemaining < 0 ? "text-red-600" : "text-gray-800"
+                    }`}
+                  >
+                    {projRemaining !== null ? fmt(projRemaining) : "—"}
+                  </div>
+                </div>
+              </div>
+            </Link>
+          );
+        })}
       </div>
 
       {/* KP contacts from the latest submission */}
@@ -179,40 +217,37 @@ export default function KPPage() {
         <PastProjectsRecap project={latest} />
       </div>
 
-      {/* Notes — read-only: KP/Project credit memos + the notes feed from the latest submission */}
+      {/* Notes — read-only: KP credit memo + the KP-level notes feed, pooled across every submission for this brand */}
       <div className="mb-8">
         <SectionCard title="Notes">
           <div className="mt-2">
             <MemoBlock title="KP Credit Memo" content={latest.kpCreditMemo} />
-            <MemoBlock title="Project Credit Memo" content={latest.projectCreditMemo} />
 
-            {latest.projectNotes.length > 0 && (
+            {kpNotes.length > 0 && (
               <div className="mt-4">
                 <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
                   Notes Feed
                 </div>
                 <div className="space-y-2">
-                  {[...latest.projectNotes]
-                    .sort((a, b) => b.date.localeCompare(a.date))
-                    .map((note, i) => (
-                      <div key={i} className="border border-gray-100 rounded-lg px-3 py-2">
-                        <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="text-xs font-medium text-gray-700">{note.author}</span>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <Tag label={note.noteType} variant={note.noteType === "KP Note" ? "purple" : "blue"} />
-                            <span className="text-[11px] text-gray-400">{fmtDate(note.date)}</span>
-                          </div>
+                  {kpNotes.map((note, i) => (
+                    <div key={i} className="border border-gray-100 rounded-lg px-3 py-2">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <span className="text-xs font-medium text-gray-700">{note.author}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {note.attendee && <Tag label={note.attendee} variant="blue" />}
+                          <span className="text-[11px] text-gray-400">{fmtDate(note.date)}</span>
                         </div>
-                        <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
-                          {note.content}
-                        </p>
                       </div>
-                    ))}
+                      <p className="text-sm text-gray-800 whitespace-pre-wrap leading-relaxed">
+                        {note.content}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {latest.projectNotes.length === 0 && !latest.kpCreditMemo.trim() && !latest.projectCreditMemo.trim() && (
+            {kpNotes.length === 0 && !latest.kpCreditMemo.trim() && (
               <p className="text-sm text-gray-400 italic">No notes recorded for this Karmapreneur yet.</p>
             )}
           </div>

@@ -116,7 +116,6 @@ export interface SubmissionFormData {
   // Plafond proposal (used when approvalType includes "Plafond")
   proposedTotalLimit: number;
   proposedPOSubLimit: number;
-  proposedWCSubLimit: number;
   // Financial review (becomes Review 1 on the IC card's Plafond & Financial Reviews section)
   finReviewReportsReviewed: string;
   finReviewPeriodEnding: string; // ISO date (yyyy-mm-dd)
@@ -230,7 +229,6 @@ export function emptySubmissionForm(): SubmissionFormData {
     referralSource: "Cold calling",
     proposedTotalLimit: 0,
     proposedPOSubLimit: 0,
-    proposedWCSubLimit: 0,
     finReviewReportsReviewed: "",
     finReviewPeriodEnding: "",
     finReviewLimitRecommendation: "Keep",
@@ -296,6 +294,7 @@ export function listSubmissions(): StoredSubmission[] {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
     const subs = raw ? (JSON.parse(raw) as StoredSubmission[]) : [];
+    const demos = demoDrafts();
     // Migrate existing contacts to have whatsapp/email fields
     return subs.map((sub) => {
       const legacy = sub.form as unknown as LegacySubmissionFormData;
@@ -311,6 +310,11 @@ export function listSubmissions(): StoredSubmission[] {
               },
             ]
           : []);
+      // Demo drafts are living examples, not real user data — always re-sync their referror
+      // shape to the current demoDrafts() definition, so a stale or since-fixed shape (e.g. an
+      // old buggy isMarketingReferral baked in by an earlier save) never lingers, no matter how
+      // this submission was reached (direct URL, not just via the Home page's seed call).
+      const demo = sub.status === "draft" ? demos.find((d) => d.id === sub.id) : undefined;
       return {
         ...sub,
         form: {
@@ -321,9 +325,10 @@ export function listSubmissions(): StoredSubmission[] {
             email: (c as any).email || "",
           })),
           // Migrate the old single specificReferror/referrorBelongsToKP fields to the referrors list.
-          referrors,
-          // Older saves without the flag: an empty list used to mean "marketing".
-          isMarketingReferral: legacy.isMarketingReferral ?? referrors.length === 0,
+          referrors: demo ? demo.form.referrors : referrors,
+          // Older saves without the flag never recorded an explicit marketing choice — default
+          // to the name-search view, same as a brand-new submission.
+          isMarketingReferral: demo ? demo.form.isMarketingReferral : legacy.isMarketingReferral ?? false,
         },
       };
     });
@@ -357,10 +362,7 @@ export function newSubmissionId(): string {
   return `sub-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
 }
 
-// ─── Demo seed data (prototype: pre-populates the Funding Lead tab once) ─────
-
-// v3: demo drafts carry varied leadStatusCode and updatedAt values.
-const SEED_FLAG = "kc-los-demo-seeded-v3";
+// ─── Demo seed data (prototype: pre-populates the Due Diligence tab) ─────────
 
 function demoDrafts(): StoredSubmission[] {
   return [
@@ -468,27 +470,66 @@ function demoDrafts(): StoredSubmission[] {
         returnType: "Fixed Amount Repayment",
         proposedTotalLimit: 5_000_000_000,
         proposedPOSubLimit: 2_000_000_000,
-        proposedWCSubLimit: 3_000_000_000,
+      },
+    },
+    {
+      id: "sub-demo-gsm",
+      status: "draft",
+      leadStatusCode: "3",
+      createdAt: "2026-07-13T08:20:00.000Z",
+      updatedAt: "2026-07-14T09:10:00.000Z",
+      submittedAt: null,
+      form: {
+        ...emptySubmissionForm(),
+        brandName: "Garmen Sukses Mandiri",
+        brandIsNew: true,
+        projectName: "Garmen Sukses Mandiri (#1) — Invoice Financing: Zalora Indonesia",
+        assetClass: "B - I",
+        approvalType: "PO/Invoice",
+        createdBy: "Sharfina Nindita",
+        primaryAnalyst: "Sharfina Nindita",
+        mainSector: "Assorted B2B Services and Manufacturing",
+        subSector: "🎽Clothing Manufacturing",
+        requestedAmount: 500_000_000,
+        financingUse: "Domestic Invoice Financing",
+        returnType: "Daily Interest",
+        referrors: [
+          {
+            id: "row-demo-gsm-ref-1",
+            name: "Yoga Pratama Nugraha",
+            relationType: "Potential Karmapreneur",
+            belongsToKP: null,
+          },
+        ],
+        disbursements: [{ id: "row-demo-gsm-1", amount: 500_000_000, plannedDate: "2026-08-05" }],
       },
     },
   ];
 }
 
-/** One-time localStorage seed so the prototype opens with Funding Lead examples. */
+/**
+ * Seeds Due Diligence examples so the prototype opens with data. Demo drafts are living
+ * examples, not real user data — every call re-syncs known demo IDs' lead status and referror
+ * shape to the current demoDrafts() definition (so a stale or since-fixed shape never lingers),
+ * and backfills any demo id not yet in storage (so a demo added after someone's first visit
+ * still shows up). Never touches a real, non-demo draft the user created themselves.
+ */
 export function seedDemoSubmissions() {
   if (typeof window === "undefined") return;
-  if (window.localStorage.getItem(SEED_FLAG)) return;
   const demos = demoDrafts();
-  // Upgrade demo drafts seeded before v3 with their varied lead statuses and update stamps.
   const existing = listSubmissions().map((s) => {
     const demo = demos.find((d) => d.id === s.id);
     return demo && s.status === "draft"
-      ? { ...s, leadStatusCode: demo.leadStatusCode, updatedAt: s.updatedAt ?? demo.updatedAt }
+      ? {
+          ...s,
+          leadStatusCode: demo.leadStatusCode,
+          updatedAt: s.updatedAt ?? demo.updatedAt,
+          form: { ...s.form, referrors: demo.form.referrors, isMarketingReferral: demo.form.isMarketingReferral },
+        }
       : s;
   });
   const fresh = demos.filter((d) => !existing.some((s) => s.id === d.id));
   persist([...fresh, ...existing]);
-  window.localStorage.setItem(SEED_FLAG, "1");
 }
 
 // ─── Projects visible to IC (mock + submitted) ───────────────────────────────
@@ -590,13 +631,19 @@ export function mostRecentBrandProject(brandName: string): PastProject | null {
   })[0];
 }
 
-/** Every distinct referror name recorded across mock + in-app submissions. */
+/** Every distinct referror name recorded across mock + in-app submissions, plus every KP contact
+ *  (a Karmapreneur is one of the most common referrors — surfacing their name here is what lets
+ *  the Specific Referror search resolve them to their Brand). Placeholder contact rows (Coda-sync
+ *  stand-ins with no real name yet) are excluded. */
 export function getAllReferrors(): string[] {
   const seen = new Set<string>();
   mockProjects.forEach((p) => {
     if (p.specificReferror?.trim()) seen.add(p.specificReferror.trim());
     p.otherReferees.forEach((name) => {
       if (name.trim()) seen.add(name.trim());
+    });
+    p.kpContacts.forEach((c) => {
+      if (c.name.trim() && !c.name.includes("(")) seen.add(c.name.trim());
     });
   });
   listSubmissions().forEach((s) => {
@@ -740,7 +787,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
         ? {
             totalLimit: f.proposedTotalLimit,
             poSubLimit: f.proposedPOSubLimit,
-            wcSubLimit: f.proposedWCSubLimit,
+            wcSubLimit: 0,
           }
         : null,
       current: null,

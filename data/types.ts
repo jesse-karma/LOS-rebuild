@@ -406,6 +406,8 @@ export interface NoteEntry {
   date: string; // ISO
   content: string;
   noteType: "Project Note" | "KP Note";
+  /** KP contact present/involved in this note (attendance), for KP Notes — not the analyst author. */
+  attendee?: string;
 }
 
 // ─── Concentration limit check (policy: Concentration Limits) ────────────────

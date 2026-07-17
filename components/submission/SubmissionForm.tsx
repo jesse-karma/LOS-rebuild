@@ -15,7 +15,6 @@ import {
   approvalTypesForAssetClass,
   financingTypesForAssetClass,
   subSectorsForSector,
-  typeLabelForAssetClass,
 } from "@/data/masterData";
 import { isAssetAOrD, isAssetB } from "@/lib/assetClass";
 import {
@@ -36,7 +35,6 @@ import {
   mostRecentBrandProject,
   getAllBrands,
   getAllReferrors,
-  brandHistoryFor,
 } from "@/lib/submissionsStore";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
@@ -376,7 +374,6 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const [plafondTexts, setPlafondTexts] = useState({
     total: submission.form.proposedTotalLimit ? formatAmountInput(String(submission.form.proposedTotalLimit)) : "",
     po: submission.form.proposedPOSubLimit ? formatAmountInput(String(submission.form.proposedPOSubLimit)) : "",
-    wc: submission.form.proposedWCSubLimit ? formatAmountInput(String(submission.form.proposedWCSubLimit)) : "",
   });
   const [finReviewTexts, setFinReviewTexts] = useState({
     current: submission.form.finReviewLimitCurrent
@@ -394,8 +391,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   // Extract the free text part from the existing project name (for edit mode)
   const existingFreeText = (() => {
     const parts = form.projectName.split(" - ");
-    if (parts.length > 3) {
-      return parts.slice(3).join(" - ");
+    if (parts.length > 1) {
+      return parts.slice(1).join(" - ");
     }
     return "";
   })();
@@ -410,14 +407,11 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   // suggested even before they've ever been recorded as a referror).
   const allReferrors = Array.from(new Set([...getAllReferrors(), ...ANALYSTS])).sort();
 
-  // Calculate project number: length of brand history + 1
-  const projectNumber = brandHistoryFor(form.brandName).length + 1;
-  // Get the type label from asset class
-  const typeLabel = typeLabelForAssetClass(form.assetClass);
-  
-  // Build the full project name
+  // Build the full project name. No "#N" project number and no asset-class type
+  // label here — the project isn't disbursed yet, so neither applies. The "#N"
+  // is assigned once disbursed, counting from #1 at that point.
   const generateProjectName = () => {
-    const baseParts = [form.brandName, `#${projectNumber}`, typeLabel];
+    const baseParts = [form.brandName];
     if (projectFreeText.trim()) {
       baseParts.push(projectFreeText.trim());
     }
@@ -448,13 +442,13 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     if (form.projectName !== newProjectName) {
       set("projectName", newProjectName);
     }
-  }, [form.brandName, projectNumber, typeLabel, projectFreeText]);
-  
+  }, [form.brandName, projectFreeText]);
+
   // Extract free text from projectName if it's updated externally (e.g., initial load)
   useEffect(() => {
     const parts = form.projectName.split(" - ");
-    if (parts.length > 3) {
-      const freeTextFromName = parts.slice(3).join(" - ");
+    if (parts.length > 1) {
+      const freeTextFromName = parts.slice(1).join(" - ");
       if (freeTextFromName !== projectFreeText) {
         setProjectFreeText(freeTextFromName);
       }
@@ -638,7 +632,6 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         requestedAmount: parseAmount(amountText),
         proposedTotalLimit: parseAmount(plafondTexts.total),
         proposedPOSubLimit: parseAmount(plafondTexts.po),
-        proposedWCSubLimit: parseAmount(plafondTexts.wc),
         finReviewLimitCurrent: parseAmount(finReviewTexts.current),
         finReviewLimitRecommended: parseAmount(finReviewTexts.recommended),
       },
@@ -862,31 +855,23 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         </div>
 
                         {r.name.trim() && (
-                          <>
-                            <div className="mt-2 flex flex-wrap items-center gap-2">
-                              {info.kind === "staff" && (
-                                <span className="text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-1">
-                                  🧑‍💼 Karma team member
-                                </span>
-                              )}
-                              {info.kind === "karmapreneur" && (
-                                <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-2 py-1">
-                                  🔗 Karmapreneur
-                                </span>
-                              )}
-                              {info.kind === "new" && (
-                                <span className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-1">
-                                  ➕ New / unrecognized
-                                </span>
-                              )}
-                            </div>
-                            <div className="mt-2">
-                              <span className="text-xs text-gray-400 block mb-1">Belongs to KP / Brand</span>
-                              <span className="text-sm text-gray-700">
-                                {info.kind === "karmapreneur" ? info.brands.join(", ") : "N/A"}
+                          <div className="mt-2 flex flex-wrap items-center gap-2">
+                            {info.kind === "staff" && (
+                              <span className="text-xs text-purple-700 bg-purple-50 border border-purple-200 rounded px-2 py-1">
+                                🧑‍💼 Karma team member
                               </span>
-                            </div>
-                          </>
+                            )}
+                            {info.kind === "karmapreneur" && (
+                              <span className="text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded px-2 py-1">
+                                🔗 Karmapreneur — {info.brands.join(", ")}
+                              </span>
+                            )}
+                            {info.kind === "new" && (
+                              <span className="text-xs text-gray-500 bg-gray-50 border border-gray-200 rounded px-2 py-1">
+                                ➕ New / unrecognized
+                              </span>
+                            )}
+                          </div>
                         )}
                       </div>
                     );
@@ -1123,8 +1108,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               Proposed Limit
             </h3>
             <EditTable
-              headers={["Limit Status", "Total Limit", "PO Sub Limit", "Working Capital Sub Limit"]}
-              minWidthCls="min-w-[560px]"
+              headers={["Limit Status", "Total Limit", "PO Sub Limit"]}
+              minWidthCls="min-w-[420px]"
             >
               <tr className="bg-purple-50/30 align-top">
                 <td className="py-3 pl-3 pr-2 font-semibold text-purple-800 whitespace-nowrap">Proposed</td>
@@ -1146,16 +1131,6 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                     value={plafondTexts.po}
                     onChange={(e) =>
                       setPlafondTexts((t) => ({ ...t, po: formatAmountInput(e.target.value) }))
-                    }
-                  />
-                </td>
-                <td className="py-2 px-2">
-                  <input
-                    className={`${cellInputCls} font-mono`}
-                    inputMode="numeric"
-                    value={plafondTexts.wc}
-                    onChange={(e) =>
-                      setPlafondTexts((t) => ({ ...t, wc: formatAmountInput(e.target.value) }))
                     }
                   />
                 </td>
