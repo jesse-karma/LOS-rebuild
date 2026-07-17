@@ -4,6 +4,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
+  Ban,
+  CheckCircle2,
   CheckSquare,
   ChevronRight,
   FileText,
@@ -63,7 +65,16 @@ const STAGES: { key: BoardStage; label: string; description: string }[] = [
   { key: 1, label: "Early Lead", description: "Add the KP and take meeting notes." },
   { key: 2, label: "Funding Lead", description: "Collect required documents and information." },
   { key: 3, label: "Due Diligence", description: "Ready to submit. Open the submission form." },
+  { key: 4, label: "Completed", description: "Deal closed successfully." },
+  { key: 5, label: "Rejected / Cancelled", description: "Lead rejected or the deal fell through." },
 ];
+
+/** Terminal-stage badge colors — active stages 1-3 stay orange, 4/5 read as their outcome. */
+function stageBadgeClasses(stage: BoardStage): string {
+  if (stage === 4) return "bg-green-50 text-green-700 border-green-200";
+  if (stage === 5) return "bg-red-50 text-red-700 border-red-200";
+  return "bg-orange-50 text-orange-700 border-orange-200";
+}
 
 // ─── New Lead/Project modal ───────────────────────────────────────────────────
 
@@ -271,6 +282,11 @@ function CardDetail({
     if (updated) { setCard(updated); onChange(updated); }
   }
 
+  function handleMoveTo(stage: BoardStage) {
+    const updated = moveToStage(card.id, stage);
+    if (updated) { setCard(updated); onChange(updated); }
+  }
+
   function handleDelete() {
     deleteCard(card.id);
     onDelete();
@@ -289,8 +305,8 @@ function CardDetail({
             <p className="text-xs text-gray-500 mb-0.5">{card.kpName}</p>
             <h2 className="text-sm font-semibold text-gray-900 leading-snug">{card.projectName}</h2>
             <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-orange-50 text-orange-700 border border-orange-200">
-                Stage {card.stage} · {STAGES[card.stage - 1].label}
+              <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${stageBadgeClasses(card.stage)}`}>
+                {STAGES[card.stage - 1].label}
               </span>
               {card.primaryAnalyst && (
                 <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -318,6 +334,28 @@ function CardDetail({
                 <ChevronRight className="w-3.5 h-3.5" />
                 {STAGES[card.stage].label}
               </button>
+            )}
+            {card.stage < 4 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => handleMoveTo(4)}
+                  title="Mark Completed"
+                  className="flex items-center gap-1 text-xs font-medium text-green-700 bg-green-50 border border-green-200 px-2.5 py-1.5 rounded-lg hover:bg-green-100 transition-colors"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  Completed
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleMoveTo(5)}
+                  title="Reject / Cancel"
+                  className="flex items-center gap-1 text-xs font-medium text-red-700 bg-red-50 border border-red-200 px-2.5 py-1.5 rounded-lg hover:bg-red-100 transition-colors"
+                >
+                  <Ban className="w-3.5 h-3.5" />
+                  Reject
+                </button>
+              </>
             )}
             <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
               <X className="w-4 h-4" />
@@ -418,6 +456,26 @@ function CardDetail({
               </Link>
             </section>
           )}
+
+          {/* Stage 4 — Completed */}
+          {card.stage === 4 && (
+            <section className="border border-green-200 bg-green-50 rounded-xl p-4">
+              <p className="text-sm font-semibold text-green-800 mb-1 flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4" /> Completed
+              </p>
+              <p className="text-xs text-green-700">This lead successfully closed.</p>
+            </section>
+          )}
+
+          {/* Stage 5 — Rejected / Cancelled */}
+          {card.stage === 5 && (
+            <section className="border border-red-200 bg-red-50 rounded-xl p-4">
+              <p className="text-sm font-semibold text-red-800 mb-1 flex items-center gap-1.5">
+                <Ban className="w-4 h-4" /> Rejected / Cancelled
+              </p>
+              <p className="text-xs text-red-700">This lead was rejected, or the deal fell through.</p>
+            </section>
+          )}
         </div>
 
         {/* Footer */}
@@ -515,6 +573,20 @@ function KanbanCard({
         </Link>
       )}
 
+      {card.stage === 4 && (
+        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border bg-green-50 text-green-700 border-green-200">
+          <CheckCircle2 className="w-3 h-3" />
+          Completed
+        </span>
+      )}
+
+      {card.stage === 5 && (
+        <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border bg-red-50 text-red-700 border-red-200">
+          <Ban className="w-3 h-3" />
+          Rejected / Cancelled
+        </span>
+      )}
+
       <div className="flex items-center justify-between mt-2">
         <span className="text-xs text-gray-300">{fmtDate(card.createdAt)}</span>
         {card.primaryAnalyst && (
@@ -525,6 +597,94 @@ function KanbanCard({
         )}
       </div>
     </article>
+  );
+}
+
+// ─── Board column — narrow side-by-side for stages 1-3, full-width grid for 4/5 below ────────
+
+function BoardColumn({
+  col,
+  wide = false,
+  dragOverStage,
+  setDragOverStage,
+  onDrop,
+  onDragStart,
+  onSelect,
+  query,
+  myCardsOnly,
+  onAdd,
+}: {
+  col: { key: BoardStage; label: string; items: BoardCard[] };
+  wide?: boolean;
+  dragOverStage: BoardStage | null;
+  setDragOverStage: React.Dispatch<React.SetStateAction<BoardStage | null>>;
+  onDrop: (e: React.DragEvent, targetStage: BoardStage) => void;
+  onDragStart: (e: React.DragEvent, card: BoardCard) => void;
+  onSelect: (card: BoardCard) => void;
+  query: string;
+  myCardsOnly: boolean;
+  onAdd?: () => void;
+}) {
+  return (
+    <div className={wide ? "w-full" : "flex-1 min-w-[280px] max-w-[360px]"}>
+      <div className="flex items-center justify-between mb-2.5 px-1">
+        <div className="flex items-center gap-2">
+          <span className="text-sm font-semibold text-gray-700">{col.label}</span>
+          <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+            {col.items.length}
+          </span>
+        </div>
+        {onAdd && (
+          <button
+            type="button"
+            onClick={onAdd}
+            className="text-gray-400 hover:text-orange-600 transition-colors"
+            title="Add lead/project"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
+        )}
+      </div>
+
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOverStage(col.key); }}
+        onDragLeave={(e) => {
+          if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+            setDragOverStage((cur) => (cur === col.key ? null : cur));
+          }
+        }}
+        onDrop={(e) => onDrop(e, col.key)}
+        className={`rounded-xl p-2 border transition-colors overflow-y-auto ${
+          wide
+            ? "min-h-[100px] max-h-[480px] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2"
+            : "min-h-[160px] max-h-[480px] space-y-2"
+        } ${dragOverStage === col.key ? "bg-orange-50/60 border-orange-300" : "bg-gray-50 border-gray-200"}`}
+      >
+        {col.items.map((card) => (
+          <KanbanCard
+            key={card.id}
+            card={card}
+            onClick={() => onSelect(card)}
+            onDragStart={(e) => onDragStart(e, card)}
+          />
+        ))}
+        {col.items.length === 0 && (
+          <p className={`text-xs text-gray-400 text-center py-8 ${wide ? "col-span-full" : ""}`}>
+            {query
+              ? "No matches here."
+              : myCardsOnly
+              ? "None of your cards here."
+              : col.key === 1
+              ? "Add a lead to get started."
+              : col.key === 4
+              ? "Nothing completed yet."
+              : col.key === 5
+              ? "Nothing rejected or cancelled."
+              : "No leads here yet."}
+          </p>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -648,64 +808,39 @@ export default function BoardPage() {
         </button>
       </div>
 
-      {/* Board */}
+      {/* Board — Early Lead / Funding Lead / Due Diligence side by side */}
       <div className="flex gap-4 overflow-x-auto pb-4">
-        {columns.map((col) => (
-          <div key={col.key} className="flex-1 min-w-[280px] max-w-[360px]">
-            <div className="flex items-center justify-between mb-2.5 px-1">
-              <div className="flex items-center gap-2">
-                <span className="text-sm font-semibold text-gray-700">{col.label}</span>
-                <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
-                  {col.items.length}
-                </span>
-              </div>
-              {col.key === 1 && (
-                <button
-                  type="button"
-                  onClick={() => setShowNew(true)}
-                  className="text-gray-400 hover:text-orange-600 transition-colors"
-                  title="Add lead/project"
-                >
-                  <Plus className="w-4 h-4" />
-                </button>
-              )}
-            </div>
+        {columns.slice(0, 3).map((col) => (
+          <BoardColumn
+            key={col.key}
+            col={col}
+            dragOverStage={dragOverStage}
+            setDragOverStage={setDragOverStage}
+            onDrop={handleDrop}
+            onDragStart={handleDragStart}
+            onSelect={setSelected}
+            query={query}
+            myCardsOnly={myCardsOnly}
+            onAdd={col.key === 1 ? () => setShowNew(true) : undefined}
+          />
+        ))}
+      </div>
 
-            <div
-              onDragOver={(e) => { e.preventDefault(); setDragOverStage(col.key); }}
-              onDragLeave={(e) => {
-                if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                  setDragOverStage((cur) => (cur === col.key ? null : cur));
-                }
-              }}
-              onDrop={(e) => handleDrop(e, col.key)}
-              className={`rounded-xl p-2 space-y-2 min-h-[160px] border transition-colors ${
-                dragOverStage === col.key
-                  ? "bg-orange-50/60 border-orange-300"
-                  : "bg-gray-50 border-gray-200"
-              }`}
-            >
-              {col.items.map((card) => (
-                <KanbanCard
-                  key={card.id}
-                  card={card}
-                  onClick={() => setSelected(card)}
-                  onDragStart={(e) => handleDragStart(e, card)}
-                />
-              ))}
-              {col.items.length === 0 && (
-                <p className="text-xs text-gray-400 text-center py-8">
-                  {query
-                    ? "No matches here."
-                    : myCardsOnly
-                    ? "None of your cards here."
-                    : col.key === 1
-                    ? "Add a lead to get started."
-                    : "No leads here yet."}
-                </p>
-              )}
-            </div>
-          </div>
+      {/* Completed and Rejected/Cancelled — terminal outcomes, kept below the active pipeline */}
+      <div className="mt-4 space-y-4">
+        {columns.slice(3).map((col) => (
+          <BoardColumn
+            key={col.key}
+            col={col}
+            wide
+            dragOverStage={dragOverStage}
+            setDragOverStage={setDragOverStage}
+            onDrop={handleDrop}
+            onDragStart={handleDragStart}
+            onSelect={setSelected}
+            query={query}
+            myCardsOnly={myCardsOnly}
+          />
         ))}
       </div>
 

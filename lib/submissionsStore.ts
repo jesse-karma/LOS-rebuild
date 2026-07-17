@@ -1,4 +1,4 @@
-import { ApprovalType, ICProject, PastProject, ReturnType } from "@/data/types";
+import { ApprovalType, CreditMemoSection, ICProject, PastProject, ReturnType } from "@/data/types";
 import { mockProjects } from "@/data/mock";
 import { isAssetB } from "@/lib/assetClass";
 import {
@@ -81,6 +81,196 @@ export interface SubmissionReferrorRow {
   belongsToKP: string | null;
 }
 
+// ─── Credit memo templates — fixed questions the analyst answers, grouped into sections ──────
+
+/** Project Credit Memo template — what the project is for, its financials, and operational readiness. */
+export const PROJECT_CREDIT_MEMO_TEMPLATE: CreditMemoSection[] = [
+  {
+    id: "intro",
+    title: "",
+    questions: [{ id: "project-for", label: "What is the project for / branch(es) to be opened?", answer: "" }],
+  },
+  {
+    id: "financial-analysis",
+    title: "Project Financial Analysis",
+    questions: [
+      { id: "steady-state-revenue", label: "What is the estimated steady state revenue at Month 12?", answer: "" },
+      {
+        id: "amount-to-pay-investors-karma",
+        label: "What is the amount the Karmapreneur will need to pay Investors+Karma in Month 12?",
+        answer: "",
+      },
+      {
+        id: "net-income-before-depreciation",
+        label: "What is Net Income before Depreciation after paying Investors+Karma in Month 12?",
+        answer: "",
+      },
+      {
+        id: "lowest-revenue-breakeven",
+        label: "What is the lowest revenue the Karmapreneur needs to be able to pay Investors+Karma and profit = 0?",
+        answer: "",
+      },
+    ],
+  },
+  {
+    id: "rent-contract",
+    title: "Rent Contract (for the branch we're doing revenue share for)",
+    questions: [
+      { id: "rent-contract-length", label: "What is the rent contract length?", answer: "" },
+      {
+        id: "extend-right",
+        label:
+          "Does the entrepreneur have a contractual right to extend? If not, who is the landlord and what is relationship to entrepreneur?",
+        answer: "",
+      },
+    ],
+  },
+  {
+    id: "space",
+    title: "Space",
+    questions: [
+      { id: "parking-spaces", label: "How many parking spaces will there be?", answer: "" },
+      { id: "seats-beds", label: "How many seats/beds/etc. will there be in the branch?", answer: "" },
+    ],
+  },
+  {
+    id: "licenses",
+    title: "Licenses (for the branch we're doing revenue share for)",
+    questions: [
+      { id: "requires-izin", label: "Does new branch require izin (medical, alcohol, etc.)?", answer: "" },
+      { id: "has-license", label: "Do they have the license yet?", answer: "" },
+    ],
+  },
+  {
+    id: "location-target-buyer",
+    title: "Location/Target Buyer Analysis",
+    questions: [{ id: "location-assessment", label: "What is the analysts' assessment of the new location?", answer: "" }],
+  },
+  {
+    id: "activation-plan",
+    title: "Activation Plan and Dependencies",
+    questions: [
+      { id: "marketing-plan", label: "What is marketing plan for the new branch?", answer: "" },
+      {
+        id: "key-dependencies",
+        label: "Are there any key dependencies not yet covered above critical to the project's success?",
+        answer: "",
+      },
+    ],
+  },
+  {
+    id: "post-funding-promises",
+    title: "Post-Funding Promises",
+    questions: [{ id: "pos-login", label: "Is the entrepreneur willing to give us log-in to their POS?", answer: "" }],
+  },
+];
+
+/** Company (KP) Credit Memo template — founders, ownership, product, and standing checks. */
+export const KP_CREDIT_MEMO_TEMPLATE: CreditMemoSection[] = [
+  {
+    id: "intro",
+    title: "",
+    questions: [{ id: "why-work-with-kp", label: "Why should we work with this Karmapreneur?", answer: "" }],
+  },
+  {
+    id: "founders-day-to-day",
+    title: "Founders and Day to Day",
+    questions: [
+      { id: "founders-how-know-each-other", label: "How do founders know each other? Are any related?", answer: "" },
+      { id: "founders-roles", label: "What are the founders' roles in company (full time/part time)?", answer: "" },
+      { id: "founders-background", label: "What are the founders' background?", answer: "" },
+      { id: "who-runs-day-to-day", label: "Who runs day-to-day?", answer: "" },
+    ],
+  },
+  {
+    id: "ownership",
+    title: "Ownership of Company",
+    questions: [
+      { id: "who-owns-company", label: "Who owns the company?", answer: "" },
+      { id: "other-businesses", label: "What are the various companies/businesses under the same founders?", answer: "" },
+    ],
+  },
+  {
+    id: "reference-check",
+    title: "Reference Check",
+    questions: [
+      {
+        id: "reference-check",
+        label:
+          "Do any referrors, Karmapreneurs, or other people we trust know the founders and what are their impression about them?",
+        answer: "",
+      },
+    ],
+  },
+  {
+    id: "product-customer",
+    title: "Product/Customer",
+    questions: [
+      { id: "main-product", label: "What is the main product or service being sold?", answer: "" },
+      { id: "target-customer", label: "Who is the target customer segment?", answer: "" },
+    ],
+  },
+  {
+    id: "mission",
+    title: "Mission",
+    questions: [
+      { id: "what-they-want-to-be", label: "What do they want to be?", answer: "" },
+      { id: "brand-evolution", label: "What do the founders want the brand/company to evolve into?", answer: "" },
+    ],
+  },
+  {
+    id: "competitors",
+    title: "Competitors",
+    questions: [
+      { id: "competitors-differentiation", label: "Who are their competitors and what is their differentiation?", answer: "" },
+    ],
+  },
+  {
+    id: "longevity",
+    title: "Longevity",
+    questions: [
+      { id: "founded-year", label: "What year was the brand/company/group founded in?", answer: "" },
+      { id: "pivoted", label: "Have they changed/pivoted from a previous concept?", answer: "" },
+    ],
+  },
+  {
+    id: "taxes",
+    title: "Taxes",
+    lastCheckedDate: "",
+    questions: [
+      { id: "pays-pb1-ppn", label: "Is the company paying PB1/PPN?", answer: "" },
+      { id: "tax-office-chasing", label: "Is the tax office chasing them on any tax liabilities?", answer: "" },
+    ],
+  },
+  {
+    id: "existing-financing",
+    title: "Existing Financing",
+    lastCheckedDate: "",
+    questions: [
+      { id: "how-financed", label: "How has the Brand/Company financed themselves so far?", answer: "" },
+      {
+        id: "fixed-rate-loans",
+        label:
+          "Are there any fixed rate loans due to friends, fintechs, or banks? When are they due? (we're checking if any of them are due before we get repaid and whether paying them endangers the company's ability to operate and/or repay us)",
+        answer: "",
+      },
+    ],
+  },
+  {
+    id: "bank-vs-sales",
+    title: "Bank vs Sales",
+    lastCheckedDate: "",
+    questions: [
+      { id: "bank-sales-variance", label: "What is the variance of bank statements vs sales reports?", answer: "" },
+      { id: "what-compared", label: "What was compared (specific branches, whole company)?", answer: "" },
+    ],
+  },
+];
+
+function cloneCreditMemoTemplate(template: CreditMemoSection[]): CreditMemoSection[] {
+  return template.map((s) => ({ ...s, questions: s.questions.map((q) => ({ ...q })) }));
+}
+
 export interface SubmissionFormData {
   brandName: string;
   brandIsNew: boolean;
@@ -116,6 +306,8 @@ export interface SubmissionFormData {
   // Plafond proposal (used when approvalType includes "Plafond")
   proposedTotalLimit: number;
   proposedPOSubLimit: number;
+  /** Optional buffer (Rp) above the plafond — only applicable to Asset B/D. */
+  proposedBuffer: number;
   // Financial review (becomes Review 1 on the IC card's Plafond & Financial Reviews section)
   finReviewReportsReviewed: string;
   finReviewPeriodEnding: string; // ISO date (yyyy-mm-dd)
@@ -157,15 +349,23 @@ export interface SubmissionFormData {
   lfDailyPctASN: number;
   // Asset B: payor / PO / invoice grid
   payorInvoices: SubmissionPayorRow[];
+  /** GDrive link to the underlying invoice/PO documents backing the payorInvoices rows. */
+  payorInvoiceDocsLink: string;
   /** Calculator / Financials Google Sheets link (spec F27 & E90 — embedded on the IC card). */
   financialsLink: string;
+  /** Manually confirmed: the Calculator GSheet at financialsLink is present and readable. */
+  calculatorGSheetVerified: boolean;
   kpCreditMemo: string;
+  /** Structured Company Credit Memo Q&A (Founders, Ownership, Reference Check, etc.). */
+  kpCreditMemoSections: CreditMemoSection[];
   /** Only meaningful when fundingSource is Members (spec E101 display logic). */
   bankDetailsReviewed: boolean;
   /** Karmapreneur will withhold / will NOT withhold (spec E102). */
   taxWithholdings: "Yes" | "No" | "TBD";
   termSheetLink: string;
   projectCreditMemo: string;
+  /** Structured Project Credit Memo Q&A (Financial Analysis, Rent Contract, Space, etc.). */
+  projectCreditMemoSections: CreditMemoSection[];
   specialNotesForIC: string;
 }
 
@@ -229,6 +429,7 @@ export function emptySubmissionForm(): SubmissionFormData {
     referralSource: "Cold calling",
     proposedTotalLimit: 0,
     proposedPOSubLimit: 0,
+    proposedBuffer: 0,
     finReviewReportsReviewed: "",
     finReviewPeriodEnding: "",
     finReviewLimitRecommendation: "Keep",
@@ -261,14 +462,18 @@ export function emptySubmissionForm(): SubmissionFormData {
     lfDailyPctInvestors: 0.08,
     lfDailyPctASN: 0.02,
     payorInvoices: [],
+    payorInvoiceDocsLink: "",
     financialsLink: "",
+    calculatorGSheetVerified: false,
     kpCreditMemo: "",
+    kpCreditMemoSections: cloneCreditMemoTemplate(KP_CREDIT_MEMO_TEMPLATE),
     bankDetailsReviewed: false,
     // Spec default: "Karmapreneur will withhold" unless the brand's history says otherwise (see
     // mostRecentBrandProject — SubmissionForm pre-fills this live once a brand with history is typed).
     taxWithholdings: "Yes",
     termSheetLink: "",
     projectCreditMemo: "",
+    projectCreditMemoSections: cloneCreditMemoTemplate(PROJECT_CREDIT_MEMO_TEMPLATE),
     specialNotesForIC: "",
   };
 }
@@ -574,12 +779,42 @@ function legacyReturnType(masterReturnType: string): ReturnType {
   }
 }
 
-/** Spec A97: flag accountholder/PT name mismatches on the review card. */
-function ptWarnings(pt: SubmissionPTRow): string[] {
+/** Spec A97: flag accountholder/PT name mismatches, prior-project drift, and LMS sync on the review card. */
+export function ptWarnings(pt: SubmissionPTRow, brandName: string): string[] {
   const warnings: string[] = [];
   if (pt.name.trim() && pt.accountholderName.trim() && pt.name.trim() !== pt.accountholderName.trim()) {
     warnings.push("Mismatch on accountholder and PT names");
   }
+  const trimmedBrand = brandName.trim().toLowerCase();
+  if (trimmedBrand && pt.name.trim()) {
+    const priorProjects = allReviewProjects()
+      .filter((p) => p.brandName.trim().toLowerCase() === trimmedBrand)
+      .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
+
+    if (priorProjects.length > 0) {
+      const samePT = priorProjects
+        .flatMap((p) => p.ptDetails)
+        .find((prior) => prior.name.trim().toLowerCase() === pt.name.trim().toLowerCase());
+      if (
+        samePT &&
+        samePT.accountNumber.trim() &&
+        pt.accountNumber.trim() &&
+        samePT.accountNumber.trim() !== pt.accountNumber.trim()
+      ) {
+        warnings.push("Account number differs from prior project");
+      }
+
+      const mostRecentPT = priorProjects[0].ptDetails[0];
+      if (
+        mostRecentPT &&
+        mostRecentPT.name.trim() &&
+        mostRecentPT.name.trim().toLowerCase() !== pt.name.trim().toLowerCase()
+      ) {
+        warnings.push("PT differs from prior project");
+      }
+    }
+  }
+
   return warnings;
 }
 
@@ -788,6 +1023,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
             totalLimit: f.proposedTotalLimit,
             poSubLimit: f.proposedPOSubLimit,
             wcSubLimit: 0,
+            buffer: f.proposedBuffer || undefined,
           }
         : null,
       current: null,
@@ -864,6 +1100,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     fixedReturnTerms,
     dailyInterestTerms,
     payorInvoices,
+    payorInvoiceDocsLink: f.payorInvoiceDocsLink || null,
     // Asset B late fees are policy-derived from the daily interest terms
     // (Outstanding Principal, no grace, daily rate = 30-day rate / 30).
     lateFee: isAssetB(f.assetClass)
@@ -882,8 +1119,11 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
     termSheetLink: f.termSheetLink || null,
 
     kpCreditMemo: f.kpCreditMemo,
+    kpCreditMemoSections: f.kpCreditMemoSections,
     projectCreditMemo: f.projectCreditMemo,
+    projectCreditMemoSections: f.projectCreditMemoSections,
     financialsLink: f.financialsLink || null,
+    calculatorGSheetVerified: f.calculatorGSheetVerified,
     projectNotes: [],
 
     ptDetails: f.ptDetails.map((pt) => ({
@@ -894,7 +1134,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
       accountholderName: pt.accountholderName,
       slikFileUrl: pt.slikFileUrl || null,
       slikExecSummary: pt.slikExecSummary || null,
-      warnings: ptWarnings(pt),
+      warnings: ptWarnings(pt, f.brandName),
     })),
 
     fundingSource: f.fundingSource,

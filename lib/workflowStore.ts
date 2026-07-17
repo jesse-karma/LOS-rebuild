@@ -151,6 +151,10 @@ export function seedDefaultWorkflows() {
     wf.legal.agreementSigned = true;
     wf.legal.completedAt = "2026-04-14T10:00:00Z";
     wf.legal.completedBy = "Larasati Wibowo";
+    wf.finance.bankDetailsReviewed = true;
+    wf.finance.disbursementDate = "2026-04-18";
+    wf.finance.completedAt = "2026-04-18T10:00:00Z";
+    wf.finance.completedBy = "Bagus Santoso";
     all["proj-cum"] = wf;
   }
 
@@ -219,6 +223,10 @@ export function seedDefaultWorkflows() {
     wf.legal.agreementSigned = true;
     wf.legal.completedAt = "2026-04-20T10:00:00Z";
     wf.legal.completedBy = "Larasati Wibowo";
+    wf.finance.bankDetailsReviewed = true;
+    wf.finance.disbursementDate = "2026-04-24";
+    wf.finance.completedAt = "2026-04-24T10:00:00Z";
+    wf.finance.completedBy = "Maya Kusuma";
     all["proj-bakmi-naga"] = wf;
   }
 
@@ -235,6 +243,10 @@ export function seedDefaultWorkflows() {
     wf.legal.agreementSigned = true;
     wf.legal.completedAt = "2026-04-22T10:00:00Z";
     wf.legal.completedBy = "Andre Sitompul";
+    wf.finance.bankDetailsReviewed = true;
+    wf.finance.disbursementDate = "2026-04-26";
+    wf.finance.completedAt = "2026-04-26T10:00:00Z";
+    wf.finance.completedBy = "Bagus Santoso";
     all["proj-percetakan-media"] = wf;
   }
 
@@ -251,7 +263,39 @@ export function seedDefaultWorkflows() {
     wf.legal.agreementSigned = true;
     wf.legal.completedAt = "2026-04-25T10:00:00Z";
     wf.legal.completedBy = "Larasati Wibowo";
+    wf.finance.bankDetailsReviewed = true;
+    wf.finance.disbursementDate = "2026-04-29";
+    wf.finance.completedAt = "2026-04-29T10:00:00Z";
+    wf.finance.completedBy = "Maya Kusuma";
     all["proj-toko-bangunan"] = wf;
+  }
+
+  // Maju — plafond increase request, IC Principal declined.
+  if (!all["proj-assetd-plafond"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-20T09:00:00Z" };
+    all["proj-assetd-plafond"] = wf;
+  }
+
+  // Ayam Geprek Juara — IC Principal declined.
+  if (!all["proj-ayam-geprek"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-21T09:00:00Z" };
+    all["proj-ayam-geprek"] = wf;
+  }
+
+  // Tekstil Makmur Sentosa — IC Principal declined.
+  if (!all["proj-tekstil-makmur"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-22T09:00:00Z" };
+    all["proj-tekstil-makmur"] = wf;
+  }
+
+  // Distribusi Pangan Sejahtera — IC Principal declined.
+  if (!all["proj-distribusi-pangan"]) {
+    const wf = emptyWorkflow();
+    wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-23T09:00:00Z" };
+    all["proj-distribusi-pangan"] = wf;
   }
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));

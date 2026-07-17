@@ -160,8 +160,8 @@ function FlowTable({
       <table className="w-full text-sm min-w-[820px]">
         <thead>
           <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
-            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
             <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
             <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
             <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
             <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
@@ -178,6 +178,7 @@ function FlowTable({
                 className="hover:bg-blue-50/40 cursor-pointer"
                 onClick={() => router.push(`/project/${p.id}`)}
               >
+                <td className="py-2.5 px-2.5 font-medium text-gray-900">{p.projectName}</td>
                 <td className="py-2.5 px-2.5 whitespace-nowrap">
                   <Link
                     href={`/kp/${encodeURIComponent(p.brandName)}`}
@@ -187,7 +188,6 @@ function FlowTable({
                     {p.brandName}
                   </Link>
                 </td>
-                <td className="py-2.5 px-2.5 font-medium text-gray-900">{p.projectName}</td>
                 <td className="py-2.5 px-2.5">
                   <Tag label={`Asset ${p.assetClass}`} variant={assetClassVariant(p.assetClass)} />
                 </td>
@@ -397,7 +397,7 @@ export default function HomePage() {
   // Workflows load after mount (localStorage) — empty map matches the server render.
   const [workflows, setWorkflows] = useState<Record<string, ProjectWorkflow>>({});
   const [query, setQuery] = useState("");
-  const [tab, setTab] = useState<TabKey>("ic");
+  const [tab, setTab] = useState<TabKey>("prep");
   const [homeView, setHomeView] = useState<"table" | "card">("table");
 
   useEffect(() => {
@@ -617,8 +617,8 @@ export default function HomePage() {
           <table className="w-full text-sm min-w-[820px]">
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
                 <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
+                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
                 <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
                 <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
@@ -632,6 +632,9 @@ export default function HomePage() {
                   className="hover:bg-blue-50/40 cursor-pointer group"
                   onClick={() => router.push(`/submission/${d.id}`)}
                 >
+                  <td className="py-2.5 px-2.5 font-medium text-gray-900 group-hover:text-blue-700">
+                    {d.form.projectName || "Untitled submission"}
+                  </td>
                   <td className="py-2.5 px-2.5 whitespace-nowrap">
                     {d.form.brandName ? (
                       <Link
@@ -644,9 +647,6 @@ export default function HomePage() {
                     ) : (
                       <span className="text-gray-400">—</span>
                     )}
-                  </td>
-                  <td className="py-2.5 px-2.5 font-medium text-gray-900 group-hover:text-blue-700">
-                    {d.form.projectName || "Untitled submission"}
                   </td>
                   <td className="py-2.5 px-2.5">
                     <Tag label={`Asset ${d.form.assetClass}`} variant={assetClassVariant(d.form.assetClass)} />

@@ -3,7 +3,9 @@
 
 import { MasterAssetClass } from "@/data/masterData";
 
-export type BoardStage = 1 | 2 | 3;
+// 1-3 are the active pipeline (Early Lead -> Funding Lead -> Due Diligence); 4 = Completed and
+// 5 = Rejected/Cancelled are terminal outcomes, reachable from any of 1-3 at any time.
+export type BoardStage = 1 | 2 | 3 | 4 | 5;
 
 export interface BoardAnalyst {
   id: string;
@@ -444,6 +446,114 @@ export function seedExampleCards(): void {
       ],
       checklist: blankChecklist(),
       createdAt: "2026-07-16T13:00:00.000Z",
+    },
+
+    // ── Stage 4 — Completed (4 cards) ───────────────────────────────────────
+    {
+      id: "bd-s4-1",
+      kpName: "Elang Transport Nusantara",
+      projectName: "Fleet WC Facility — Closed",
+      primaryAnalyst: priska,
+      stage: 4,
+      notes: [
+        { id: "n-s4-1-a", text: "Full DD completed, submission went through IC without issue. Terms agreed, docs signed.", createdAt: "2026-06-10T09:00:00.000Z" },
+        { id: "n-s4-1-b", text: "Disbursed and onboarded in the LOS. Great first deal — founder already asking about a second facility.", createdAt: "2026-06-25T14:00:00.000Z" },
+      ],
+      checklist: CHECKLIST_TEMPLATE.map((t) => ({ ...t, done: true })),
+      createdAt: "2026-06-05T08:00:00.000Z",
+    },
+    {
+      id: "bd-s4-2",
+      kpName: "Warung Sate Pak Broto",
+      projectName: "Multi-Branch WC — Closed",
+      primaryAnalyst: nila,
+      stage: 4,
+      notes: [
+        { id: "n-s4-2-a", text: "Smooth DD — long-standing referral relationship, docs came in fast. IC approved on first pass.", createdAt: "2026-05-14T09:00:00.000Z" },
+        { id: "n-s4-2-b", text: "Disbursed. Founder is a strong repeat-KP candidate for next quarter.", createdAt: "2026-05-30T14:00:00.000Z" },
+      ],
+      checklist: CHECKLIST_TEMPLATE.map((t) => ({ ...t, done: true })),
+      createdAt: "2026-05-10T08:00:00.000Z",
+    },
+    {
+      id: "bd-s4-3",
+      kpName: "Percetakan Digital Nusantara",
+      projectName: "Invoice Financing — Closed",
+      primaryAnalyst: priska,
+      stage: 4,
+      notes: [
+        { id: "n-s4-3-a", text: "Invoices verified against payor contracts, SLIK clean. Fast-tracked through Due Diligence.", createdAt: "2026-04-20T09:00:00.000Z" },
+        { id: "n-s4-3-b", text: "Onboarded and disbursed — payor confirmed receipt of assignment notice.", createdAt: "2026-05-02T14:00:00.000Z" },
+      ],
+      checklist: CHECKLIST_TEMPLATE.map((t) => ({ ...t, done: true })),
+      createdAt: "2026-04-15T08:00:00.000Z",
+    },
+    {
+      id: "bd-s4-4",
+      kpName: "Koperasi Tani Makmur Jaya",
+      projectName: "Harvest Pre-Finance — Closed",
+      primaryAnalyst: nila,
+      stage: 4,
+      notes: [
+        { id: "n-s4-4-a", text: "Buyer contracts in hand, revenue-share terms agreed quickly. Site visit confirmed operations.", createdAt: "2026-03-18T09:00:00.000Z" },
+        { id: "n-s4-4-b", text: "Deal closed and disbursed ahead of harvest season as planned.", createdAt: "2026-04-01T14:00:00.000Z" },
+      ],
+      checklist: CHECKLIST_TEMPLATE.map((t) => ({ ...t, done: true })),
+      createdAt: "2026-03-12T08:00:00.000Z",
+    },
+
+    // ── Stage 5 — Rejected / Cancelled (4 cards) ────────────────────────────
+    {
+      id: "bd-s5-1",
+      kpName: "Roti Bakar Legend",
+      projectName: "Branch Expansion WC",
+      primaryAnalyst: nila,
+      stage: 5,
+      notes: [
+        { id: "n-s5-1-a", text: "Founder cooperative early on, but SLIK came back with unresolved late payments on an unrelated facility.", createdAt: "2026-06-18T10:00:00.000Z" },
+        { id: "n-s5-1-b", text: "Flagged to IC informally — consensus to pass for now. Founder notified; door left open for a future cycle once resolved.", createdAt: "2026-06-22T11:00:00.000Z" },
+      ],
+      checklist: CHECKLIST_TEMPLATE.map((t, i) => ({ ...t, done: i < 5 })),
+      createdAt: "2026-06-15T09:00:00.000Z",
+    },
+    {
+      id: "bd-s5-2",
+      kpName: "Butik Fashion Kartika",
+      projectName: "Plafond New — Asset A",
+      primaryAnalyst: priska,
+      stage: 5,
+      notes: [
+        { id: "n-s5-2-a", text: "Founder went quiet after the second meeting — no response to follow-ups for 3 weeks.", createdAt: "2026-05-05T09:00:00.000Z" },
+        { id: "n-s5-2-b", text: "Marked cancelled — founder later confirmed they went with another financing option.", createdAt: "2026-05-20T11:00:00.000Z" },
+      ],
+      checklist: blankChecklist(),
+      createdAt: "2026-05-01T09:00:00.000Z",
+    },
+    {
+      id: "bd-s5-3",
+      kpName: "Bengkel Motor Jaya Sentosa",
+      projectName: "Fleet WC — Asset D",
+      primaryAnalyst: nila,
+      stage: 5,
+      notes: [
+        { id: "n-s5-3-a", text: "Financials didn't reconcile with bank statements — revenue overstated vs. actual inflows.", createdAt: "2026-04-08T09:00:00.000Z" },
+        { id: "n-s5-3-b", text: "Rejected after IC review of the discrepancy. Founder disputed but couldn't reconcile the gap.", createdAt: "2026-04-16T11:00:00.000Z" },
+      ],
+      checklist: CHECKLIST_TEMPLATE.map((t, i) => ({ ...t, done: i < 8 })),
+      createdAt: "2026-04-01T09:00:00.000Z",
+    },
+    {
+      id: "bd-s5-4",
+      kpName: "Katering Nusantara Rasa",
+      projectName: "WC Facility — Fixed Return",
+      primaryAnalyst: priska,
+      stage: 5,
+      notes: [
+        { id: "n-s5-4-a", text: "Existing KP with a prior late-payment history that resurfaced during recap review.", createdAt: "2026-03-10T09:00:00.000Z" },
+        { id: "n-s5-4-b", text: "IC declined a second facility until the outstanding one is fully current.", createdAt: "2026-03-19T11:00:00.000Z" },
+      ],
+      checklist: CHECKLIST_TEMPLATE.map((t, i) => ({ ...t, done: i < 10 })),
+      createdAt: "2026-03-05T09:00:00.000Z",
     },
   ];
 

@@ -16,7 +16,7 @@ import {
   financingTypesForAssetClass,
   subSectorsForSector,
 } from "@/data/masterData";
-import { isAssetAOrD, isAssetB } from "@/lib/assetClass";
+import { isAssetAOrD, isAssetB, isAssetD } from "@/lib/assetClass";
 import {
   SubmissionFormData,
   StoredSubmission,
@@ -35,6 +35,8 @@ import {
   mostRecentBrandProject,
   getAllBrands,
   getAllReferrors,
+  allReviewProjects,
+  ptWarnings,
 } from "@/lib/submissionsStore";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
@@ -121,9 +123,9 @@ function EditTable({
             {headers.map((h, i) => (
               <th
                 key={`${h}-${i}`}
-                className={`py-2 px-2 font-medium ${i === 0 ? "pl-3 w-8" : ""} ${
-                  i === headers.length - 1 && h === "" ? "w-10" : ""
-                }`}
+                className={`py-2 px-2 font-medium whitespace-nowrap ${i === 0 ? "pl-3" : ""} ${
+                  i === 0 && h === "#" ? "w-8" : ""
+                } ${i === headers.length - 1 && h === "" ? "w-10" : ""}`}
               >
                 {h}
               </th>
@@ -132,6 +134,57 @@ function EditTable({
         </thead>
         <tbody className="divide-y divide-gray-50">{children}</tbody>
       </table>
+    </div>
+  );
+}
+
+/** Renders a structured credit memo (KP or Project) as fixed question groups the analyst answers. */
+function CreditMemoSectionsEditor({
+  sections,
+  onAnswerChange,
+  onDateChange,
+}: {
+  sections: SubmissionFormData["kpCreditMemoSections"];
+  onAnswerChange: (sectionId: string, questionId: string, value: string) => void;
+  onDateChange: (sectionId: string, value: string) => void;
+}) {
+  return (
+    <div className="space-y-4">
+      {sections.map((section) => (
+        <div key={section.id}>
+          {section.title && (
+            <div className="flex items-center justify-between gap-3 mb-1.5 flex-wrap">
+              <h4 className="text-xs font-semibold text-gray-700 uppercase tracking-wide">{section.title}</h4>
+              {section.lastCheckedDate !== undefined && (
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <label className="text-[11px] text-gray-400">Last Checked</label>
+                  <input
+                    type="date"
+                    className="border border-gray-300 rounded px-1.5 py-0.5 text-xs"
+                    value={section.lastCheckedDate}
+                    onChange={(e) => onDateChange(section.id, e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+          <EditTable headers={["Question", "Answer"]} minWidthCls="min-w-[520px]">
+            {section.questions.map((q) => (
+              <tr key={q.id} className="align-top">
+                <td className="py-2 pl-3 pr-2 w-64 text-gray-600">{q.label}</td>
+                <td className="py-2 px-2">
+                  <textarea
+                    className={`${cellInputCls} resize-y`}
+                    rows={1}
+                    value={q.answer}
+                    onChange={(e) => onAnswerChange(section.id, q.id, e.target.value)}
+                  />
+                </td>
+              </tr>
+            ))}
+          </EditTable>
+        </div>
+      ))}
     </div>
   );
 }
@@ -242,6 +295,11 @@ function ptIsBlank(pt: SubmissionPTRow): boolean {
 
 function fixedRowIsBlank(r: SubmissionFixedRow): boolean {
   return r.principal === 0 && r.interest === 0 && r.carry === 0;
+}
+
+/** The lead-in question's answer for a structured credit memo — used as the "is this filled in" check. */
+function memoIntroAnswer(sections: SubmissionFormData["kpCreditMemoSections"]): string {
+  return sections.find((s) => s.id === "intro")?.questions[0]?.answer ?? "";
 }
 
 function payorIsBlank(r: SubmissionPayorRow): boolean {
@@ -374,14 +432,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const [plafondTexts, setPlafondTexts] = useState({
     total: submission.form.proposedTotalLimit ? formatAmountInput(String(submission.form.proposedTotalLimit)) : "",
     po: submission.form.proposedPOSubLimit ? formatAmountInput(String(submission.form.proposedPOSubLimit)) : "",
-  });
-  const [finReviewTexts, setFinReviewTexts] = useState({
-    current: submission.form.finReviewLimitCurrent
-      ? formatAmountInput(String(submission.form.finReviewLimitCurrent))
-      : "",
-    recommended: submission.form.finReviewLimitRecommended
-      ? formatAmountInput(String(submission.form.finReviewLimitRecommended))
-      : "",
+    buffer: submission.form.proposedBuffer ? formatAmountInput(String(submission.form.proposedBuffer)) : "",
   });
   const [errors, setErrors] = useState<string[]>([]);
   const [brandSearch, setBrandSearch] = useState(form.brandName);
@@ -460,6 +511,21 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   // The A&D spec sections (contacts, terms, PT, memos) only apply to Asset A / D submissions.
   const isAD = isAssetAOrD(form.assetClass);
   const isB = isAssetB(form.assetClass);
+  const isAssetA = form.assetClass.trim() === "A";
+  const isD = isAssetD(form.assetClass);
+
+  // The brand's current active plafond on file, if any — shown as reference at the top of the
+  // Plafond section so the analyst knows whether this is a new plafond request or an update.
+  const brandActivePlafond = (() => {
+    const trimmed = form.brandName.trim();
+    if (!trimmed) return null;
+    const brandProjects = allReviewProjects().filter(
+      (p) => p.brandName.trim().toLowerCase() === trimmed.toLowerCase()
+    );
+    if (brandProjects.length === 0) return null;
+    const latest = [...brandProjects].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
+    return latest.plafond.current;
+  })();
   // Which deal-terms subsection the selected Return Type calls for
   const wantsRevShare = form.returnType.includes("Revenue Share") || form.returnType === "Profit Share";
   const wantsFixed = form.returnType.includes("Fixed Amount Repayment");
@@ -475,7 +541,6 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     ...form,
     requestedAmount: parseAmount(amountText),
     proposedTotalLimit: parseAmount(plafondTexts.total),
-    finReviewLimitCurrent: parseAmount(finReviewTexts.current),
   });
   const filledDisbursements = form.disbursements.filter((d) => !disbursementIsBlank(d));
   const disbursementSum = filledDisbursements.reduce((sum, d) => sum + d.amount, 0);
@@ -553,6 +618,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       | "fixedSchedule"
       | "payorInvoices"
       | "referrors"
+      | "kpCreditMemoSections"
+      | "projectCreditMemoSections"
   >(
     key: K,
     id: string,
@@ -562,6 +629,22 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       ...f,
       [key]: (f[key] as Array<{ id: string }>).map((row) =>
         row.id === id ? { ...row, ...patch } : row
+      ),
+    }));
+  }
+
+  function updateMemoAnswer(
+    key: "kpCreditMemoSections" | "projectCreditMemoSections",
+    sectionId: string,
+    questionId: string,
+    answer: string
+  ) {
+    setForm((f) => ({
+      ...f,
+      [key]: f[key].map((s) =>
+        s.id === sectionId
+          ? { ...s, questions: s.questions.map((q) => (q.id === questionId ? { ...q, answer } : q)) }
+          : s
       ),
     }));
   }
@@ -632,8 +715,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         requestedAmount: parseAmount(amountText),
         proposedTotalLimit: parseAmount(plafondTexts.total),
         proposedPOSubLimit: parseAmount(plafondTexts.po),
-        finReviewLimitCurrent: parseAmount(finReviewTexts.current),
-        finReviewLimitRecommended: parseAmount(finReviewTexts.recommended),
+        proposedBuffer: parseAmount(plafondTexts.buffer),
       },
     };
   }
@@ -645,9 +727,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     if (hasPlafond && parseAmount(plafondTexts.total) <= 0)
       errs.push("Proposed Total Limit must be greater than zero for a Plafond submission.");
     if (!form.finReviewReportsReviewed.trim())
-      errs.push("Financial Review: state which financial reports were reviewed.");
-    if (!form.finReviewPeriodEnding)
-      errs.push("Financial Review: the reports' period ending date is required.");
+      errs.push("Financial Review: a link is required.");
 
     form.kpContacts.filter((c) => !contactIsBlank(c)).forEach((c, i) => {
       if (!c.name.trim()) errs.push(`Karmapreneur Contact ${i + 1}: Name is required.`);
@@ -677,8 +757,20 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       if (!b.type) errs.push(`Branch ${i + 1} (${b.name || "unnamed"}): Type is required.`);
     });
 
-    if (!form.kpCreditMemo.trim()) errs.push("Karmapreneur Credit Memo is required.");
-    if (!form.projectCreditMemo.trim()) errs.push("Project Credit Memo is required.");
+    const filledPayorRows = form.payorInvoices.filter((r) => !payorIsBlank(r));
+    filledPayorRows.forEach((r, i) => {
+      if (!r.payorLabel.trim()) errs.push(`Payor / Invoice ${i + 1}: Payor is required.`);
+      if (!r.poOrInvoiceNumber.trim()) errs.push(`Payor / Invoice ${i + 1} (${r.payorLabel || "unnamed"}): PO / Invoice # is required.`);
+      if (!r.dueDate) errs.push(`Payor / Invoice ${i + 1} (${r.payorLabel || "unnamed"}): Due Date is required.`);
+      if (r.amount <= 0) errs.push(`Payor / Invoice ${i + 1} (${r.payorLabel || "unnamed"}): Amount is required.`);
+    });
+    if (filledPayorRows.length > 0 && !form.payorInvoiceDocsLink.trim())
+      errs.push("GDrive Link to Underlying Invoice/PO Docs is required.");
+
+    if (isAD && !memoIntroAnswer(form.kpCreditMemoSections).trim())
+      errs.push('Company (KP) Credit Memo: "Why should we work with this Karmapreneur?" is required.');
+    if (!memoIntroAnswer(form.projectCreditMemoSections).trim())
+      errs.push('Project Credit Memo: "What is the project for / branch(es) to be opened?" is required.');
 
     return errs;
   }
@@ -1022,6 +1114,19 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               ))}
             </select>
           </Field>
+          <Field label="Financing Use" source="master" hint="What the financing is for">
+            <select
+              className={inputCls}
+              value={form.financingUse}
+              onChange={(e) => set("financingUse", e.target.value)}
+            >
+              {STRUCTURED_LOAN_USES.map((u) => (
+                <option key={u} value={u}>
+                  {u}
+                </option>
+              ))}
+            </select>
+          </Field>
           <Field label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
             <div className="flex gap-2">
               <select
@@ -1091,56 +1196,108 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               Syariah
             </label>
           </Field>
-          <Field label="Syariah Notes" source="free" hint="Shown on the IC card next to the Syariah tag">
-            <textarea
-              className={`${inputCls} min-h-20 resize-y`}
-              value={form.syariahNotes}
-              onChange={(e) => set("syariahNotes", e.target.value)}
-              placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
-            />
-          </Field>
+          {form.syariah && (
+            <Field label="Syariah Notes" source="free" hint="Shown on the IC card next to the Syariah tag">
+              <textarea
+                className={`${inputCls} min-h-20 resize-y`}
+                value={form.syariahNotes}
+                onChange={(e) => set("syariahNotes", e.target.value)}
+                placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
+              />
+            </Field>
+          )}
         </FormSection>
 
         <FormSection title="Plafond & Financial Review">
-          {hasPlafond && (
-            <>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
-              Proposed Limit
-            </h3>
-            <EditTable
-              headers={["Limit Status", "Total Limit", "PO Sub Limit"]}
-              minWidthCls="min-w-[420px]"
-            >
-              <tr className="bg-purple-50/30 align-top">
-                <td className="py-3 pl-3 pr-2 font-semibold text-purple-800 whitespace-nowrap">Proposed</td>
-                <td className="py-2 px-2">
+          {form.brandName.trim() && (
+            <div className="mb-4 p-3 rounded-lg border border-gray-200 bg-gray-50">
+              <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
+                Current Plafond on File
+              </div>
+              {brandActivePlafond ? (
+                <p className="text-sm text-gray-800">
+                  Total Limit: <span className="font-mono font-medium">Rp {fmtIdr(brandActivePlafond.totalLimit)}</span>
+                  {brandActivePlafond.poSubLimit > 0 && (
+                    <>
+                      {" "}· PO Sub Limit:{" "}
+                      <span className="font-mono font-medium">Rp {fmtIdr(brandActivePlafond.poSubLimit)}</span>
+                    </>
+                  )}
+                  {" "}· expires {brandActivePlafond.expiryDate}
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500">
+                  No active plafond on file for {form.brandName} — this submission is a new plafond request.
+                </p>
+              )}
+            </div>
+          )}
+
+          {isAssetA ? (
+            <div className="mb-4 p-3 rounded-lg border border-dashed border-gray-200 text-sm text-gray-400 italic">
+              Plafond: N/A for Asset A.
+            </div>
+          ) : (
+            hasPlafond && (
+              <>
+              <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
+                Proposed Limit
+              </h3>
+              <EditTable
+                headers={isB ? ["Limit Status", "Total Limit", "PO Sub Limit"] : ["Limit Status", "Total Limit"]}
+                minWidthCls="min-w-[480px]"
+              >
+                <tr className="bg-purple-50/30 align-top">
+                  <td className="py-3 pl-3 pr-2 font-semibold text-purple-800 whitespace-nowrap">Proposed</td>
+                  <td className="py-2 px-2">
+                    <input
+                      className={`${cellInputCls} font-mono`}
+                      inputMode="numeric"
+                      value={plafondTexts.total}
+                      onChange={(e) =>
+                        setPlafondTexts((t) => ({ ...t, total: formatAmountInput(e.target.value) }))
+                      }
+                      placeholder="5.000.000.000"
+                    />
+                  </td>
+                  {isB && (
+                    <td className="py-2 px-2">
+                      <input
+                        className={`${cellInputCls} font-mono`}
+                        inputMode="numeric"
+                        value={plafondTexts.po}
+                        onChange={(e) =>
+                          setPlafondTexts((t) => ({ ...t, po: formatAmountInput(e.target.value) }))
+                        }
+                      />
+                    </td>
+                  )}
+                </tr>
+              </EditTable>
+              {isB && (
+                <p className="text-[11px] text-amber-700 mt-1.5">
+                  PO Sub Limit requires IC approval.
+                </p>
+              )}
+              <p className="text-[10px] text-gray-400 mt-2">
+                Amounts in Rp. Current and Superseded rows appear on the IC review card once the
+                submission is linked to the KP&apos;s plafond history.
+              </p>
+              {(isB || isD) && (
+                <Field label="Buffer (Rp)" source="free" hint="Optional — buffer held above the plafond">
                   <input
-                    className={`${cellInputCls} font-mono`}
+                    className={`${inputCls} font-mono`}
                     inputMode="numeric"
-                    value={plafondTexts.total}
+                    value={plafondTexts.buffer}
                     onChange={(e) =>
-                      setPlafondTexts((t) => ({ ...t, total: formatAmountInput(e.target.value) }))
+                      setPlafondTexts((t) => ({ ...t, buffer: formatAmountInput(e.target.value) }))
                     }
-                    placeholder="5.000.000.000"
+                    placeholder="200.000.000"
                   />
-                </td>
-                <td className="py-2 px-2">
-                  <input
-                    className={`${cellInputCls} font-mono`}
-                    inputMode="numeric"
-                    value={plafondTexts.po}
-                    onChange={(e) =>
-                      setPlafondTexts((t) => ({ ...t, po: formatAmountInput(e.target.value) }))
-                    }
-                  />
-                </td>
-              </tr>
-            </EditTable>
-            <p className="text-[10px] text-gray-400 mt-2">
-              Amounts in Rp. Current and Superseded rows appear on the IC review card once the
-              submission is linked to the KP&apos;s plafond history.
-            </p>
-            </>
+                </Field>
+              )}
+              </>
+            )
           )}
 
           <h3
@@ -1151,82 +1308,15 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
             Financial Review
           </h3>
           <p className="text-xs text-gray-500 mb-2">
-            Which financials you reviewed and your limit recommendation — shown as Review 1 on the
-            IC card, and required before submitting to IC.
+            Link to your financial review write-up (Google Doc/Sheet) — required before submitting
+            to IC.
           </p>
-          <Field
-            label="Financial Reports Reviewed"
-            source="free"
-            hint="Which statements / reports you looked at"
-          >
+          <Field label="Financial Review Link" source="free" hint="Shown as Review 1 on the IC card">
             <input
               className={inputCls}
               value={form.finReviewReportsReviewed}
               onChange={(e) => set("finReviewReportsReviewed", e.target.value)}
-              placeholder="e.g. FY2025 audited P&L + Jan–May 2026 management accounts"
-            />
-          </Field>
-          <Field label="Reports' Period Ending" source="free">
-            <input
-              type="date"
-              className={inputCls}
-              value={form.finReviewPeriodEnding}
-              onChange={(e) => set("finReviewPeriodEnding", e.target.value)}
-            />
-          </Field>
-          <Field label="Limit Recommendation" source="master">
-            <select
-              className={inputCls}
-              value={form.finReviewLimitRecommendation}
-              onChange={(e) =>
-                set(
-                  "finReviewLimitRecommendation",
-                  e.target.value as SubmissionFormData["finReviewLimitRecommendation"]
-                )
-              }
-            >
-              <option value="Keep">Keep</option>
-              <option value="Increase">Increase</option>
-              <option value="Decrease">Decrease</option>
-            </select>
-          </Field>
-          <Field
-            label="Current Total Limit (Rp)"
-            source="free"
-            hint="Leave empty if the brand has no total limit on file yet"
-          >
-            <input
-              className={`${inputCls} font-mono`}
-              inputMode="numeric"
-              value={finReviewTexts.current}
-              onChange={(e) =>
-                setFinReviewTexts((t) => ({ ...t, current: formatAmountInput(e.target.value) }))
-              }
-              placeholder="5.000.000.000"
-            />
-          </Field>
-          {form.finReviewLimitRecommendation !== "Keep" && (
-            <Field label="Recommended Total Limit (Rp)" source="free">
-              <input
-                className={`${inputCls} font-mono`}
-                inputMode="numeric"
-                value={finReviewTexts.recommended}
-                onChange={(e) =>
-                  setFinReviewTexts((t) => ({
-                    ...t,
-                    recommended: formatAmountInput(e.target.value),
-                  }))
-                }
-                placeholder="7.000.000.000"
-              />
-            </Field>
-          )}
-          <Field label="Review Notes" source="free">
-            <textarea
-              className={`${inputCls} min-h-20 resize-y`}
-              value={form.finReviewNotes}
-              onChange={(e) => set("finReviewNotes", e.target.value)}
-              placeholder="Key takeaways from the financials — margins, trends, red flags…"
+              placeholder="https://docs.google.com/document/d/…"
             />
           </Field>
         </FormSection>
@@ -1387,7 +1477,9 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               ]}
               minWidthCls="min-w-[960px]"
             >
-              {form.ptDetails.map((pt, i) => (
+              {form.ptDetails.map((pt, i) => {
+                const warnings = ptWarnings(pt, form.brandName);
+                return (
                 <tr key={pt.id} className="align-top">
                   <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
                   <td className="py-2 px-2 min-w-40">
@@ -1422,11 +1514,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                       onChange={(e) => updateRow("ptDetails", pt.id, { accountholderName: e.target.value })}
                       placeholder="e.g. PT Tuku Sejahtera"
                     />
-                    {pt.name.trim() &&
-                      pt.accountholderName.trim() &&
-                      pt.name.trim() !== pt.accountholderName.trim() && (
-                        <InlineWarning message="Mismatch on accountholder and PT names" />
-                      )}
+                    {pt.name.trim() && warnings.map((w, wi) => <InlineWarning key={wi} message={w} />)}
                   </td>
                   <td className="py-2 px-2 min-w-40">
                     <input
@@ -1448,7 +1536,8 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                     <RemoveRowButton onClick={() => removeRow("ptDetails", pt.id)} />
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </EditTable>
             <AddRowButton label="Add PT" onClick={addPT} />
           </FormSection>
@@ -1626,6 +1715,20 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                   ))}
                 </EditTable>
                 <AddRowButton label="Add payor / invoice" onClick={addPayorRow} />
+                <div className="mt-4">
+                  <Field
+                    label="GDrive Link to Underlying Invoice/PO Docs"
+                    source="free"
+                    hint="Folder or file link with the supporting invoice/PO documents"
+                  >
+                    <input
+                      className={inputCls}
+                      value={form.payorInvoiceDocsLink}
+                      onChange={(e) => set("payorInvoiceDocsLink", e.target.value)}
+                      placeholder="https://drive.google.com/…"
+                    />
+                  </Field>
+                </div>
               </>
             )}
 
@@ -2022,6 +2125,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
 
         <FormSection title="Credit Memo and Notes">
           {isAD && (
+            <>
             <Field
               label="Calculator / Financials Link"
               source="free"
@@ -2033,7 +2137,23 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                 onChange={(e) => set("financialsLink", e.target.value)}
                 placeholder="https://docs.google.com/spreadsheets/…"
               />
+              {!form.financialsLink.trim() && <InlineWarning message="Calculator GSheet missing" />}
             </Field>
+            {form.financialsLink.trim() && (
+              <Field label="Calculator GSheet Verified" source="free" hint="Confirm the link is present and readable">
+                <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
+                  <input
+                    type="checkbox"
+                    checked={form.calculatorGSheetVerified}
+                    onChange={(e) => set("calculatorGSheetVerified", e.target.checked)}
+                    className="rounded border-gray-300"
+                  />
+                  Verified
+                </label>
+                {!form.calculatorGSheetVerified && <InlineWarning message="Calculator GSheet not readable" />}
+              </Field>
+            )}
+            </>
           )}
           <Field label="Term Sheet Link" source="free" hint="Optional">
             <input
@@ -2051,23 +2171,35 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
             />
           </Field>
           {isAD && (
-            <Field label="Karmapreneur Credit Memo" source="free">
-              <textarea
-                className={`${inputCls} min-h-24 resize-y`}
-                value={form.kpCreditMemo}
-                onChange={(e) => set("kpCreditMemo", e.target.value)}
-                placeholder="Summary of the credit case for this Karmapreneur…"
+            <div className="mt-6 pt-4 border-t-2 border-gray-200">
+              <h3 className="text-sm font-bold text-gray-900 mb-3">
+                Company (KP) Credit Memo
+              </h3>
+              <CreditMemoSectionsEditor
+                sections={form.kpCreditMemoSections}
+                onAnswerChange={(sectionId, questionId, value) =>
+                  updateMemoAnswer("kpCreditMemoSections", sectionId, questionId, value)
+                }
+                onDateChange={(sectionId, value) =>
+                  updateRow("kpCreditMemoSections", sectionId, { lastCheckedDate: value })
+                }
               />
-            </Field>
+            </div>
           )}
-          <Field label="Project Credit Memo" source="free">
-            <textarea
-              className={`${inputCls} min-h-24 resize-y`}
-              value={form.projectCreditMemo}
-              onChange={(e) => set("projectCreditMemo", e.target.value)}
-              placeholder="Summary of the credit case for this project…"
+          <div className="mt-6 pt-4 border-t-2 border-gray-200">
+            <h3 className="text-sm font-bold text-gray-900 mb-3">
+              Project Credit Memo
+            </h3>
+            <CreditMemoSectionsEditor
+              sections={form.projectCreditMemoSections}
+              onAnswerChange={(sectionId, questionId, value) =>
+                updateMemoAnswer("projectCreditMemoSections", sectionId, questionId, value)
+              }
+              onDateChange={(sectionId, value) =>
+                updateRow("projectCreditMemoSections", sectionId, { lastCheckedDate: value })
+              }
             />
-          </Field>
+          </div>
         </FormSection>
 
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ICProject, NoteEntry } from "@/data/types";
+import { CreditMemoSection, ICProject, NoteEntry } from "@/data/types";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { ExternalLink, Trash2, Pencil } from "lucide-react";
 import { useProfile } from "@/lib/profileStore";
@@ -28,6 +28,41 @@ function MemoBlock({ title, content }: { title: string; content: string }) {
 
 function fmtDate(iso: string): string {
   return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** Structured credit memo (KP or Project) — read-only, question by question, grouped by section. */
+function MemoSectionsBlock({ title, sections }: { title: string; sections: CreditMemoSection[] }) {
+  return (
+    <div className="mb-4 pt-3 border-t-2 border-gray-200 first:pt-0 first:border-t-0">
+      <div className="text-sm font-bold text-gray-900 mb-2">{title}</div>
+      <div className="space-y-3 max-h-96 overflow-y-auto pr-1">
+        {sections.map((section) => (
+          <div key={section.id}>
+            {section.title && (
+              <div className="flex items-center justify-between gap-2 mb-1 flex-wrap">
+                <div className="text-xs font-semibold text-gray-700">{section.title}</div>
+                {section.lastCheckedDate && (
+                  <span className="text-[10px] text-gray-400">Last Checked: {fmtDate(section.lastCheckedDate)}</span>
+                )}
+              </div>
+            )}
+            <table className="w-full text-xs border border-gray-100 rounded-lg overflow-hidden">
+              <tbody className="divide-y divide-gray-50">
+                {section.questions.map((q) => (
+                  <tr key={q.id} className="align-top">
+                    <td className="py-2 pl-3 pr-2 w-52 text-gray-500 bg-gray-50">{q.label}</td>
+                    <td className="py-2 px-2 text-gray-800 whitespace-pre-wrap leading-relaxed">
+                      {q.answer.trim() || <span className="text-gray-300">—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 export function CreditMemoNotes({ project, workflow, onWorkflowChange }: Props) {
@@ -77,8 +112,16 @@ export function CreditMemoNotes({ project, workflow, onWorkflowChange }: Props) 
   return (
     <SectionCard title="Credit Memo & Notes">
       <div className="mt-2 space-y-2">
-        <MemoBlock title="KP Credit Memo" content={project.kpCreditMemo} />
-        <MemoBlock title="Project Credit Memo" content={project.projectCreditMemo} />
+        {project.kpCreditMemoSections && project.kpCreditMemoSections.length > 0 ? (
+          <MemoSectionsBlock title="Company (KP) Credit Memo" sections={project.kpCreditMemoSections} />
+        ) : (
+          <MemoBlock title="KP Credit Memo" content={project.kpCreditMemo} />
+        )}
+        {project.projectCreditMemoSections && project.projectCreditMemoSections.length > 0 ? (
+          <MemoSectionsBlock title="Project Credit Memo" sections={project.projectCreditMemoSections} />
+        ) : (
+          <MemoBlock title="Project Credit Memo" content={project.projectCreditMemo} />
+        )}
 
         {project.financialsLink && (
           <div className="mb-3">
