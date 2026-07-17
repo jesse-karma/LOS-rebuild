@@ -1,6 +1,8 @@
 // Board — pre-submission CRM board (Tend-side).
 // Persists to localStorage; no server sync in this prototype.
 
+import { MasterAssetClass } from "@/data/masterData";
+
 export type BoardStage = 1 | 2 | 3;
 
 export interface BoardAnalyst {
@@ -24,6 +26,9 @@ export interface BoardCard {
   id: string;
   kpName: string;
   projectName: string;
+  contactName: string;
+  contactWhatsapp: string;
+  assetClass: MasterAssetClass | null;
   primaryAnalyst: BoardAnalyst | null;
   stage: BoardStage;
   notes: BoardNote[];
@@ -69,12 +74,18 @@ function blankChecklist(): BoardChecklistItem[] {
 export function createCard(
   kpName: string,
   projectName: string,
+  contactName: string,
+  contactWhatsapp: string,
+  assetClass: MasterAssetClass | null,
   primaryAnalyst: BoardAnalyst | null
 ): BoardCard {
   const card: BoardCard = {
     id: `bd-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
     kpName: kpName.trim(),
     projectName: projectName.trim(),
+    contactName: contactName.trim(),
+    contactWhatsapp: contactWhatsapp.trim(),
+    assetClass,
     primaryAnalyst,
     stage: 1,
     notes: [],
@@ -158,7 +169,17 @@ export function seedExampleCards(): void {
   const nila: BoardAnalyst = { id: "nila", name: "Nila Layla Melinda" };
   const priska: BoardAnalyst = { id: "priska", name: "Priska Ponggawa" };
 
-  const cards: BoardCard[] = [
+  // Seed literals omit assetClass — inferred below from projectName so each one doesn't need annotating by hand.
+  function inferAssetClass(projectName: string): MasterAssetClass {
+    const p = projectName.toLowerCase();
+    if (p.includes("po ") || p.includes("payroll")) return "B - PO";
+    if (p.includes("invoice")) return "B - I";
+    if (p.includes("branch") || p.includes("fleet") || p.includes("expansion")) return "A";
+    return "D";
+  }
+
+  // Seed literals also omit contactName/contactWhatsapp — no real contact person captured for these yet.
+  const cards: Omit<BoardCard, "assetClass" | "contactName" | "contactWhatsapp">[] = [
     // ── Stage 3 — Due Diligence (5 cards) ──────────────────────────────────
     {
       id: "bd-s3-1",
@@ -426,5 +447,12 @@ export function seedExampleCards(): void {
     },
   ];
 
-  save(cards);
+  save(
+    cards.map((c) => ({
+      ...c,
+      assetClass: inferAssetClass(c.projectName),
+      contactName: "",
+      contactWhatsapp: "",
+    }))
+  );
 }

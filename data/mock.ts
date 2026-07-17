@@ -351,6 +351,38 @@ const projectHolycow: ICProject = {
       content:
         "24 Feb 2026: Submission pertama. Semua dokumen lengkap. Financial review selesai hari ini. Calculator file sudah diekstrak — data valid. KCF split belum diisi, perlu konfirmasi ke tim Finance.",
     },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-02-10",
+      noteType: "KP Note",
+      attendee: "Regina Tiffani",
+      content:
+        "Coffee catch-up dengan Regina di kantor pusat Holycow. Membahas rencana ekspansi ke 3 kota baru tahun ini. Regina update bahwa outlet Bandung baru saja mencatat rekor penjualan bulanan.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-01-15",
+      noteType: "KP Note",
+      attendee: "Syifa Sarini",
+      content:
+        "Meeting rutin triwulanan dengan Syifa untuk review laporan keuangan Q4 2025. Margin outlet stabil, tidak ada red flag. Syifa share bahwa mereka sedang evaluasi POS system baru.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2025-12-05",
+      noteType: "KP Note",
+      attendee: "Iswanda Mardio",
+      content:
+        "Site visit ke outlet Medan bersama Iswanda. Operasional berjalan lancar, traffic weekend tinggi. Iswanda flag potensi lokasi baru di Batam untuk dieksplorasi 2026.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2025-11-18",
+      noteType: "KP Note",
+      attendee: "Erwynda Semiartie",
+      content:
+        "Follow-up call dengan Erwynda soal rekening koran outlet luar Jakarta — semua dokumen sudah lengkap dan konsisten dengan laporan bulanan.",
+    },
   ],
 
   ptDetails: [
@@ -564,6 +596,38 @@ const projectShushu: ICProject = {
       noteType: "KP Note",
       content:
         "28 Jan 2026: First meeting dengan Sandy Wiguna di PIK2. Outlet bersih dan terkelola dengan baik. Traffic peak di weekend dan sore hari. Sandy sangat paham P&L dan sangat antusias untuk ekspansi.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-03-20",
+      noteType: "KP Note",
+      attendee: "Sandy Wiguna",
+      content:
+        "Follow-up meeting dengan Sandy di outlet PIK2. Renovasi berjalan sesuai jadwal, target selesai akhir Mei. Sandy juga cerita rencana buka outlet ke-2 di BSD tahun depan.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-02-25",
+      noteType: "KP Note",
+      attendee: "Sandy Wiguna",
+      content:
+        "Check-in call — progress renovasi 60%. Sandy kirim foto progress kitchen equipment baru. Semua sesuai budget awal.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-02-05",
+      noteType: "KP Note",
+      attendee: "Regina Tiffani",
+      content:
+        "Ngobrol singkat dengan Regina (investor) soal keterlibatannya di Shushu — dia lebih pasif, fokus di Holycow. Tidak ada red flag exposure silang.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-01-10",
+      noteType: "KP Note",
+      attendee: "Sandy Wiguna",
+      content:
+        "First deep-dive call dengan Sandy sebelum submission. Sangat terbuka soal angka penjualan harian dan rencana renovasi. Kesan positif untuk kelanjutan hubungan.",
     },
   ],
 
@@ -946,6 +1010,38 @@ const projectCUM: ICProject = {
       content:
         "Submission proyek #26 — PO Orang Tua April cycle. CUM masih belum bisa produce balance sheet terbaru (accounting team baru belum fully onboarded). Bank statements Jan–Mar 2026 sudah ada dan cashflow konsisten. Koordinasi dengan Legal untuk persiapan contract.",
     },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-03-15",
+      noteType: "KP Note",
+      attendee: "Dwi Wicaksono Wibowo",
+      content:
+        "Quarterly check-in dengan Dwi — kontrak Orang Tua Group diperpanjang lagi untuk 2026. Dwi juga explore kemungkinan tambah klien baru di Wings Group.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-02-20",
+      noteType: "KP Note",
+      attendee: "Nofriwan",
+      content:
+        "Site visit ke gudang operasional CUM bersama Nofriwan. Koordinasi tim workforce terlihat rapi, tidak ada isu keterlambatan delivery.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-01-18",
+      noteType: "KP Note",
+      attendee: "Dwi Wicaksono Wibowo",
+      content:
+        "Diskusi soal potensi kenaikan plafond PO untuk menampung volume Orang Tua yang bertambah. Dwi akan siapkan data historis 12 bulan terakhir.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2025-12-10",
+      noteType: "KP Note",
+      attendee: "Nofriwan",
+      content:
+        "Year-end review call. Semua proyek #22-24 lunas tepat waktu, tidak ada DPD. Hubungan sangat solid.",
+    },
   ],
 
   ptDetails: [
@@ -1165,6 +1261,34 @@ const projectCEA: ICProject = {
       noteType: "Project Note",
       content:
         "Submission PO/Invoice + Plafond. Calculator extracted — rates match term sheet. Plafond headroom perlu IC tinjau bersamaan dengan tranche.",
+    },
+    {
+      author: "Junaidi",
+      date: "2025-09-10",
+      noteType: "KP Note",
+      content:
+        "Intro call dengan tim Cahaya Energi Asia soal kebutuhan pembiayaan PO Aztech Group berikutnya. Volume proyeksi meningkat untuk Q4.",
+    },
+    {
+      author: "Junaidi",
+      date: "2025-08-22",
+      noteType: "KP Note",
+      content:
+        "Follow-up soal dokumentasi kontrak Aztech — masih menunggu update Coda sync untuk detail signatory KP.",
+    },
+    {
+      author: "Junaidi",
+      date: "2025-07-30",
+      noteType: "KP Note",
+      content:
+        "Diskusi awal ekspansi plafond PO ke IDR 15B untuk menampung beberapa tranche serupa ke depannya.",
+    },
+    {
+      author: "Junaidi",
+      date: "2025-06-15",
+      noteType: "KP Note",
+      content:
+        "Pertemuan pertama membahas profil bisnis oil & gas services — revenue terdiversifikasi dengan anchor klien Aztech Group.",
     },
   ],
 
@@ -1439,6 +1563,34 @@ const projectAssetDPlafond: ICProject = {
       content:
         "Submission Project+Plafond for Maju #4 - Working Capital (i-_5laC-0qZa). Sync plafond + PT bank details from Coda before disbursement.",
     },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-05-20",
+      noteType: "KP Note",
+      content:
+        "Check-in soal performa fasilitas #3 sebelum submission #4. Revenue share payment konsisten, tidak ada keterlambatan.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-04-25",
+      noteType: "KP Note",
+      content:
+        "Diskusi rencana ekspansi consumer goods line — KP explore tambahan SKU baru untuk musim liburan.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-03-30",
+      noteType: "KP Note",
+      content:
+        "Follow-up dokumentasi People/Coda sync untuk update signatory KP — masih pending dari tim ops.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-02-14",
+      noteType: "KP Note",
+      content:
+        "Quarterly review — hubungan berjalan baik sejak fasilitas #3, tidak ada isu material.",
+    },
   ],
 
   ptDetails: [
@@ -1633,6 +1785,38 @@ const projectAyamGeprek: ICProject = {
       content:
         "Submission pertama Ayam Geprek Juara. Semua dokumen lengkap. Menunggu review IC — belum ada vote masuk.",
     },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-06-05",
+      noteType: "KP Note",
+      attendee: "Fajar Nugroho",
+      content:
+        "Site visit ke outlet Bekasi bersama Fajar. Dapur rapi, SOP food cost dijalankan konsisten. Fajar sangat antusias soal rencana ekspansi Depok.",
+    },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-05-20",
+      noteType: "KP Note",
+      attendee: "Fajar Nugroho",
+      content:
+        "Follow-up call — Fajar update lokasi Depok sudah deal sewa 3 tahun, tinggal proses renovasi.",
+    },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-05-02",
+      noteType: "KP Note",
+      attendee: "Fajar Nugroho",
+      content:
+        "First meeting dengan Fajar untuk eksplorasi kebutuhan modal ekspansi. Background QSR solid, sangat data-driven soal food cost.",
+    },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-04-15",
+      noteType: "KP Note",
+      attendee: "Fajar Nugroho",
+      content:
+        "Warm intro dari referral existing KP. Fajar cerita perjalanan dari area supervisor jadi founder brand sendiri.",
+    },
   ],
 
   ptDetails: [
@@ -1798,6 +1982,38 @@ const projectTekstilMakmur: ICProject = {
       date: "2026-06-22",
       noteType: "Project Note",
       content: "Submission pertama. Menunggu review IC — belum ada vote masuk.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-06-10",
+      noteType: "KP Note",
+      attendee: "Hendra Wijaya Kusuma",
+      content:
+        "Site visit ke pabrik Bandung bersama Hendra. Kapasitas produksi sesuai klaim, kontrak Uniqlo terverifikasi langsung dengan tim procurement mereka.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-05-28",
+      noteType: "KP Note",
+      attendee: "Hendra Wijaya Kusuma",
+      content:
+        "Follow-up soal invoice financing untuk cycle berikutnya. Hendra sangat kooperatif share data historis pembayaran Uniqlo.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-05-10",
+      noteType: "KP Note",
+      attendee: "Hendra Wijaya Kusuma",
+      content:
+        "First call — Hendra jelaskan model bisnis manufaktur kontrak dan hubungan jangka panjang dengan brand lokal.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-04-22",
+      noteType: "KP Note",
+      attendee: "Hendra Wijaya Kusuma",
+      content:
+        "Referral dari KP lain di industri sejenis. Kesan awal positif, responsif dan transparan.",
     },
   ],
 
@@ -1980,6 +2196,38 @@ const projectDistribusiPangan: ICProject = {
       noteType: "Project Note",
       content: "Submission pertama. Menunggu review IC — belum ada vote masuk.",
     },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-06-12",
+      noteType: "KP Note",
+      attendee: "Anita Rahmawati Putri",
+      content:
+        "Site visit gudang distribusi Bandung bersama Anita. Stok dan rotasi barang terkelola rapi, sesuai standar Indofood.",
+    },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-05-30",
+      noteType: "KP Note",
+      attendee: "Anita Rahmawati Putri",
+      content:
+        "Follow-up call — Anita share proyeksi volume PO meningkat untuk semester 2, sudah dikonfirmasi buyer.",
+    },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-05-08",
+      noteType: "KP Note",
+      attendee: "Anita Rahmawati Putri",
+      content:
+        "First meeting — Anita sangat kooperatif, langsung share kontrak PO Indofood untuk verifikasi payor.",
+    },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-04-20",
+      noteType: "KP Note",
+      attendee: "Anita Rahmawati Putri",
+      content:
+        "Warm intro dari jaringan distributor FMCG Jawa Barat. Profil bisnis solid sejak 2017.",
+    },
   ],
 
   ptDetails: [
@@ -2161,6 +2409,38 @@ const projectKaryaLogistik: ICProject = {
       noteType: "Project Note",
       content: "Submission pertama. Approved by Principal — menunggu Finance untuk KF:KCF split.",
     },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-05-28",
+      noteType: "KP Note",
+      attendee: "Bayu Setiawan Halim",
+      content:
+        "Site visit ke fasilitas logistik Jabodetabek bersama Bayu. Armada dan tim ops terkoordinasi baik, subkontrak JNE berjalan lancar.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-05-15",
+      noteType: "KP Note",
+      attendee: "Bayu Setiawan Halim",
+      content:
+        "Follow-up soal invoice financing pertama — Bayu share history pembayaran JNE 12 bulan terakhir, konsisten tanpa keterlambatan.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-04-30",
+      noteType: "KP Note",
+      attendee: "Bayu Setiawan Halim",
+      content:
+        "First call — Bayu jelaskan model bisnis subkontrak logistik pihak ketiga sejak 2019.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-04-10",
+      noteType: "KP Note",
+      attendee: "Bayu Setiawan Halim",
+      content:
+        "Referral dari KP existing di sektor logistik. Kesan awal profesional dan terbuka.",
+    },
   ],
 
   ptDetails: [
@@ -2340,6 +2620,38 @@ const projectElektronikJaya: ICProject = {
       date: "2026-06-11",
       noteType: "Project Note",
       content: "Submission pertama. Approved by Principal — menunggu Finance untuk KF:KCF split.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-05-29",
+      noteType: "KP Note",
+      attendee: "Rendra Kusumo Aji",
+      content:
+        "Site visit gudang elektronik Surabaya bersama Rendra. Stok terkontrol dengan sistem inventory yang rapi.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-05-16",
+      noteType: "KP Note",
+      attendee: "Rendra Kusumo Aji",
+      content:
+        "Follow-up — Rendra share kontrak PO Electronic City untuk cycle berikutnya, volume stabil.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-05-01",
+      noteType: "KP Note",
+      attendee: "Rendra Kusumo Aji",
+      content:
+        "First meeting — Rendra ceritakan perjalanan distributor elektronik sejak 2016, fokus area Surabaya.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-04-12",
+      noteType: "KP Note",
+      attendee: "Rendra Kusumo Aji",
+      content:
+        "Warm intro dari jaringan distributor elektronik. Profil kooperatif dan transparan soal data penjualan.",
     },
   ],
 
@@ -2530,6 +2842,38 @@ const projectGriyaSehat: ICProject = {
       noteType: "Project Note",
       content: "Submission pertama. Approved by Principal — menunggu Finance untuk KF:KCF split.",
     },
+    {
+      author: "Armeno Devan",
+      date: "2026-06-01",
+      noteType: "KP Note",
+      attendee: "Dewi Anggraeni Suryana",
+      content:
+        "Site visit ke 3 outlet apotek Bandung bersama Dewi. Operasional rapi, semua staf bersertifikat farmasi.",
+    },
+    {
+      author: "Armeno Devan",
+      date: "2026-05-18",
+      noteType: "KP Note",
+      attendee: "Dewi Anggraeni Suryana",
+      content:
+        "Follow-up soal rencana modal kerja untuk restock musim flu — Dewi share data penjualan bulanan 6 bulan terakhir.",
+    },
+    {
+      author: "Armeno Devan",
+      date: "2026-05-02",
+      noteType: "KP Note",
+      attendee: "Dewi Anggraeni Suryana",
+      content:
+        "First call dengan Dewi, apoteker bersertifikat dan sangat detail soal compliance farmasi.",
+    },
+    {
+      author: "Armeno Devan",
+      date: "2026-04-14",
+      noteType: "KP Note",
+      attendee: "Dewi Anggraeni Suryana",
+      content:
+        "Referral dari jaringan apotek lain. Kesan awal sangat profesional.",
+    },
   ],
 
   ptDetails: [
@@ -2695,6 +3039,36 @@ const projectKonveksiBerkah: ICProject = {
       date: "2026-05-26",
       noteType: "Project Note",
       content: "Disetujui IC, KF:KCF split selesai. Menunggu Legal untuk persiapan kontrak.",
+    },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-05-10",
+      noteType: "KP Note",
+      attendee: "Yoga Pratama Nugraha",
+      content:
+        "Site visit pabrik konveksi Bandung bersama Yoga. Kapasitas produksi sesuai kontrak Matahari Department Store.",
+    },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-04-28",
+      noteType: "KP Note",
+      attendee: "Yoga Pratama Nugraha",
+      content: "Follow-up — Yoga konfirmasi volume supply meningkat untuk musim Lebaran.",
+    },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-04-05",
+      noteType: "KP Note",
+      attendee: "Yoga Pratama Nugraha",
+      content:
+        "First meeting — Yoga jelaskan sejarah konveksi garmen sejak 2014 dan hubungan panjang dengan Matahari.",
+    },
+    {
+      author: "Sharfina Nindita",
+      date: "2026-03-18",
+      noteType: "KP Note",
+      attendee: "Yoga Pratama Nugraha",
+      content: "Warm intro dari referral existing KP tekstil. Kesan awal kooperatif.",
     },
   ],
 
@@ -2876,6 +3250,35 @@ const projectAgroMakmur: ICProject = {
       noteType: "Project Note",
       content: "Disetujui IC, KF:KCF split selesai. Menunggu Legal untuk persiapan kontrak.",
     },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-05-12",
+      noteType: "KP Note",
+      attendee: "Siti Nurhaliza Putri",
+      content:
+        "Site visit gudang agro Semarang bersama Siti. Stok dan distribusi Wings Group terorganisir baik.",
+    },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-04-29",
+      noteType: "KP Note",
+      attendee: "Siti Nurhaliza Putri",
+      content: "Follow-up — Siti share proyeksi volume PO meningkat area Jawa Tengah untuk Q3.",
+    },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-04-08",
+      noteType: "KP Note",
+      attendee: "Siti Nurhaliza Putri",
+      content: "First call — Siti ceritakan perjalanan distributor agro sejak 2018.",
+    },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-03-20",
+      noteType: "KP Note",
+      attendee: "Siti Nurhaliza Putri",
+      content: "Referral dari jaringan distributor FMCG. Kesan awal terbuka dan kooperatif.",
+    },
   ],
 
   ptDetails: [
@@ -3054,6 +3457,37 @@ const projectKlinikSehat: ICProject = {
       date: "2026-05-19",
       noteType: "Project Note",
       content: "Disetujui IC, KF:KCF split selesai. Menunggu Legal untuk persiapan kontrak.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-05-05",
+      noteType: "KP Note",
+      attendee: "dr. Ratna Kusumawardhani",
+      content:
+        "Site visit ke 2 cabang klinik Yogyakarta bersama dr. Ratna. Operasional rapi, semua compliance kesehatan terpenuhi.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-04-20",
+      noteType: "KP Note",
+      attendee: "dr. Ratna Kusumawardhani",
+      content:
+        "Follow-up soal rencana modal kerja untuk restock alat medis — dr. Ratna share data pasien bulanan.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-04-01",
+      noteType: "KP Note",
+      attendee: "dr. Ratna Kusumawardhani",
+      content:
+        "First call — dr. Ratna, dokter penanggung jawab, sangat detail soal compliance dan SOP klinik.",
+    },
+    {
+      author: "Juang Angger Pamungkas",
+      date: "2026-03-10",
+      noteType: "KP Note",
+      attendee: "dr. Ratna Kusumawardhani",
+      content: "Referral dari jaringan klinik keluarga lain. Kesan awal profesional.",
     },
   ],
 
@@ -3239,6 +3673,37 @@ const projectBakmiNaga: ICProject = {
       noteType: "Project Note",
       content: "Legal selesai, kontrak sudah ditandatangani. Menunggu Finance untuk disbursement.",
     },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-04-08",
+      noteType: "KP Note",
+      attendee: "Cahyo Adi Wibowo",
+      content:
+        "Site visit outlet Solo bersama Cahyo. Konsistensi rasa antar shift terjaga, resep terstandarisasi dengan baik.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-03-25",
+      noteType: "KP Note",
+      attendee: "Cahyo Adi Wibowo",
+      content:
+        "Follow-up — Cahyo update lokasi Semarang sudah deal sewa, tinggal proses renovasi outlet ke-2.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-03-05",
+      noteType: "KP Note",
+      attendee: "Cahyo Adi Wibowo",
+      content:
+        "First meeting — Cahyo ceritakan perjalanan dari outlet pertama di Solo 2023 hingga rencana ekspansi.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-02-15",
+      noteType: "KP Note",
+      attendee: "Cahyo Adi Wibowo",
+      content: "Warm intro dari komunitas F&B lokal. Kesan awal sangat detail dan passionate soal produk.",
+    },
   ],
 
   ptDetails: [
@@ -3403,6 +3868,37 @@ const projectPercetakanMedia: ICProject = {
       date: "2026-04-22",
       noteType: "Project Note",
       content: "Legal selesai, kontrak sudah ditandatangani. Menunggu Finance untuk disbursement.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-04-10",
+      noteType: "KP Note",
+      attendee: "Agus Setiadi Halim",
+      content:
+        "Site visit percetakan Jakarta Barat bersama Agus. Mesin cetak terawat baik, kontrak Gramedia terverifikasi.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-03-28",
+      noteType: "KP Note",
+      attendee: "Agus Setiadi Halim",
+      content:
+        "Follow-up — Agus share volume cetak meningkat untuk musim penerbitan buku pelajaran baru.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-03-08",
+      noteType: "KP Note",
+      attendee: "Agus Setiadi Halim",
+      content:
+        "First call — Agus ceritakan sejarah percetakan sejak 2012 dan hubungan panjang dengan Gramedia.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-02-20",
+      noteType: "KP Note",
+      attendee: "Agus Setiadi Halim",
+      content: "Referral dari penerbit lokal. Kesan awal kooperatif dan transparan.",
     },
   ],
 
@@ -3592,6 +4088,37 @@ const projectTokoBangunan: ICProject = {
       date: "2026-04-25",
       noteType: "Project Note",
       content: "Legal selesai, kontrak sudah ditandatangani. Menunggu Finance untuk disbursement.",
+    },
+    {
+      author: "Armeno Devan",
+      date: "2026-04-12",
+      noteType: "KP Note",
+      attendee: "Wahyu Setiadi Kurniawan",
+      content:
+        "Site visit ke 2 outlet material bangunan Surabaya bersama Wahyu. Stok dan operasional terkelola rapi.",
+    },
+    {
+      author: "Armeno Devan",
+      date: "2026-03-30",
+      noteType: "KP Note",
+      attendee: "Wahyu Setiadi Kurniawan",
+      content:
+        "Follow-up soal rencana modal kerja musim konstruksi — Wahyu share data penjualan 6 bulan terakhir.",
+    },
+    {
+      author: "Armeno Devan",
+      date: "2026-03-10",
+      noteType: "KP Note",
+      attendee: "Wahyu Setiadi Kurniawan",
+      content:
+        "First call — Wahyu ceritakan pengalaman panjang di industri konstruksi lokal sejak 2015.",
+    },
+    {
+      author: "Armeno Devan",
+      date: "2026-02-22",
+      noteType: "KP Note",
+      attendee: "Wahyu Setiadi Kurniawan",
+      content: "Referral dari kontraktor lokal. Kesan awal berpengalaman dan kooperatif.",
     },
   ],
 

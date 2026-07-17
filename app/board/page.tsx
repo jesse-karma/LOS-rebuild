@@ -1,13 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
   CheckSquare,
   ChevronRight,
   FileText,
+  Phone,
   Plus,
+  Search,
   Trash2,
   User,
   X,
@@ -27,6 +29,9 @@ import {
 } from "@/lib/boardStore";
 import { APP_USERS } from "@/lib/profileStore";
 import { useProfile } from "@/lib/profileStore";
+import { ASSET_CLASSES, MasterAssetClass } from "@/data/masterData";
+import { Tag, assetClassVariant } from "@/components/ui/Tag";
+import { allReviewProjects, getAllBrands } from "@/lib/submissionsStore";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -55,12 +60,23 @@ const ANALYST_OPTIONS = APP_USERS.filter((u) => u.team === "Investments Team");
 // ─── Stage config ─────────────────────────────────────────────────────────────
 
 const STAGES: { key: BoardStage; label: string; description: string }[] = [
-  { key: 1, label: "Lead", description: "Add the KP and take meeting notes." },
-  { key: 2, label: "Data Collection", description: "Collect required documents and information." },
+  { key: 1, label: "Early Lead", description: "Add the KP and take meeting notes." },
+  { key: 2, label: "Funding Lead", description: "Collect required documents and information." },
   { key: 3, label: "Due Diligence", description: "Ready to submit. Open the submission form." },
 ];
 
-// ─── New Lead modal ───────────────────────────────────────────────────────────
+// ─── New Lead/Project modal ───────────────────────────────────────────────────
+
+/** Best contact (Key Person, else first) on file for an existing brand — used to autofill the form. */
+function findExistingBrandContact(brandName: string): { name: string; whatsapp: string } | null {
+  const trimmed = brandName.trim().toLowerCase();
+  if (!trimmed) return null;
+  const projects = allReviewProjects().filter((p) => p.brandName.trim().toLowerCase() === trimmed);
+  if (projects.length === 0) return null;
+  const latest = [...projects].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
+  const contact = latest.kpContacts.find((c) => c.isKeyPerson) ?? latest.kpContacts[0];
+  return contact ? { name: contact.name, whatsapp: contact.whatsapp } : null;
+}
 
 function NewLeadModal({
   defaultAnalyst,
@@ -73,18 +89,53 @@ function NewLeadModal({
 }) {
   const [kpName, setKpName] = useState("");
   const [projectName, setProjectName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactWhatsapp, setContactWhatsapp] = useState("");
+  const [assetClass, setAssetClass] = useState<MasterAssetClass | "">("");
   const [analystId, setAnalystId] = useState(defaultAnalyst?.id ?? "");
   const inputRef = useRef<HTMLInputElement>(null);
+  const existingBrands = useMemo(() => getAllBrands(), []);
+  // Tracks what we last auto-filled, so a manual edit "sticks" instead of getting overwritten
+  // the next time this effect runs (e.g. typing continues and still matches the same brand).
+  const lastAutoFillRef = useRef<{ name: string; whatsapp: string } | null>(null);
 
   useEffect(() => {
     inputRef.current?.focus();
   }, []);
 
+  // Existing brand typed in → autofill its contact, but only into fields the analyst hasn't
+  // already touched (blank, or still equal to whatever we last auto-filled).
+  useEffect(() => {
+    const match = existingBrands.find((b) => b.toLowerCase() === kpName.trim().toLowerCase());
+    if (!match) return;
+    const contact = findExistingBrandContact(match);
+    if (!contact) return;
+
+    setContactName((prev) => {
+      const last = lastAutoFillRef.current;
+      const untouched = prev === "" || (last !== null && prev === last.name);
+      return untouched ? contact.name : prev;
+    });
+    setContactWhatsapp((prev) => {
+      const last = lastAutoFillRef.current;
+      const untouched = prev === "" || (last !== null && prev === last.whatsapp);
+      return untouched ? contact.whatsapp : prev;
+    });
+    lastAutoFillRef.current = contact;
+  }, [kpName, existingBrands]);
+
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!kpName.trim() || !projectName.trim()) return;
     const analyst = ANALYST_OPTIONS.find((u) => u.id === analystId);
-    const card = createCard(kpName, projectName, analyst ? { id: analyst.id, name: analyst.name } : null);
+    const card = createCard(
+      kpName,
+      projectName,
+      contactName,
+      contactWhatsapp,
+      assetClass || null,
+      analyst ? { id: analyst.id, name: analyst.name } : null
+    );
     onCreate(card);
   }
 
@@ -92,7 +143,7 @@ function NewLeadModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
       <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-gray-900">New Lead</h2>
+          <h2 className="text-base font-semibold text-gray-900">New Lead / Project</h2>
           <button type="button" onClick={onClose} className="text-gray-400 hover:text-gray-600">
             <X className="w-4 h-4" />
           </button>
@@ -104,9 +155,18 @@ function NewLeadModal({
               ref={inputRef}
               value={kpName}
               onChange={(e) => setKpName(e.target.value)}
-              placeholder="e.g. Ciomy"
+              placeholder="e.g. Ciomy — new or existing"
+              list="new-lead-existing-brands"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
+            <datalist id="new-lead-existing-brands">
+              {existingBrands.map((b) => (
+                <option key={b} value={b} />
+              ))}
+            </datalist>
+            <p className="text-[11px] text-gray-400 mt-1">
+              Matches an existing brand? Contact info below autofills — edit or replace it freely.
+            </p>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Project name</label>
@@ -116,6 +176,37 @@ function NewLeadModal({
               placeholder="e.g. WC Facility — Q3 2026"
               className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
             />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Contact name</label>
+            <input
+              value={contactName}
+              onChange={(e) => setContactName(e.target.value)}
+              placeholder="e.g. Budi Santoso"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Contact WhatsApp</label>
+            <input
+              value={contactWhatsapp}
+              onChange={(e) => setContactWhatsapp(e.target.value)}
+              placeholder="e.g. +62 812 3456 7890"
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Asset Class (optional)</label>
+            <select
+              value={assetClass}
+              onChange={(e) => setAssetClass(e.target.value as MasterAssetClass | "")}
+              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            >
+              <option value="">— Unassigned —</option>
+              {ASSET_CLASSES.map((a) => (
+                <option key={a} value={a}>Asset {a}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">Primary Analyst</label>
@@ -135,7 +226,7 @@ function NewLeadModal({
             disabled={!kpName.trim() || !projectName.trim()}
             className="w-full bg-orange-600 text-white text-sm font-medium py-2 rounded-lg hover:bg-orange-700 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
           >
-            Add Lead
+            Add Lead / Project
           </button>
         </form>
       </div>
@@ -205,6 +296,13 @@ function CardDetail({
                 <span className="text-xs text-gray-500 flex items-center gap-1">
                   <User className="w-3 h-3" />
                   {card.primaryAnalyst.name}
+                </span>
+              )}
+              {card.contactName && (
+                <span className="text-xs text-gray-500 flex items-center gap-1">
+                  <Phone className="w-3 h-3" />
+                  {card.contactName}
+                  {card.contactWhatsapp && ` · ${card.contactWhatsapp}`}
                 </span>
               )}
             </div>
@@ -373,7 +471,12 @@ function KanbanCard({
       className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-orange-200 transition-all"
     >
       <p className="text-xs text-gray-500 mb-0.5 truncate">{card.kpName}</p>
-      <p className="text-sm font-medium text-gray-900 leading-snug mb-2">{card.projectName}</p>
+      <p className="text-sm font-medium text-gray-900 leading-snug mb-1.5">{card.projectName}</p>
+      {card.assetClass && (
+        <div className="mb-2">
+          <Tag label={`Asset ${card.assetClass}`} variant={assetClassVariant(`Asset ${card.assetClass}`)} />
+        </div>
+      )}
 
       {card.stage === 1 && (
         <div className="space-y-1">
@@ -402,9 +505,14 @@ function KanbanCard({
       )}
 
       {card.stage === 3 && (
-        <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-green-50 text-green-700 border-green-200">
-          Ready to submit
-        </span>
+        <Link
+          href="/submission/new"
+          onClick={(e) => e.stopPropagation()}
+          className="inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded border bg-green-50 text-green-700 border-green-200 hover:bg-green-100 transition-colors"
+        >
+          Submission Form
+          <ArrowRight className="w-3 h-3" />
+        </Link>
       )}
 
       <div className="flex items-center justify-between mt-2">
@@ -425,6 +533,7 @@ function KanbanCard({
 export default function BoardPage() {
   const { user } = useProfile();
   const [cards, setCards] = useState<BoardCard[]>([]);
+  const [query, setQuery] = useState("");
   const [myCardsOnly, setMyCardsOnly] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [selected, setSelected] = useState<BoardCard | null>(null);
@@ -470,9 +579,17 @@ export default function BoardPage() {
     if (updated) setCards((prev) => prev.map((c) => (c.id === cardId ? updated : c)));
   }
 
-  const visibleCards = myCardsOnly
-    ? cards.filter((c) => c.primaryAnalyst?.id === user.id)
-    : cards;
+  const visibleCards = cards
+    .filter((c) => (myCardsOnly ? c.primaryAnalyst?.id === user.id : true))
+    .filter((c) => {
+      const q = query.trim().toLowerCase();
+      if (!q) return true;
+      return (
+        c.kpName.toLowerCase().includes(q) ||
+        c.projectName.toLowerCase().includes(q) ||
+        (c.contactName ?? "").toLowerCase().includes(q)
+      );
+    });
 
   const columns = STAGES.map((s) => ({
     ...s,
@@ -497,12 +614,21 @@ export default function BoardPage() {
           className="flex items-center gap-2 bg-orange-600 text-white text-sm font-medium px-4 py-2 rounded-lg hover:bg-orange-700 transition-colors shadow-sm shrink-0"
         >
           <Plus className="w-4 h-4" />
-          New Lead
+          New Lead/Project
         </button>
       </div>
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 mb-5">
+        <div className="relative flex-1 min-w-56 max-w-xs">
+          <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+          <input
+            className="w-full border border-gray-300 rounded-lg pl-9 pr-3 py-2 text-sm bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+            placeholder="Search leads, brand, or contact…"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
         <button
           type="button"
           onClick={() => setMyCardsOnly((v) => !v)}
@@ -520,16 +646,6 @@ export default function BoardPage() {
             </span>
           )}
         </button>
-
-        {/* Stage legend */}
-        <div className="hidden sm:flex items-center gap-2 text-xs text-gray-400 ml-2">
-          {STAGES.map((s, i) => (
-            <span key={s.key} className="flex items-center gap-2">
-              <span className="font-medium text-gray-500">{s.key}. {s.label}</span>
-              {i < STAGES.length - 1 && <ChevronRight className="w-3 h-3 text-gray-300" />}
-            </span>
-          ))}
-        </div>
       </div>
 
       {/* Board */}
@@ -548,7 +664,7 @@ export default function BoardPage() {
                   type="button"
                   onClick={() => setShowNew(true)}
                   className="text-gray-400 hover:text-orange-600 transition-colors"
-                  title="Add lead"
+                  title="Add lead/project"
                 >
                   <Plus className="w-4 h-4" />
                 </button>
@@ -579,7 +695,13 @@ export default function BoardPage() {
               ))}
               {col.items.length === 0 && (
                 <p className="text-xs text-gray-400 text-center py-8">
-                  {myCardsOnly ? "None of your cards here." : col.key === 1 ? "Add a lead to get started." : "No leads here yet."}
+                  {query
+                    ? "No matches here."
+                    : myCardsOnly
+                    ? "None of your cards here."
+                    : col.key === 1
+                    ? "Add a lead to get started."
+                    : "No leads here yet."}
                 </p>
               )}
             </div>

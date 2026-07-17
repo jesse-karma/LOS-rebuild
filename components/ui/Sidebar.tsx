@@ -42,7 +42,7 @@ const NAV: NavEntry[] = [
     isActive: (p) =>
       !p.startsWith("/board") &&
       !p.startsWith("/admin/limits") &&
-      !p.startsWith("/companies") &&
+      !p.startsWith("/brand") &&
       !p.startsWith("/kp/") &&
       !p.startsWith("/contacts") &&
       !p.startsWith("/architecture") &&
@@ -51,10 +51,10 @@ const NAV: NavEntry[] = [
       !p.startsWith("/submission/"),
   },
   {
-    href: "/companies",
+    href: "/brand",
     label: "Brand",
     emoji: "🏢",
-    isActive: (p) => p.startsWith("/companies") || p.startsWith("/kp/"),
+    isActive: (p) => p.startsWith("/brand") || p.startsWith("/kp/"),
   },
   {
     href: "/contacts",
@@ -78,25 +78,6 @@ const NAV: NavEntry[] = [
         label: "Concentration Limits",
         emoji: "🎯",
         isActive: (p) => p.startsWith("/admin/limits"),
-      },
-    ],
-  },
-  {
-    label: "Architecture",
-    emoji: "🧬",
-    isActive: (p) => p.startsWith("/architecture"),
-    children: [
-      {
-        href: "/architecture/core-object",
-        label: "Core Object",
-        emoji: "🗺️",
-        isActive: (p) => p.startsWith("/architecture/core-object"),
-      },
-      {
-        href: "/architecture/tend-sync",
-        label: "Tend ⇄ LOS Sync",
-        emoji: "🔄",
-        isActive: (p) => p.startsWith("/architecture/tend-sync"),
       },
     ],
   },
