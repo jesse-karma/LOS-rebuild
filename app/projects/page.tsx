@@ -255,14 +255,14 @@ export default function ProjectsPage() {
       <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-xs">
-              <th className="py-2.5 px-4 font-medium w-full min-w-48">Project</th>
-              <th className="py-2.5 px-4 font-medium whitespace-nowrap w-0">KP / Brand</th>
-              <th className="py-2.5 px-4 font-medium whitespace-nowrap w-0">Asset</th>
-              <th className="py-2.5 px-4 font-medium whitespace-nowrap w-0">Financing Type</th>
-              <th className="py-2.5 px-4 font-medium text-right whitespace-nowrap w-0">Requested Amount</th>
-              <th className="py-2.5 px-4 font-medium whitespace-nowrap w-0">Primary Analyst</th>
-              <th className="py-2.5 px-4 font-medium whitespace-nowrap w-0">Stage</th>
+            <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
+              <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
+              <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
+              <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
+              <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
+              <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Requested Amount</th>
+              <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Primary Analyst</th>
+              <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Stage</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50">
@@ -272,8 +272,8 @@ export default function ProjectsPage() {
                 className="hover:bg-blue-50/40 cursor-pointer transition-colors"
                 onClick={() => router.push(r.kind === "draft" ? `/submission/${r.id}` : `/project/${r.id}`)}
               >
-                <td className="py-2.5 px-4 font-medium text-gray-900">{r.projectName}</td>
-                <td className="py-2.5 px-4 whitespace-nowrap">
+                <td className="py-2.5 px-2.5 font-medium text-gray-900">{r.projectName}</td>
+                <td className="py-2.5 px-2.5 whitespace-nowrap">
                   <Link
                     href={`/kp/${encodeURIComponent(r.brandName)}`}
                     onClick={(e) => e.stopPropagation()}
@@ -282,17 +282,17 @@ export default function ProjectsPage() {
                     {r.brandName || "—"}
                   </Link>
                 </td>
-                <td className="py-2.5 px-4 whitespace-nowrap">
+                <td className="py-2.5 px-2.5 whitespace-nowrap">
                   <Tag label={`Asset ${r.assetClass}`} variant={assetClassVariant(r.assetClass)} />
                 </td>
-                <td className="py-2.5 px-4 whitespace-nowrap">
+                <td className="py-2.5 px-2.5 whitespace-nowrap">
                   <Tag label={r.approvalType} variant={approvalTypeVariant(r.approvalType)} />
                 </td>
-                <td className="py-2.5 px-4 text-right font-medium text-gray-800 whitespace-nowrap">
+                <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
                   {r.amountLabel}
                 </td>
-                <td className="py-2.5 px-4 text-gray-600 whitespace-nowrap">{r.primaryAnalyst}</td>
-                <td className="py-2.5 px-4 whitespace-nowrap">
+                <td className="py-2.5 px-2.5 text-gray-600 whitespace-nowrap">{r.primaryAnalyst}</td>
+                <td className="py-2.5 px-2.5 whitespace-nowrap">
                   <Tag label={r.stageLabel} variant={stageVariant(r.stageLabel, r.rejected)} />
                 </td>
               </tr>

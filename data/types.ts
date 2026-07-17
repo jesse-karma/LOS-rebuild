@@ -40,6 +40,8 @@ export interface PlafondInfo {
     wcSubLimit: number;
     /** B_MOD: optional next plafond / covenant review date shown on Proposed row. */
     maxReviewDate?: string | null;
+    /** Optional buffer (Rp) above the plafond, entered on Asset B/D submissions. */
+    buffer?: number;
   } | null;
   // Current
   current: {
@@ -370,7 +372,13 @@ export interface ICProject {
   // Credit memo & notes
   kpCreditMemo: string;
   projectCreditMemo: string;
+  /** Structured Company Credit Memo Q&A (Founders, Ownership, Reference Check, etc.) — new submissions only. */
+  kpCreditMemoSections?: CreditMemoSection[];
+  /** Structured Project Credit Memo Q&A (Financial Analysis, Rent Contract, Space, etc.) — new submissions only. */
+  projectCreditMemoSections?: CreditMemoSection[];
   financialsLink: string | null;
+  /** Manually confirmed: the Calculator GSheet at financialsLink is present and readable. */
+  calculatorGSheetVerified?: boolean;
   projectNotes: NoteEntry[];
 
   // PT
@@ -378,6 +386,8 @@ export interface ICProject {
 
   /** B_MOD: Payor / PO / invoice lines for the proposed submission. */
   payorInvoices?: PayorInvoiceRow[];
+  /** GDrive link to the underlying invoice/PO documents backing payorInvoices. */
+  payorInvoiceDocsLink?: string | null;
 
   // Approval
   fundingSource: string;
@@ -398,6 +408,24 @@ export interface ConditionRow {
   name: string;
   condition: string;
   approver: string;
+}
+
+/** One question + the analyst's answer, within a CreditMemoSection. */
+export interface CreditMemoQuestion {
+  id: string;
+  label: string;
+  answer: string;
+}
+
+/** One grouped section of a structured credit memo (KP or Project) — a fixed template of
+ *  questions the analyst answers. `title` is "" for the lead-in section with no heading.
+ *  `lastCheckedDate` only appears on sections that track point-in-time verification
+ *  (e.g. Taxes, Existing Financing, Bank vs Sales). */
+export interface CreditMemoSection {
+  id: string;
+  title: string;
+  lastCheckedDate?: string; // ISO date
+  questions: CreditMemoQuestion[];
 }
 
 /** One entry in the Notes Feed — a running comment thread anyone on the deal can add to. */
