@@ -36,9 +36,17 @@ export interface FinanceState {
   completedBy: string;
 }
 
+/** An IC member's rejecting vote, archived when the project is resubmitted so the prior decision stays visible. */
+export interface RejectionRecord {
+  memberId: string;
+  votedAt: string;
+}
+
 export interface ProjectWorkflow {
   /** Votes recorded in the app, by IC memberId — override the baked-in mock votes. */
   votes: Record<string, RecordedVote>;
+  /** Rejections archived on resubmit — the live `votes` gets cleared for a fresh round, this doesn't. */
+  rejectionHistory: RejectionRecord[];
   approvalNotes: string | null; // null = untouched, fall back to the project's value
   conditionsPrecedent: ConditionRow[] | null; // null = untouched, fall back to the project's value
   conditionsPrecedentLogic: string | null; // null = untouched, fall back to the project's value
@@ -53,6 +61,7 @@ export interface ProjectWorkflow {
 export function emptyWorkflow(): ProjectWorkflow {
   return {
     votes: {},
+    rejectionHistory: [],
     approvalNotes: null,
     conditionsPrecedent: null,
     conditionsPrecedentLogic: null,
@@ -115,6 +124,119 @@ export function saveWorkflow(projectId: string, wf: ProjectWorkflow) {
 }
 
 /**
+ * Sends a rejected project back to IC for a fresh vote: archives the rejecting
+ * vote(s) into rejectionHistory (so the prior decision stays visible even once
+ * votes are cleared) and clears every recorded vote — a revised submission gets
+ * a full fresh round, not a partial carryover of votes cast before the reject.
+ */
+export function resubmitProject(projectId: string): void {
+  const wf = getWorkflow(projectId);
+  const rejections: RejectionRecord[] = Object.entries(wf.votes)
+    .filter(([, v]) => v.vote === "Reject")
+    .map(([memberId, v]) => ({ memberId, votedAt: v.votedAt }));
+  wf.rejectionHistory = [...wf.rejectionHistory, ...rejections];
+  wf.votes = {};
+  saveWorkflow(projectId, wf);
+}
+
+/**
+ * One-time migration: an earlier version of this prototype's seed data marked Maju,
+ * Tekstil Makmur Sentosa, and Distribusi Pangan Sejahtera as IC-rejected. That's since
+ * been reverted (only Ayam Geprek Juara stays rejected — the other three are meant to
+ * be genuinely pending IC Review examples), but a browser that already loaded the app
+ * under the old seed has that stale vote cached in localStorage forever, since seeding
+ * never overwrites an existing entry. Match by the exact seeded timestamp (not just
+ * "is it a Reject vote") so a real analyst/IC action is never touched.
+ */
+const STALE_REJECT_SEEDS: Record<string, string> = {
+  "proj-assetd-plafond": "2026-06-20T09:00:00Z",
+  "proj-tekstil-makmur": "2026-06-22T09:00:00Z",
+  "proj-distribusi-pangan": "2026-06-23T09:00:00Z",
+};
+
+function migrateStaleRejectSeeds(all: Record<string, ProjectWorkflow>): void {
+  for (const [id, staleVotedAt] of Object.entries(STALE_REJECT_SEEDS)) {
+    const vote = all[id]?.votes["ic-1"];
+    if (vote?.vote === "Reject" && vote.votedAt === staleVotedAt) {
+      delete all[id].votes["ic-1"];
+    }
+  }
+}
+
+/** Same migration, for Shushu's stale seeded Approve — see seedDefaultWorkflows(). */
+const STALE_APPROVE_SEEDS: Record<string, string> = {
+  "proj-shushu": "2026-04-10T09:00:00Z",
+};
+
+function migrateStaleApproveSeeds(all: Record<string, ProjectWorkflow>): void {
+  for (const [id, staleVotedAt] of Object.entries(STALE_APPROVE_SEEDS)) {
+    const vote = all[id]?.votes["ic-1"];
+    if (vote?.vote === "Approve" && vote.votedAt === staleVotedAt) {
+      delete all[id].votes["ic-1"];
+    }
+  }
+}
+
+/** Ayam Geprek Juara's project notes and lease condition — see migrateAyamGeprekExtras(). */
+const AYAM_GEPREK_NOTES: NoteEntry[] = [
+  {
+    author: "Sharfina Nindita",
+    date: "2026-06-20",
+    noteType: "Project Note",
+    content: "Submission pertama Ayam Geprek Juara. Semua dokumen lengkap. Menunggu review IC — belum ada vote masuk.",
+  },
+  {
+    author: "Sharfina Nindita",
+    date: "2026-06-05",
+    noteType: "KP Note",
+    attendee: "Fajar Nugroho",
+    content:
+      "Site visit ke outlet Bekasi bersama Fajar. Dapur rapi, SOP food cost dijalankan konsisten. Fajar sangat antusias soal rencana ekspansi Depok.",
+  },
+  {
+    author: "Sharfina Nindita",
+    date: "2026-05-20",
+    noteType: "KP Note",
+    attendee: "Fajar Nugroho",
+    content: "Follow-up call — Fajar update lokasi Depok sudah deal sewa 3 tahun, tinggal proses renovasi.",
+  },
+  {
+    author: "Sharfina Nindita",
+    date: "2026-05-02",
+    noteType: "KP Note",
+    attendee: "Fajar Nugroho",
+    content: "First meeting dengan Fajar untuk eksplorasi kebutuhan modal ekspansi. Background QSR solid, sangat data-driven soal food cost.",
+  },
+  {
+    author: "Sharfina Nindita",
+    date: "2026-04-15",
+    noteType: "KP Note",
+    attendee: "Fajar Nugroho",
+    content: "Warm intro dari referral existing KP. Fajar cerita perjalanan dari area supervisor jadi founder brand sendiri.",
+  },
+];
+
+const AYAM_GEPREK_CONDITIONS_SUBSEQUENT: ConditionRow[] = [
+  { letter: "A", name: "", condition: "Execute lease agreement for Depok outlet before disbursement", approver: "" },
+];
+
+/**
+ * Ayam Geprek Juara moved from a hand-authored data/mock.ts object to a real, editable
+ * StoredSubmission (so it can be resubmitted like any analyst submission) — which means
+ * its project notes and lease-execution condition no longer live on the baked-in project
+ * object; submissionToICProject() always starts both empty for a real submission. A
+ * browser that already seeded this project's workflow under the old mock-backed version
+ * won't have them, since seeding never overwrites an existing entry — backfill them here.
+ */
+function migrateAyamGeprekExtras(all: Record<string, ProjectWorkflow>): void {
+  const wf = all["proj-ayam-geprek"];
+  if (!wf || (wf.notes && wf.notes.length > 0)) return;
+  wf.notes = AYAM_GEPREK_NOTES;
+  wf.conditionsSubsequent = AYAM_GEPREK_CONDITIONS_SUBSEQUENT;
+  wf.conditionsSubsequentLogic = "";
+}
+
+/**
  * Demo-only: advances a couple of mock projects further down the pipeline so
  * Finance Split / Legal Agreement / Finance Disbursed have example rows on
  * first load, instead of only ever being reachable by voting/editing in-app.
@@ -126,17 +248,12 @@ export function saveWorkflow(projectId: string, wf: ProjectWorkflow) {
 export function seedDefaultWorkflows() {
   if (typeof window === "undefined") return;
   const all = loadAll();
+  migrateStaleRejectSeeds(all);
+  migrateStaleApproveSeeds(all);
+  migrateAyamGeprekExtras(all);
 
-  // Shushu — IC-approved, KF/KCF slotted, awaiting Legal.
-  if (!all["proj-shushu"]) {
-    const wf = emptyWorkflow();
-    wf.votes["ic-1"] = { vote: "Approve", votedAt: "2026-04-10T09:00:00Z" };
-    wf.finance.kfAmount = 150_000_000;
-    wf.finance.kcfAmount = 100_000_000;
-    wf.finance.slottedAt = "2026-04-12T10:00:00Z";
-    wf.finance.slottedBy = "Maya Kusuma";
-    all["proj-shushu"] = wf;
-  }
+  // Shushu (Asset A) intentionally left at its raw mock (unvoted) state — IC Review
+  // needs a genuinely pending example of every asset class, and A had none.
 
   // Cipta Usaha Media — through Legal, awaiting Finance Disbursement.
   if (!all["proj-cum"]) {
@@ -270,32 +387,20 @@ export function seedDefaultWorkflows() {
     all["proj-toko-bangunan"] = wf;
   }
 
-  // Maju — plafond increase request, IC Principal declined.
-  if (!all["proj-assetd-plafond"]) {
-    const wf = emptyWorkflow();
-    wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-20T09:00:00Z" };
-    all["proj-assetd-plafond"] = wf;
-  }
-
-  // Ayam Geprek Juara — IC Principal declined.
+  // Ayam Geprek Juara — IC Principal declined. The one rejected demo example —
+  // Maju/Tekstil Makmur/Distribusi Pangan intentionally left at their raw mock
+  // (unvoted) state instead, so IC Review has genuinely pending examples too.
+  // A real StoredSubmission (lib/submissionsStore.ts) now backs this project,
+  // so it can be edited and resubmitted like any analyst submission — the notes
+  // and lease condition are seeded here since submissionToICProject() always
+  // starts both empty for a real submission.
   if (!all["proj-ayam-geprek"]) {
     const wf = emptyWorkflow();
     wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-21T09:00:00Z" };
+    wf.notes = AYAM_GEPREK_NOTES;
+    wf.conditionsSubsequent = AYAM_GEPREK_CONDITIONS_SUBSEQUENT;
+    wf.conditionsSubsequentLogic = "";
     all["proj-ayam-geprek"] = wf;
-  }
-
-  // Tekstil Makmur Sentosa — IC Principal declined.
-  if (!all["proj-tekstil-makmur"]) {
-    const wf = emptyWorkflow();
-    wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-22T09:00:00Z" };
-    all["proj-tekstil-makmur"] = wf;
-  }
-
-  // Distribusi Pangan Sejahtera — IC Principal declined.
-  if (!all["proj-distribusi-pangan"]) {
-    const wf = emptyWorkflow();
-    wf.votes["ic-1"] = { vote: "Reject", votedAt: "2026-06-23T09:00:00Z" };
-    all["proj-distribusi-pangan"] = wf;
   }
 
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(all));
@@ -339,13 +444,13 @@ export function icDecidedAt(project: ICProject, wf: ProjectWorkflow): string | n
 
 export interface StageInfo {
   stage: Stage;
-  /** IC rejected — the project stays on the IC Review list, marked Rejected. */
+  /** IC rejected — the project moves back to the analyst's Due Diligence queue, marked Rejected. */
   rejected: boolean;
 }
 
 export function stageInfo(project: ICProject, wf: ProjectWorkflow): StageInfo {
   const outcome = icOutcome(project, wf);
-  if (outcome === "rejected") return { stage: "ic_review", rejected: true };
+  if (outcome === "rejected") return { stage: "funding_lead", rejected: true };
   if (outcome === null) return { stage: "ic_review", rejected: false };
   // completedAt implies slotting already happened, for workflows saved under the old single-stage Finance model.
   const slotted = !!(wf.finance.slottedAt || wf.finance.completedAt);

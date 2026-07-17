@@ -594,6 +594,13 @@ function demoDrafts(): StoredSubmission[] {
         requestedAmount: 2_500_000_000,
         financingUse: "Branch Opening/Expansion",
         returnType: "Revenue Share",
+        finReviewReportsReviewed: "https://docs.google.com/document/d/demo-sks-financial-review/edit",
+        finReviewPeriodEnding: "2026-06-30",
+        finReviewLimitRecommendation: "Keep",
+        finReviewLimitCurrent: 0,
+        finReviewLimitRecommended: 0,
+        finReviewNotes:
+          "First financing request — reviewed 6 months of bank statements and POS reports across 4 existing outlets. Revenue trend stable, no red flags.",
         referrors: [
           {
             id: "row-demo-sks-ref-1",
@@ -638,6 +645,13 @@ function demoDrafts(): StoredSubmission[] {
         requestedAmount: 1_200_000_000,
         financingUse: "Domestic PO Financing",
         returnType: "Daily Interest",
+        finReviewReportsReviewed: "https://docs.google.com/document/d/demo-spj-financial-review/edit",
+        finReviewPeriodEnding: "2026-06-30",
+        finReviewLimitRecommendation: "Keep",
+        finReviewLimitCurrent: 0,
+        finReviewLimitRecommended: 0,
+        finReviewNotes:
+          "Reviewed distributor's bank statements and PO history with Indomarco; cash flow supports the proposed daily-interest facility.",
         referrors: [
           {
             id: "row-demo-spj-ref-1",
@@ -675,6 +689,12 @@ function demoDrafts(): StoredSubmission[] {
         returnType: "Fixed Amount Repayment",
         proposedTotalLimit: 5_000_000_000,
         proposedPOSubLimit: 2_000_000_000,
+        finReviewReportsReviewed: "https://docs.google.com/document/d/demo-dc-financial-review/edit",
+        finReviewPeriodEnding: "2026-06-30",
+        finReviewLimitRecommendation: "Increase",
+        finReviewLimitCurrent: 3_000_000_000,
+        finReviewLimitRecommended: 5_000_000_000,
+        finReviewNotes: "Reviewed the last 2 quarters of bank statements; revenue growth supports the limit increase to Rp5.0B.",
       },
     },
     {
@@ -698,6 +718,13 @@ function demoDrafts(): StoredSubmission[] {
         requestedAmount: 500_000_000,
         financingUse: "Domestic Invoice Financing",
         returnType: "Daily Interest",
+        finReviewReportsReviewed: "https://docs.google.com/document/d/demo-gsm-financial-review/edit",
+        finReviewPeriodEnding: "2026-06-30",
+        finReviewLimitRecommendation: "Keep",
+        finReviewLimitCurrent: 0,
+        finReviewLimitRecommended: 0,
+        finReviewNotes:
+          "Reviewed 3 months of bank statements; first invoice financing facility, with Zalora Indonesia as the anchor buyer.",
         referrors: [
           {
             id: "row-demo-gsm-ref-1",
@@ -707,6 +734,128 @@ function demoDrafts(): StoredSubmission[] {
           },
         ],
         disbursements: [{ id: "row-demo-gsm-1", amount: 500_000_000, plannedDate: "2026-08-05" }],
+      },
+    },
+    {
+      // Already submitted (and IC-rejected — see lib/workflowStore.ts seedDefaultWorkflows()),
+      // not a draft — a real editable submission so the Resubmit-to-IC flow has a live example.
+      id: "proj-ayam-geprek",
+      status: "submitted",
+      createdAt: "2026-06-15T09:00:00.000Z",
+      updatedAt: "2026-06-20T09:00:00.000Z",
+      submittedAt: "2026-06-20T09:00:00.000Z",
+      form: {
+        ...emptySubmissionForm(),
+        brandName: "Ayam Geprek Juara",
+        brandIsNew: true,
+        projectName: "Ayam Geprek Juara (#1) — Branch Opening: Depok",
+        assetClass: "A",
+        approvalType: "Project",
+        createdBy: "Sharfina Nindita",
+        submittedBy: "Sharfina Nindita",
+        primaryAnalyst: "Sharfina Nindita",
+        mainSector: "F&B",
+        subSector: "🍔QSR - Full Meal",
+        requestedAmount: 2_200_000_000,
+        financingUse: "Branch Opening/Expansion",
+        returnType: "Revenue Share",
+        fundingSource: "KF & KCF",
+        referralSource: "Karmapreneur",
+        bankDetailsReviewed: true,
+        taxWithholdings: "Yes",
+        finReviewReportsReviewed: "https://docs.google.com/document/d/demo-ayam-geprek-financial-review/edit",
+        finReviewPeriodEnding: "2026-05-31",
+        finReviewLimitRecommendation: "Keep",
+        finReviewLimitCurrent: 0,
+        finReviewLimitRecommended: 0,
+        finReviewNotes:
+          "KP baru, belum ada plafond. Revenue outlet pertama (Bekasi) IDR 480jt/bulan, GM ~62%. Cashflow bersih, tidak ada hutang bank. Dana diajukan untuk pembukaan outlet ke-2 di Depok.",
+        referrors: [
+          {
+            id: "row-demo-ag-ref-1",
+            name: "Regina Tiffani",
+            relationType: "Karmapreneur",
+            belongsToKP: "Steak Hotel by Holycow, Shushu",
+          },
+        ],
+        kpContacts: [
+          {
+            id: "kpc-ag1",
+            name: "Fajar Nugroho",
+            whatsapp: "+62 - 818 2233 4455",
+            email: "fajar.nugroho@ayamgeprekjuara.id",
+            role: "Founder / Direktur Utama",
+            notesOnPerson:
+              "Founder Ayam Geprek Juara, membuka outlet pertama di Bekasi 2024. Background operasional QSR — pernah jadi area supervisor di jaringan ayam goreng nasional. Sangat detail soal food cost dan SOP dapur.",
+            isKeyPerson: true,
+            slikFileUrl: "https://drive.google.com/file/slik-fajar-nugroho",
+            slikExecSummary: "KTP Bekasi. Kredit motor lunas 2023. Tidak ada catatan negatif. SLIK bersih per Juni 2026.",
+          },
+        ],
+        disbursements: [{ id: "row-demo-ag-1", amount: 2_200_000_000, plannedDate: "2026-07-10" }],
+        branches: [
+          {
+            id: "br-ag1",
+            name: "Depok — Margonda Raya",
+            area: "Depok, Jawa Barat",
+            gmapsLink: "https://maps.google.com/?q=Margonda+Raya+Depok",
+            notes:
+              "Outlet ke-2. Lokasi dekat kampus, traffic mahasiswa tinggi. Area 80m², kapasitas 40 covers. Kontrak sewa 3 tahun.",
+            type: "Opening Branch",
+          },
+        ],
+        ptDetails: [
+          {
+            id: "pt-ag1",
+            name: "PT Geprek Juara Nusantara",
+            bank: "BCA",
+            accountNumber: "5310029981",
+            accountholderName: "GEPREK JUARA NUSANTARA",
+            slikFileUrl: "https://drive.google.com/file/slik-pt-geprek-juara",
+            slikExecSummary: "PT aktif sejak 2024. Rekening BCA digunakan untuk semua transaksi outlet. SLIK bersih per Juni 2026.",
+          },
+        ],
+        rsSourceOfRevenue: "Sales setelah dikurangi diskon, sebelum PB1/PPN, sebelum biaya EDC/QRIS",
+        rsFrequency: "Monthly",
+        rsDueDate: "Tanggal 10 setiap bulan",
+        rsCapType: "Return Cap",
+        rsCapMultiple: 1.35,
+        rsStartType: "Anchored to Branch Opening",
+        rsPreBEPPct: 7.5,
+        rsPostBEPPct: 8.0,
+        rsCarryPct: 2.0,
+        kpCreditMemo:
+          "**KP Credit Memo — Ayam Geprek Juara**\n\nKP baru, submission pertama. Outlet Bekasi (dibuka 2024) sudah profitable dengan GM ~62%. Founder berpengalaman di operasional QSR. Tidak ada hutang bank. Dana diajukan untuk ekspansi outlet ke-2 di Depok, area kampus dengan traffic tinggi.",
+        kpCreditMemoSections: cloneCreditMemoTemplate(KP_CREDIT_MEMO_TEMPLATE).map((s) =>
+          s.id !== "intro"
+            ? s
+            : {
+                ...s,
+                questions: [
+                  {
+                    ...s.questions[0],
+                    answer:
+                      "KP baru, submission pertama. Outlet Bekasi (dibuka 2024) sudah profitable dengan GM ~62%. Founder berpengalaman di operasional QSR. Tidak ada hutang bank.",
+                  },
+                ],
+              }
+        ),
+        projectCreditMemo:
+          "**Project Credit Memo — Branch Opening: Depok**\n\nProyek pertama. Revenue Share return-capped 1.35x. Proyeksi revenue IDR 220jt/bulan setelah ramp-up. IRR proyeksi 20.8%, MOIC 1.35x.",
+        projectCreditMemoSections: cloneCreditMemoTemplate(PROJECT_CREDIT_MEMO_TEMPLATE).map((s) =>
+          s.id !== "intro"
+            ? s
+            : {
+                ...s,
+                questions: [
+                  {
+                    ...s.questions[0],
+                    answer: "Pembukaan outlet ke-2 di Depok (area kampus, traffic mahasiswa tinggi), didanai Revenue Share return-capped 1.35x.",
+                  },
+                ],
+              }
+        ),
+        financialsLink: "https://docs.google.com/spreadsheets/d/example-ayam-geprek-calc",
       },
     },
   ];
@@ -787,7 +936,9 @@ export function ptWarnings(pt: SubmissionPTRow, brandName: string): string[] {
   }
   const trimmedBrand = brandName.trim().toLowerCase();
   if (trimmedBrand && pt.name.trim()) {
-    const priorProjects = allReviewProjects()
+    // mockProjects, not allReviewProjects() — the latter re-converts every submission via
+    // submissionToICProject(), which calls ptWarnings() for each of its PT rows, recursing forever.
+    const priorProjects = mockProjects
       .filter((p) => p.brandName.trim().toLowerCase() === trimmedBrand)
       .sort((a, b) => b.submittedAt.localeCompare(a.submittedAt));
 

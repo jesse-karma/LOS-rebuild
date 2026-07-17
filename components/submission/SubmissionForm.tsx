@@ -40,6 +40,7 @@ import {
 } from "@/lib/submissionsStore";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
+import { resubmitProject } from "@/lib/workflowStore";
 import { existingUboExposure, uboExposureLevel, brandsForPerson } from "@/lib/exposure";
 
 function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
@@ -780,11 +781,15 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     router.push("/");
   }
 
+  /** Already-submitted means this is a rejected project being edited and sent back — not a first submit. */
+  const isResubmit = submission.status === "submitted";
+
   function handleSubmitToIC() {
     const errs = validate();
     setErrors(errs);
     if (errs.length > 0) return;
     saveSubmission(currentDraft("submitted"));
+    if (isResubmit) resubmitProject(submission.id);
     router.push("/");
   }
 
@@ -2229,7 +2234,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               onClick={handleSubmitToIC}
               className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-5 py-2.5 rounded-lg transition-colors"
             >
-              Submit to IC
+              {isResubmit ? "Resubmit to IC" : "Submit to IC"}
             </button>
             <button
               type="button"

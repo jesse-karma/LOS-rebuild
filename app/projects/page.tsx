@@ -10,8 +10,9 @@ import {
   listSubmissions,
   seedDemoSubmissions,
 } from "@/lib/submissionsStore";
-import { getWorkflow, stageInfo } from "@/lib/workflowStore";
+import { getWorkflow, seedDefaultWorkflows, stageInfo } from "@/lib/workflowStore";
 import { Stage, STAGE_LABELS, STAGE_ORDER } from "@/lib/access";
+import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
 
 function fmt(n: number): string {
   return `IDR ${new Intl.NumberFormat("id-ID").format(n)}`;
@@ -136,6 +137,8 @@ export default function ProjectsPage() {
 
   useEffect(() => {
     seedDemoSubmissions();
+    seedDefaultLimitConfigs();
+    seedDefaultWorkflows();
     setRows(buildProjectRows());
   }, []);
 

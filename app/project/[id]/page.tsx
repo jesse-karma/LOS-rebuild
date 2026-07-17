@@ -30,10 +30,74 @@ import {
   getWorkflow,
   ProjectWorkflow,
   saveWorkflow,
+  seedDefaultWorkflows,
   stageInfo as stageInfoFor,
 } from "@/lib/workflowStore";
 import { seedDefaultLimitConfigs } from "@/lib/limitsStore";
 import { ChevronLeft } from "lucide-react";
+
+function fmtDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
+}
+
+/** Banner shown on a currently-rejected project (with the Resubmit action) and, once
+ *  resubmitted, a lighter note keeping the prior decision visible for the new vote round. */
+function RejectionBanner({
+  project,
+  workflow,
+  rejected,
+  canResubmit,
+}: {
+  project: ICProject;
+  workflow: ProjectWorkflow;
+  rejected: boolean;
+  canResubmit: boolean;
+}) {
+  const memberName = (memberId: string) =>
+    project.icVotes.find((v) => v.memberId === memberId)?.memberName ?? memberId;
+
+  if (rejected) {
+    const rejectorId = Object.entries(workflow.votes).find(([, v]) => v.vote === "Reject")?.[0];
+    const rejectorVote = rejectorId ? workflow.votes[rejectorId] : undefined;
+    return (
+      <div className="mb-4 rounded-lg border border-red-200 bg-red-50 p-4 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-sm font-semibold text-red-800">Rejected by IC</p>
+          {rejectorId && rejectorVote && (
+            <p className="text-xs text-red-600 mt-0.5">
+              {memberName(rejectorId)} · {fmtDate(rejectorVote.votedAt)}
+            </p>
+          )}
+        </div>
+        {canResubmit && (
+          <Link
+            href={`/submission/${project.id}`}
+            className="inline-flex items-center gap-1.5 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors shrink-0 whitespace-nowrap"
+          >
+            Resubmit to IC
+          </Link>
+        )}
+      </div>
+    );
+  }
+
+  if (workflow.rejectionHistory.length > 0) {
+    return (
+      <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-semibold text-amber-800 mb-1">Previously rejected</p>
+        <ul className="text-xs text-amber-700 space-y-0.5">
+          {workflow.rejectionHistory.map((r, i) => (
+            <li key={i}>
+              {memberName(r.memberId)} · {fmtDate(r.votedAt)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  return null;
+}
 
 export default function ProjectPage() {
   const { id } = useParams<{ id: string }>();
@@ -46,6 +110,7 @@ export default function ProjectPage() {
 
   useEffect(() => {
     seedDefaultLimitConfigs();
+    seedDefaultWorkflows();
     setProject(getReviewProjectById(id) ?? null);
     setWorkflow(getWorkflow(id));
   }, [id]);
@@ -90,6 +155,13 @@ export default function ProjectPage() {
       <div className="mb-4">
         <StageStepper stage={stage.stage} rejected={stage.rejected} />
       </div>
+
+      <RejectionBanner
+        project={project}
+        workflow={wf}
+        rejected={stage.rejected}
+        canResubmit={user.team === "Investments Team"}
+      />
 
       {/* Global warnings banner */}
       {errors.length > 0 && (

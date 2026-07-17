@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ArrowRight, LayoutGrid, List, Search, User, Vote } from "lucide-react";
+import { ChevronLeft, ChevronRight, LayoutGrid, List, Search, User } from "lucide-react";
 import { ICProject } from "@/data/types";
 import { mockProjects } from "@/data/mock";
 import { Tag, approvalTypeVariant, assetClassVariant } from "@/components/ui/Tag";
@@ -15,7 +15,7 @@ import {
 } from "@/lib/submissionsStore";
 import { useProfile } from "@/lib/profileStore";
 import { Stage, STAGE_LABELS } from "@/lib/access";
-import { daysWaiting, needsVoteFrom, votesRemaining } from "@/lib/icVoting";
+import { daysWaiting, needsVoteFrom } from "@/lib/icVoting";
 import {
   effectiveVotes,
   emptyWorkflow,
@@ -95,34 +95,37 @@ function StageStatusCell({ label, since }: { label: string; since: string | null
 }
 
 /** Full Pipeline just needs how long a row has been sitting — My Queue already surfaces what's actionable. */
-function IdleCell({ since, rejected }: { since: string | null; rejected?: boolean }) {
+function IdleCell({
+  since,
+  rejected,
+  pendingLabel,
+}: {
+  since: string | null;
+  rejected?: boolean;
+  /** Tabs where "no decision yet" should read as an explicit status (e.g. "Need Review") rather than a bare day count. */
+  pendingLabel?: string;
+}) {
   if (rejected) {
     return <span className="text-xs font-medium text-red-600 whitespace-nowrap">Rejected</span>;
   }
   if (!since) return <span className="text-xs text-gray-300">—</span>;
   const days = daysWaiting(since);
   const stale = days > 14;
-  return (
-    <span className={`text-xs whitespace-nowrap ${stale ? "text-red-600 font-semibold" : "text-gray-500"}`}>
-      {days}d idle
-    </span>
-  );
-}
-
-/** IC-only: this member's vote state + quorum shortfall. */
-function VoteChip({ project, memberName }: { project: ICProject; memberName: string }) {
-  const remaining = votesRemaining(project);
-  if (needsVoteFrom(project, memberName)) {
+  if (pendingLabel) {
     return (
-      <span className="inline-flex items-center gap-1 text-xs bg-emerald-600 text-white font-semibold px-2 py-0.5 rounded whitespace-nowrap">
-        <Vote className="w-3 h-3" />
-        Your vote needed
-      </span>
+      <div className="flex flex-col items-start gap-1">
+        <span className="inline-flex items-center text-xs font-medium px-2 py-0.5 rounded border bg-indigo-50 text-indigo-700 border-indigo-200 whitespace-nowrap">
+          {pendingLabel}
+        </span>
+        <span className={`text-xs px-0.5 whitespace-nowrap ${stale ? "text-red-600 font-semibold" : "text-gray-400"}`}>
+          {days}d idle
+        </span>
+      </div>
     );
   }
   return (
-    <span className="text-xs text-gray-400 font-medium px-2 py-0.5">
-      {remaining > 0 ? `needs ${remaining} more vote${remaining > 1 ? "s" : ""}` : "quorum reached"}
+    <span className={`text-xs whitespace-nowrap ${stale ? "text-red-600 font-semibold" : "text-gray-500"}`}>
+      {days}d idle
     </span>
   );
 }
@@ -143,14 +146,11 @@ interface FlowRow {
 function FlowTable({
   flowRows,
   statusCell,
-  voteMemberName = null,
   emptyText,
   query,
 }: {
   flowRows: FlowRow[];
   statusCell: (row: FlowRow) => React.ReactNode;
-  /** IC members get a Vote column with their own vote state. */
-  voteMemberName?: string | null;
   emptyText: string;
   query: string;
 }) {
@@ -166,7 +166,6 @@ function FlowTable({
             <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
             <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
             <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Idle</th>
-            {voteMemberName && <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Vote</th>}
           </tr>
         </thead>
         <tbody className="divide-y divide-gray-50">
@@ -198,11 +197,6 @@ function FlowTable({
                   {projectAmount(p)}
                 </td>
                 <td className="py-2.5 px-2.5">{statusCell(row)}</td>
-                {voteMemberName && (
-                  <td className="py-2.5 px-2.5">
-                    {!row.rejected && <VoteChip project={row.project} memberName={voteMemberName} />}
-                  </td>
-                )}
               </tr>
             );
           })}
@@ -228,6 +222,8 @@ interface CardItem {
   amountLabel: string;
   primaryAnalyst: string;
   statusNode?: React.ReactNode;
+  /** Last-touched timestamp (ISO) — drives the "newest edit" default sort in queue carousels. */
+  updatedAt: string;
 }
 
 function draftToCardItem(d: StoredSubmission): CardItem {
@@ -246,7 +242,70 @@ function draftToCardItem(d: StoredSubmission): CardItem {
         : "—",
     primaryAnalyst: d.form.primaryAnalyst || "—",
     statusNode: <IdleCell since={d.updatedAt ?? d.createdAt} />,
+    updatedAt: d.updatedAt ?? d.createdAt,
   };
+}
+
+/** Table shell for CardItem-backed tabs (mixes drafts with rejected-and-returned projects) — same columns as FlowTable. */
+function SimpleFlowTable({ items, query, emptyText }: { items: CardItem[]; query: string; emptyText: string }) {
+  const router = useRouter();
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
+      <table className="w-full text-sm min-w-[820px]">
+        <thead>
+          <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
+            <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
+            <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
+            <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Idle</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-gray-50">
+          {items.map((item) => (
+            <tr
+              key={item.key}
+              className="hover:bg-blue-50/40 cursor-pointer group"
+              onClick={() => router.push(item.href)}
+            >
+              <td className="py-2.5 px-2.5 font-medium text-gray-900 group-hover:text-blue-700">
+                {item.projectName}
+              </td>
+              <td className="py-2.5 px-2.5 whitespace-nowrap">
+                {item.brandName ? (
+                  <Link
+                    href={`/kp/${encodeURIComponent(item.brandName)}`}
+                    onClick={(e) => e.stopPropagation()}
+                    className="text-gray-600 hover:text-blue-700 hover:underline underline-offset-2"
+                  >
+                    {item.brandName}
+                  </Link>
+                ) : (
+                  <span className="text-gray-400">—</span>
+                )}
+              </td>
+              <td className="py-2.5 px-2.5">
+                <Tag label={`Asset ${item.assetClass}`} variant={assetClassVariant(item.assetClass)} />
+              </td>
+              <td className="py-2.5 px-2.5">
+                <Tag label={item.approvalType} variant={approvalTypeVariant(item.approvalType)} />
+              </td>
+              <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
+                {item.amountLabel === "—" ? <span className="text-gray-400 font-normal">—</span> : item.amountLabel}
+              </td>
+              <td className="py-2.5 px-2.5">{item.statusNode}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      {items.length === 0 && (
+        <p className="text-sm text-gray-400 px-6 py-8 text-center">
+          {query ? `No results for “${query}”.` : emptyText}
+        </p>
+      )}
+    </div>
+  );
 }
 
 function rowToCardItem(row: FlowRow, statusNode: React.ReactNode): CardItem {
@@ -261,6 +320,7 @@ function rowToCardItem(row: FlowRow, statusNode: React.ReactNode): CardItem {
     amountLabel: projectAmount(p),
     primaryAnalyst: p.pic.primaryAnalyst || "—",
     statusNode,
+    updatedAt: p.submittedAt,
   };
 }
 
@@ -269,9 +329,9 @@ function ProjectCard({ item }: { item: CardItem }) {
   return (
     <article
       onClick={() => router.push(item.href)}
-      className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 cursor-pointer hover:shadow-md hover:border-blue-200 transition-all"
+      className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 cursor-pointer hover:shadow-md hover:border-blue-200 transition-all h-[224px] flex flex-col overflow-hidden"
     >
-      <div className="flex items-start justify-between gap-2 mb-1.5">
+      <div className="flex items-start justify-between gap-2 mb-1.5 shrink-0">
         <Link
           href={`/kp/${encodeURIComponent(item.brandName)}`}
           onClick={(e) => e.stopPropagation()}
@@ -280,19 +340,21 @@ function ProjectCard({ item }: { item: CardItem }) {
           {item.brandName || "—"}
         </Link>
       </div>
-      <div className="text-sm font-medium text-gray-900 mb-2 leading-snug">{item.projectName}</div>
-      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+      <div className="text-sm font-medium text-gray-900 mb-2 leading-snug line-clamp-2 shrink-0">
+        {item.projectName}
+      </div>
+      <div className="flex items-center gap-1.5 flex-wrap mb-2 shrink-0">
         <Tag label={`Asset ${item.assetClass}`} variant={assetClassVariant(item.assetClass)} />
         <Tag label={item.approvalType} variant={approvalTypeVariant(item.approvalType)} />
       </div>
-      <div className="flex items-center justify-between gap-2 mb-1">
+      <div className="flex items-center justify-between gap-2 mb-1 shrink-0">
         <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">{item.amountLabel}</span>
       </div>
-      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1">
-        <User className="w-3 h-3" />
-        {item.primaryAnalyst}
+      <div className="flex items-center gap-1 text-xs text-gray-500 mb-1 shrink-0">
+        <User className="w-3 h-3 shrink-0" />
+        <span className="truncate">{item.primaryAnalyst}</span>
       </div>
-      {item.statusNode}
+      <div className="mt-auto">{item.statusNode}</div>
     </article>
   );
 }
@@ -322,66 +384,73 @@ function LegalChecklistProgress({ legal }: { legal: LegalState }) {
   return <span className="text-xs font-medium text-gray-500 whitespace-nowrap">{done}/3 steps done</span>;
 }
 
-/** One actionable row: the info needed to decide whether to act, plus a single CTA into the real screen. */
-function QueueRow({ item, ctaLabel }: { item: CardItem; ctaLabel: string }) {
-  const router = useRouter();
-  return (
-    <div
-      onClick={() => router.push(item.href)}
-      className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-lg px-4 py-3 shadow-sm hover:border-blue-300 hover:shadow-md transition-all cursor-pointer"
-    >
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 flex-wrap mb-0.5">
-          <Link
-            href={`/kp/${encodeURIComponent(item.brandName)}`}
-            onClick={(e) => e.stopPropagation()}
-            className="text-xs text-gray-500 hover:text-blue-700 hover:underline underline-offset-2 truncate"
-          >
-            {item.brandName || "—"}
-          </Link>
-          <Tag label={`Asset ${item.assetClass}`} variant={assetClassVariant(item.assetClass)} />
-        </div>
-        <div className="text-sm font-medium text-gray-900 truncate">{item.projectName}</div>
-      </div>
-      <div className="text-sm font-semibold text-gray-700 whitespace-nowrap hidden sm:block">
-        {item.amountLabel}
-      </div>
-      <div className="hidden md:block shrink-0">{item.statusNode}</div>
-      <Link
-        href={item.href}
-        onClick={(e) => e.stopPropagation()}
-        className="inline-flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors shrink-0"
-      >
-        {ctaLabel}
-        <ArrowRight className="w-3.5 h-3.5" />
-      </Link>
-    </div>
-  );
-}
+/**
+ * My Queue section, for every role — one flat set of cards (no sub-grouping within a
+ * stage, e.g. drafts and IC-rejected returns aren't differentiated). Horizontal scroll,
+ * ~5 cards visible at a time, newest-edit-first by default with a toggle to flip it.
+ */
+function QueueCarousel({ title, items, emptyText }: { title: string; items: CardItem[]; emptyText: string }) {
+  const [sortDir, setSortDir] = useState<"newest" | "oldest">("newest");
+  const scrollerRef = useRef<HTMLDivElement>(null);
 
-function QueueSection({
-  title,
-  items,
-  ctaLabel,
-  emptyText,
-}: {
-  title: string;
-  items: CardItem[];
-  ctaLabel: string;
-  emptyText: string;
-}) {
+  const sorted = [...items].sort((a, b) =>
+    sortDir === "newest" ? b.updatedAt.localeCompare(a.updatedAt) : a.updatedAt.localeCompare(b.updatedAt)
+  );
+
+  function scrollByCards(dir: 1 | -1) {
+    const el = scrollerRef.current;
+    if (!el) return;
+    const cardWidth = (el.firstElementChild as HTMLElement | null)?.offsetWidth ?? 240;
+    el.scrollBy({ left: dir * (cardWidth + 12) * 3, behavior: "smooth" });
+  }
+
   return (
     <div className="mb-4 last:mb-0">
-      <div className="flex items-center gap-2 mb-2">
-        <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
-        <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">{items.length}</span>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2">
+          <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+          <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">{items.length}</span>
+        </div>
+        {items.length > 0 && (
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => setSortDir((d) => (d === "newest" ? "oldest" : "newest"))}
+              className="text-xs font-medium text-gray-500 hover:text-gray-800 px-2 py-1 rounded-md border border-gray-200 bg-white whitespace-nowrap"
+            >
+              {sortDir === "newest" ? "Newest first" : "Oldest first"}
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByCards(-1)}
+              aria-label="Scroll left"
+              className="p-1.5 rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scrollByCards(1)}
+              aria-label="Scroll right"
+              className="p-1.5 rounded-md border border-gray-200 bg-white text-gray-500 hover:text-gray-800 hover:bg-gray-50"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+        )}
       </div>
-      {items.length === 0 ? (
+      {sorted.length === 0 ? (
         <p className="text-xs text-gray-400 italic px-1">{emptyText}</p>
       ) : (
-        <div className="space-y-2">
-          {items.map((item) => (
-            <QueueRow key={item.key} item={item} ctaLabel={ctaLabel} />
+        <div ref={scrollerRef} className="flex gap-3 overflow-x-auto scroll-smooth snap-x snap-mandatory pb-1">
+          {sorted.map((item) => (
+            <div
+              key={item.key}
+              className="shrink-0 snap-start"
+              style={{ width: "calc(20% - 10px)", minWidth: 220 }}
+            >
+              <ProjectCard item={item} />
+            </div>
           ))}
         </div>
       )}
@@ -391,7 +460,6 @@ function QueueSection({
 
 export default function HomePage() {
   const { user } = useProfile();
-  const router = useRouter();
   const [projects, setProjects] = useState<ICProject[]>(mockProjects);
   const [drafts, setDrafts] = useState<StoredSubmission[]>([]);
   // Workflows load after mount (localStorage) — empty map matches the server render.
@@ -409,9 +477,6 @@ export default function HomePage() {
     setDrafts(listSubmissions().filter((s) => s.status === "draft"));
     setWorkflows(Object.fromEntries(all.map((p) => [p.id, getWorkflow(p.id)])));
   }, []);
-
-  // Everyone on a team sees the whole pipeline — access is by Role Type, not person.
-  const isIC = user.team === "Investment Committee";
 
   // Search
   const matching = projects
@@ -438,6 +503,8 @@ export default function HomePage() {
   });
   const byStage = (s: Stage) => rows.filter((r) => r.stage === s);
   const icRows = byStage("ic_review");
+  // Rejected by IC — sent back to the analyst, surfaced alongside drafts in Due Diligence.
+  const returnedRows = byStage("funding_lead");
   const financeSlottingRows = byStage("finance_slotting");
   const legalRows = byStage("legal");
   const financeDisbursementRows = byStage("finance_disbursement");
@@ -451,8 +518,14 @@ export default function HomePage() {
         a.createdAt.localeCompare(b.createdAt)
     );
 
+  // Due Diligence tab: fresh drafts + projects the IC sent back to the analyst.
+  const prepItems: CardItem[] = [
+    ...visibleDrafts.map(draftToCardItem),
+    ...returnedRows.map((row) => rowToCardItem(row, <IdleCell since={row.project.submittedAt} rejected />)),
+  ];
+
   const tabs: Array<{ key: TabKey; label: string; count: number }> = [
-    { key: "prep", label: STAGE_LABELS.funding_lead, count: visibleDrafts.length },
+    { key: "prep", label: STAGE_LABELS.funding_lead, count: prepItems.length },
     { key: "ic", label: STAGE_LABELS.ic_review, count: icRows.length },
     { key: "finance_slotting", label: STAGE_LABELS.finance_slotting, count: financeSlottingRows.length },
     { key: "legal", label: STAGE_LABELS.legal, count: legalRows.length },
@@ -464,25 +537,19 @@ export default function HomePage() {
   ];
 
   // My Queue — the one job each team actually does, not the whole pipeline. System Admin sees
-  // everything already via Full Pipeline below, so it gets no personal queue.
-  const myQueueSections: Array<{ title: string; ctaLabel: string; items: CardItem[]; emptyText: string }> | null =
+  // everything already via Full Pipeline below, so it gets no personal queue. Investments Team's
+  // queue renders separately below as a card carousel (drafts and IC-rejected returns aren't
+  // differentiated — same Due Diligence stage either way).
+  const myQueueSections: Array<{ title: string; items: CardItem[]; emptyText: string }> | null =
     (() => {
       switch (user.team) {
         case "Investments Team":
-          return [
-            {
-              title: "Continue Due Diligence",
-              ctaLabel: "Continue draft",
-              items: visibleDrafts.map(draftToCardItem),
-              emptyText: "No drafts in preparation.",
-            },
-          ];
+          return [{ title: "Continue Due Diligence", items: prepItems, emptyText: "No drafts in preparation." }];
         case "Investment Committee": {
           const awaitingMyVote = icRows.filter((row) => !row.rejected && needsVoteFrom(row.project, user.name));
           return [
             {
               title: "Awaiting Your Vote",
-              ctaLabel: "Review & Vote",
               items: awaitingMyVote.map((row) =>
                 rowToCardItem(row, <ReviewStatusCell submittedAt={row.project.submittedAt} rejected={row.rejected} />)
               ),
@@ -494,7 +561,6 @@ export default function HomePage() {
           return [
             {
               title: "Awaiting KF/KCF Split",
-              ctaLabel: "Set Split",
               items: financeSlottingRows.map((row) =>
                 rowToCardItem(
                   row,
@@ -505,7 +571,6 @@ export default function HomePage() {
             },
             {
               title: "Ready to Disburse",
-              ctaLabel: "Disburse",
               items: financeDisbursementRows.map((row) =>
                 rowToCardItem(
                   row,
@@ -519,7 +584,6 @@ export default function HomePage() {
           return [
             {
               title: "Awaiting Legal Agreement",
-              ctaLabel: "Complete Agreement",
               items: legalRows.map((row) => rowToCardItem(row, <LegalChecklistProgress legal={row.workflow.legal} />)),
               emptyText: "Nothing awaiting a legal agreement.",
             },
@@ -535,10 +599,9 @@ export default function HomePage() {
         <div className="mb-8">
           <h1 className="text-lg font-bold text-gray-900 mb-3">My Queue</h1>
           {myQueueSections.map((section) => (
-            <QueueSection
+            <QueueCarousel
               key={section.title}
               title={section.title}
-              ctaLabel={section.ctaLabel}
               items={section.items}
               emptyText={section.emptyText}
             />
@@ -608,72 +671,12 @@ export default function HomePage() {
         ))}
       </div>
 
-      {/* Tab: Funding Lead — drafts in preparation, same shape as IC Review */}
+      {/* Tab: Due Diligence — fresh drafts + projects the IC rejected and sent back to the analyst */}
       {tab === "prep" && (
         homeView === "card" ? (
-          <CardGrid items={visibleDrafts.map(draftToCardItem)} query={query} emptyText="No drafts in preparation." />
+          <CardGrid items={prepItems} query={query} emptyText="No drafts in preparation." />
         ) : (
-        <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-x-auto">
-          <table className="w-full text-sm min-w-[820px]">
-            <thead>
-              <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left text-sm">
-                <th className="py-2.5 px-2.5 font-bold w-full min-w-48">Project</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">KP / Brand</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Asset</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Financing Type</th>
-                <th className="py-2.5 px-2.5 font-bold text-right whitespace-nowrap w-0">Amount</th>
-                <th className="py-2.5 px-2.5 font-bold whitespace-nowrap w-0">Idle</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {visibleDrafts.map((d) => (
-                <tr
-                  key={d.id}
-                  className="hover:bg-blue-50/40 cursor-pointer group"
-                  onClick={() => router.push(`/submission/${d.id}`)}
-                >
-                  <td className="py-2.5 px-2.5 font-medium text-gray-900 group-hover:text-blue-700">
-                    {d.form.projectName || "Untitled submission"}
-                  </td>
-                  <td className="py-2.5 px-2.5 whitespace-nowrap">
-                    {d.form.brandName ? (
-                      <Link
-                        href={`/kp/${encodeURIComponent(d.form.brandName)}`}
-                        onClick={(e) => e.stopPropagation()}
-                        className="text-gray-600 hover:text-blue-700 hover:underline underline-offset-2"
-                      >
-                        {d.form.brandName}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-400">—</span>
-                    )}
-                  </td>
-                  <td className="py-2.5 px-2.5">
-                    <Tag label={`Asset ${d.form.assetClass}`} variant={assetClassVariant(d.form.assetClass)} />
-                  </td>
-                  <td className="py-2.5 px-2.5">
-                    <Tag label={d.form.approvalType} variant={approvalTypeVariant(d.form.approvalType)} />
-                  </td>
-                  <td className="py-2.5 px-2.5 text-right font-medium text-gray-800 whitespace-nowrap">
-                    {d.form.requestedAmount > 0
-                      ? d.form.requestedAmountCurrency === "IDR"
-                        ? fmt(d.form.requestedAmount)
-                        : `USD ${d.form.requestedAmount.toLocaleString()}`
-                      : <span className="text-gray-400 font-normal">—</span>}
-                  </td>
-                  <td className="py-2.5 px-2.5">
-                    <IdleCell since={d.updatedAt ?? d.createdAt} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {visibleDrafts.length === 0 && (
-            <p className="text-sm text-gray-400 px-6 py-8 text-center">
-              {query ? `No results for “${query}”.` : "No drafts in preparation."}
-            </p>
-          )}
-        </div>
+          <SimpleFlowTable items={prepItems} query={query} emptyText="No drafts in preparation." />
         )
       )}
 
@@ -682,7 +685,7 @@ export default function HomePage() {
         homeView === "card" ? (
           <CardGrid
             items={icRows.map((row) =>
-              rowToCardItem(row, <IdleCell since={row.project.submittedAt} rejected={row.rejected} />)
+              rowToCardItem(row, <IdleCell since={row.project.submittedAt} pendingLabel="Need Review" />)
             )}
             query={query}
             emptyText="No pending reviews."
@@ -690,9 +693,8 @@ export default function HomePage() {
         ) : (
         <FlowTable
           flowRows={icRows}
-          voteMemberName={isIC ? user.name : null}
           query={query}
-          statusCell={(row) => <IdleCell since={row.project.submittedAt} rejected={row.rejected} />}
+          statusCell={(row) => <IdleCell since={row.project.submittedAt} pendingLabel="Need Review" />}
           emptyText="No pending reviews."
         />
         )
