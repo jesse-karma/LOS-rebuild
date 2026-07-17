@@ -116,7 +116,6 @@ export interface SubmissionFormData {
   // Plafond proposal (used when approvalType includes "Plafond")
   proposedTotalLimit: number;
   proposedPOSubLimit: number;
-  proposedWCSubLimit: number;
   // Financial review (becomes Review 1 on the IC card's Plafond & Financial Reviews section)
   finReviewReportsReviewed: string;
   finReviewPeriodEnding: string; // ISO date (yyyy-mm-dd)
@@ -230,7 +229,6 @@ export function emptySubmissionForm(): SubmissionFormData {
     referralSource: "Cold calling",
     proposedTotalLimit: 0,
     proposedPOSubLimit: 0,
-    proposedWCSubLimit: 0,
     finReviewReportsReviewed: "",
     finReviewPeriodEnding: "",
     finReviewLimitRecommendation: "Keep",
@@ -472,7 +470,6 @@ function demoDrafts(): StoredSubmission[] {
         returnType: "Fixed Amount Repayment",
         proposedTotalLimit: 5_000_000_000,
         proposedPOSubLimit: 2_000_000_000,
-        proposedWCSubLimit: 3_000_000_000,
       },
     },
     {
@@ -790,7 +787,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
         ? {
             totalLimit: f.proposedTotalLimit,
             poSubLimit: f.proposedPOSubLimit,
-            wcSubLimit: f.proposedWCSubLimit,
+            wcSubLimit: 0,
           }
         : null,
       current: null,
