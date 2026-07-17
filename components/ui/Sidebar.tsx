@@ -30,18 +30,27 @@ const NAV: NavEntry[] = [
     href: "/",
     label: "Home",
     emoji: "🏠",
-    // Home owns the pipeline drill-ins (projects, submissions); KP/company/architecture pages have their own menus.
+    // Home owns the pipeline overview only; drill-ins each have their own menu now.
     isActive: (p) =>
       !p.startsWith("/admin/limits") &&
       !p.startsWith("/companies") &&
       !p.startsWith("/kp/") &&
-      !p.startsWith("/architecture"),
+      !p.startsWith("/architecture") &&
+      !p.startsWith("/projects") &&
+      !p.startsWith("/project/") &&
+      !p.startsWith("/submission/"),
   },
   {
     href: "/companies",
     label: "Companies",
     emoji: "🏢",
     isActive: (p) => p.startsWith("/companies") || p.startsWith("/kp/"),
+  },
+  {
+    href: "/projects",
+    label: "Projects",
+    emoji: "📁",
+    isActive: (p) => p.startsWith("/projects") || p.startsWith("/project/") || p.startsWith("/submission/"),
   },
   {
     label: "Policies",
@@ -66,6 +75,12 @@ const NAV: NavEntry[] = [
         label: "Core Object",
         emoji: "🗺️",
         isActive: (p) => p.startsWith("/architecture/core-object"),
+      },
+      {
+        href: "/architecture/tend-sync",
+        label: "Tend ⇄ LOS Sync",
+        emoji: "🔄",
+        isActive: (p) => p.startsWith("/architecture/tend-sync"),
       },
     ],
   },

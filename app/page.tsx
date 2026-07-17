@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Vote } from "lucide-react";
+import { LayoutGrid, List, Plus, Search, Vote } from "lucide-react";
 import { ICProject } from "@/data/types";
 import { mockProjects } from "@/data/mock";
 import { Tag, approvalTypeVariant, assetClassVariant } from "@/components/ui/Tag";
@@ -201,6 +201,190 @@ function FlowTable({
   );
 }
 
+/** What a dragged card carries — enough to know where to navigate on a cross-column drop. */
+interface DragPayload {
+  kind: "draft" | "project";
+  id: string;
+  label: string;
+  sourceCol: TabKey;
+}
+
+/** One card's worth of display data, built once per column from whichever source it came from. */
+interface BoardItem {
+  key: string;
+  payload: DragPayload;
+  brandName: string;
+  projectName: string;
+  assetClass: string;
+  approvalType: string;
+  amountLabel: string;
+  statusNode: React.ReactNode;
+}
+
+function draftToBoardItem(d: StoredSubmission): BoardItem {
+  return {
+    key: d.id,
+    payload: { kind: "draft", id: d.id, label: d.form.projectName || d.form.brandName || "Untitled submission", sourceCol: "prep" },
+    brandName: d.form.brandName,
+    projectName: d.form.projectName || "Untitled submission",
+    assetClass: d.form.assetClass,
+    approvalType: d.form.approvalType,
+    amountLabel:
+      d.form.requestedAmount > 0
+        ? d.form.requestedAmountCurrency === "IDR"
+          ? fmt(d.form.requestedAmount)
+          : `USD ${d.form.requestedAmount.toLocaleString()}`
+        : "—",
+    statusNode: (
+      <span className="text-xs text-gray-500">{daysWaiting(d.updatedAt ?? d.createdAt)}d idle</span>
+    ),
+  };
+}
+
+function rowToBoardItem(row: FlowRow, sourceCol: TabKey, statusNode: React.ReactNode): BoardItem {
+  const p = row.project;
+  return {
+    key: p.id,
+    payload: { kind: "project", id: p.id, label: p.projectName, sourceCol },
+    brandName: p.brandName,
+    projectName: p.projectName,
+    assetClass: p.assetClass,
+    approvalType: p.approvalType,
+    amountLabel: projectAmount(p),
+    statusNode,
+  };
+}
+
+function BoardCard({
+  item,
+  onDragStart,
+  onClick,
+}: {
+  item: BoardItem;
+  onDragStart: (ev: React.DragEvent) => void;
+  onClick: () => void;
+}) {
+  return (
+    <article
+      draggable
+      onDragStart={onDragStart}
+      onClick={onClick}
+      className="bg-white border border-gray-200 rounded-lg shadow-sm p-3 cursor-grab active:cursor-grabbing hover:shadow-md hover:border-blue-200 transition-all"
+    >
+      <div className="flex items-start justify-between gap-2 mb-1.5">
+        <Link
+          href={`/kp/${encodeURIComponent(item.brandName)}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-xs text-gray-500 hover:text-blue-700 hover:underline underline-offset-2 truncate"
+        >
+          {item.brandName || "—"}
+        </Link>
+      </div>
+      <div className="text-sm font-medium text-gray-900 mb-2 leading-snug">{item.projectName}</div>
+      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+        <Tag label={`Asset ${item.assetClass}`} variant={assetClassVariant(item.assetClass)} />
+        <Tag label={item.approvalType} variant={approvalTypeVariant(item.approvalType)} />
+      </div>
+      <div className="flex items-center justify-between gap-2 mb-1">
+        <span className="text-xs font-semibold text-gray-700 whitespace-nowrap">{item.amountLabel}</span>
+      </div>
+      {item.statusNode}
+    </article>
+  );
+}
+
+/** Every pipeline stage as one board — reuses exactly the same rows the table view computes. */
+function PipelineBoard({
+  columns,
+  query,
+}: {
+  columns: Array<{ key: TabKey; label: string; items: BoardItem[] }>;
+  query: string;
+}) {
+  const router = useRouter();
+  const [dragOverCol, setDragOverCol] = useState<TabKey | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+
+  function handleDragStart(ev: React.DragEvent, payload: DragPayload) {
+    ev.dataTransfer.setData("text/plain", JSON.stringify(payload));
+    ev.dataTransfer.effectAllowed = "move";
+  }
+
+  function handleDrop(ev: React.DragEvent, colKey: TabKey) {
+    ev.preventDefault();
+    setDragOverCol(null);
+    let payload: DragPayload;
+    try {
+      payload = JSON.parse(ev.dataTransfer.getData("text/plain"));
+    } catch {
+      return;
+    }
+    // Same column: nothing to do — order here isn't manually controlled.
+    if (payload.sourceCol === colKey) return;
+    // Every other stage boundary needs a real gated action (votes, exact-sum slotting,
+    // a legal checklist, submission validation) that a drag can't legitimately complete —
+    // so a cross-column drop opens the real screen instead of silently moving the card.
+    const dest = payload.kind === "draft" ? `/submission/${payload.id}` : `/project/${payload.id}`;
+    setNotice(`Opening “${payload.label}” — ${payload.kind === "draft" ? "the submission form" : "the project page"} to advance it from here.`);
+    setTimeout(() => router.push(dest), 450);
+  }
+
+  return (
+    <div>
+      {notice && (
+        <div className="mb-3 text-xs text-blue-700 bg-blue-50 border border-blue-200 rounded-lg px-3 py-2">
+          {notice}
+        </div>
+      )}
+      <div className="flex gap-4 overflow-x-auto pb-2">
+        {columns.map((col) => (
+          <div key={col.key} className="flex-1 min-w-[280px] max-w-[360px]">
+            <div className="flex items-center justify-between mb-2.5 px-1">
+              <h3 className="text-sm font-semibold text-gray-700">{col.label}</h3>
+              <span className="text-xs text-gray-400 bg-gray-100 rounded-full px-2 py-0.5">
+                {col.items.length}
+              </span>
+            </div>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                setDragOverCol(col.key);
+              }}
+              onDragLeave={() => setDragOverCol((cur) => (cur === col.key ? null : cur))}
+              onDrop={(e) => handleDrop(e, col.key)}
+              className={`rounded-xl p-2 space-y-2 min-h-[140px] border transition-colors ${
+                dragOverCol === col.key
+                  ? "bg-blue-50/60 border-blue-300"
+                  : "bg-gray-50 border-gray-200"
+              }`}
+            >
+              {col.items.map((item) => (
+                <BoardCard
+                  key={item.key}
+                  item={item}
+                  onDragStart={(e) => handleDragStart(e, item.payload)}
+                  onClick={() =>
+                    router.push(
+                      item.payload.kind === "draft"
+                        ? `/submission/${item.payload.id}`
+                        : `/project/${item.payload.id}`
+                    )
+                  }
+                />
+              ))}
+              {col.items.length === 0 && (
+                <p className="text-xs text-gray-400 text-center py-6">
+                  {query ? "No matches here." : "Nothing in this stage."}
+                </p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { user } = useProfile();
   const router = useRouter();
@@ -210,6 +394,7 @@ export default function HomePage() {
   const [workflows, setWorkflows] = useState<Record<string, ProjectWorkflow>>({});
   const [query, setQuery] = useState("");
   const [tab, setTab] = useState<TabKey>("ic");
+  const [homeView, setHomeView] = useState<"table" | "board">("table");
 
   useEffect(() => {
     seedDemoSubmissions();
@@ -274,6 +459,51 @@ export default function HomePage() {
     },
   ];
 
+  // Board view: the exact same rows as the tables above, reshaped into board columns.
+  const boardColumns: Array<{ key: TabKey; label: string; items: BoardItem[] }> = [
+    { key: "prep", label: STAGE_LABELS.funding_lead, items: visibleDrafts.map(draftToBoardItem) },
+    {
+      key: "ic",
+      label: STAGE_LABELS.ic_review,
+      items: icRows.map((row) =>
+        rowToBoardItem(row, "ic", <ReviewStatusCell submittedAt={row.project.submittedAt} rejected={row.rejected} />)
+      ),
+    },
+    {
+      key: "finance_slotting",
+      label: STAGE_LABELS.finance_slotting,
+      items: financeSlottingRows.map((row) =>
+        rowToBoardItem(
+          row,
+          "finance_slotting",
+          <StageStatusCell label={STAGE_LABELS.finance_slotting} since={icDecidedAt(row.project, row.workflow)} />
+        )
+      ),
+    },
+    {
+      key: "legal",
+      label: STAGE_LABELS.legal,
+      items: legalRows.map((row) =>
+        rowToBoardItem(
+          row,
+          "legal",
+          <StageStatusCell label={STAGE_LABELS.legal} since={row.workflow.finance.slottedAt} />
+        )
+      ),
+    },
+    {
+      key: "finance_disbursement",
+      label: STAGE_LABELS.finance_disbursement,
+      items: financeDisbursementRows.map((row) =>
+        rowToBoardItem(
+          row,
+          "finance_disbursement",
+          <StageStatusCell label={STAGE_LABELS.finance_disbursement} since={row.workflow.legal.completedAt} />
+        )
+      ),
+    },
+  ];
+
   return (
     <div>
       {/* Search + filters + new submission */}
@@ -287,6 +517,28 @@ export default function HomePage() {
             onChange={(e) => setQuery(e.target.value)}
           />
         </div>
+        <div className="inline-flex rounded-lg border border-gray-200 bg-white p-0.5 shrink-0">
+          <button
+            type="button"
+            onClick={() => setHomeView("table")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              homeView === "table" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            <List className="w-3.5 h-3.5" />
+            Table
+          </button>
+          <button
+            type="button"
+            onClick={() => setHomeView("board")}
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-md transition-colors ${
+              homeView === "board" ? "bg-gray-900 text-white" : "text-gray-500 hover:text-gray-800"
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            Board
+          </button>
+        </div>
         {canCreateSubmission(user.team) && (
           <Link
             href="/submission/new"
@@ -298,7 +550,11 @@ export default function HomePage() {
         )}
       </div>
 
+      {homeView === "board" && <PipelineBoard columns={boardColumns} query={query} />}
+
       {/* Lifecycle tabs — every team sees the whole flow; edit rights are per stage */}
+      {homeView === "table" && (
+      <>
       <div className="flex items-center gap-1 border-b border-gray-200 mb-5 overflow-x-auto">
         {tabs.map((t) => (
           <button
@@ -441,6 +697,8 @@ export default function HomePage() {
           )}
           emptyText="No projects awaiting disbursement."
         />
+      )}
+      </>
       )}
     </div>
   );

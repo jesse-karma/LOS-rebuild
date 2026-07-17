@@ -1,4 +1,4 @@
-type TagVariant =
+export type TagVariant =
   | "default"
   | "green"
   | "blue"
