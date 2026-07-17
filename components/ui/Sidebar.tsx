@@ -3,18 +3,20 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { ChevronDown, Grid2x2, PanelLeftClose, PanelLeftOpen, Users, type LucideIcon } from "lucide-react";
 
 interface NavLeaf {
   href: string;
   label: string;
-  emoji: string;
+  emoji?: string;
+  icon?: LucideIcon;
   isActive: (pathname: string) => boolean;
 }
 
 interface NavMenu {
   label: string;
-  emoji: string;
+  emoji?: string;
+  icon?: LucideIcon;
   isActive: (pathname: string) => boolean;
   children: NavLeaf[];
 }
@@ -27,14 +29,22 @@ function isMenu(entry: NavEntry): entry is NavMenu {
 
 const NAV: NavEntry[] = [
   {
+    href: "/board",
+    label: "Board",
+    icon: Grid2x2,
+    isActive: (p) => p.startsWith("/board"),
+  },
+  {
     href: "/",
-    label: "Home",
+    label: "Pipeline",
     emoji: "🏠",
-    // Home owns the pipeline overview only; drill-ins each have their own menu now.
+    // Pipeline owns the pipeline overview only; drill-ins each have their own menu now.
     isActive: (p) =>
+      !p.startsWith("/board") &&
       !p.startsWith("/admin/limits") &&
       !p.startsWith("/companies") &&
       !p.startsWith("/kp/") &&
+      !p.startsWith("/contacts") &&
       !p.startsWith("/architecture") &&
       !p.startsWith("/projects") &&
       !p.startsWith("/project/") &&
@@ -42,9 +52,15 @@ const NAV: NavEntry[] = [
   },
   {
     href: "/companies",
-    label: "Companies",
+    label: "Brand",
     emoji: "🏢",
     isActive: (p) => p.startsWith("/companies") || p.startsWith("/kp/"),
+  },
+  {
+    href: "/contacts",
+    label: "Contacts",
+    icon: Users,
+    isActive: (p) => p.startsWith("/contacts"),
   },
   {
     href: "/projects",
@@ -134,7 +150,13 @@ export function Sidebar() {
                       : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   }`}
                 >
-                  <span className="text-base w-5 text-center shrink-0 leading-none">{item.emoji}</span>
+                  {item.icon ? (
+                    <span className="w-5 flex justify-center shrink-0">
+                      <item.icon className="w-4 h-4" />
+                    </span>
+                  ) : (
+                    <span className="text-base w-5 text-center shrink-0 leading-none">{item.emoji}</span>
+                  )}
                   {!collapsed && (
                     <>
                       <span className="whitespace-nowrap overflow-hidden flex-1 text-left">{item.label}</span>
@@ -159,7 +181,13 @@ export function Sidebar() {
                             : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                         }`}
                       >
-                        <span className="text-sm w-4 text-center shrink-0 leading-none">{child.emoji}</span>
+                        {child.icon ? (
+                          <span className="w-4 flex justify-center shrink-0">
+                            <child.icon className="w-3.5 h-3.5" />
+                          </span>
+                        ) : (
+                          <span className="text-sm w-4 text-center shrink-0 leading-none">{child.emoji}</span>
+                        )}
                         <span className="whitespace-nowrap overflow-hidden">{child.label}</span>
                       </Link>
                     );
@@ -179,7 +207,13 @@ export function Sidebar() {
                   : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
               }`}
             >
-              <span className="text-base w-5 text-center shrink-0 leading-none">{item.emoji}</span>
+              {item.icon ? (
+                <span className="w-5 flex justify-center shrink-0">
+                  <item.icon className="w-4 h-4" />
+                </span>
+              ) : (
+                <span className="text-base w-5 text-center shrink-0 leading-none">{item.emoji}</span>
+              )}
               {!collapsed && <span className="whitespace-nowrap overflow-hidden">{item.label}</span>}
             </Link>
           );
