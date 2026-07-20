@@ -136,6 +136,21 @@ export interface RevShareTermsSnapshot {
   sourceOfRevenueAccrued?: string;
   frequency?: string;
   dueDate?: string;
+  /** Monthly revenue model at IC time — absent on older recap rows predating this comparison. */
+  revProjectionArray?: Array<{ month: number; revenue: number }>;
+}
+
+/** Fixed-schedule specifics for a historical recap row (Cross Projects Table "Fixed Amount" + ROIC rows). */
+export interface FixedAmountSnapshot {
+  totalRepayment: number;
+  /** e.g. 33 for "33% of Disbursed" — null if not applicable/unknown. */
+  pctOfDisbursed: number | null;
+  /** e.g. "Fixed Installment: Rp13.88jt per month starting from branch opening". */
+  installmentDescription: string;
+  /** "Fixed Payment Investor ROIC per Month" — flat %, e.g. 1.6 for "1.60%". */
+  investorRoicPerMonthPct: number;
+  /** "Fixed Payment Total implied ROIC per Month" — flat %, e.g. 2.02. */
+  totalRoicPerMonthPct: number;
 }
 
 export interface PastProject {
@@ -187,6 +202,12 @@ export interface PastProject {
     dailyPctInvestors: number;
     dailyPctASN: number;
   } | null;
+  /** Legal entity (PT) name at IC time for this row — Cross Projects Table "PT" row. */
+  ptName?: string | null;
+  /** Opening-branch schedule at IC time for this row — Cross Projects Table "Branch Opening" row. */
+  branchOpening?: { scheduledDate: string; actualDate?: string | null } | null;
+  /** Fixed-schedule terms at IC time for this row — Cross Projects Table "Fixed Amount" + ROIC rows. */
+  fixedAmountSnapshot?: FixedAmountSnapshot | null;
 }
 
 export interface DisbursementRow {
@@ -202,6 +223,9 @@ export interface BranchInfo {
   gmapsLink: string | null;
   notes: string;
   type: "Opening Branch" | "Accruing Branch";
+  /** Opening branches only — scheduled vs. actual opening date (Cross Projects Table "Branch Opening" row). */
+  scheduledOpeningDate?: string | null;
+  actualOpeningDate?: string | null;
 }
 
 export interface RevenueShareTerms {

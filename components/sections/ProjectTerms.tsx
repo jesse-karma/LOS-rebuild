@@ -25,6 +25,8 @@ export function ProjectTerms({ project }: Props) {
   const assetB = isAssetB(project.assetClass);
   const bDailyRecap = assetB && project.dailyInterestTerms ? dailyRecapFromProject(project) : null;
   const bKindForTerms = isAssetBI(project.assetClass) ? "B-I" : "B-PO";
+  // A pure Plafond request is a limit ask, not a financing tranche — there's no disbursement schedule to show.
+  const isPlafondOnly = project.approvalType === "Plafond";
 
   const totalDisbursed = disbursements.reduce((s, d) => s + d.plannedAmount, 0);
   const disbursementTarget = project.trancheTargetAmount ?? project.requestedAmount;
@@ -43,6 +45,12 @@ export function ProjectTerms({ project }: Props) {
         {/* Disbursement schedule */}
         <div>
           <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Disbursement Schedule</h4>
+          {isPlafondOnly ? (
+            <p className="text-xs text-gray-400 italic">
+              No disbursement schedule — this is a Plafond-only request (a limit increase, not a new financing tranche).
+            </p>
+          ) : (
+          <>
           {assetB && (
             <div className="text-xs text-gray-700 mb-2">
               <span className="font-semibold text-gray-500 uppercase tracking-wide text-[10px]">Project target amount</span>
@@ -87,6 +95,8 @@ export function ProjectTerms({ project }: Props) {
               </tbody>
             </table>
           </div>
+          </>
+          )}
         </div>
 
         {/* Revenue Share Terms */}
@@ -268,7 +278,9 @@ export function ProjectTerms({ project }: Props) {
               <div className="font-medium text-gray-500 mb-1">Fixed Repayment Summary</div>
               <div className="font-semibold">{fmt(frt.totalRepayment)} Total Fixed Repayment</div>
               <div className="text-gray-500">
-                {(frt.totalRepayment / project.requestedAmount).toFixed(2)}x of Total Project Amount
+                {project.requestedAmount > 0
+                  ? `${(frt.totalRepayment / project.requestedAmount).toFixed(2)}x of Total Project Amount`
+                  : "N/A — no project amount (Plafond-only request)"}
               </div>
               <div className="mt-1 space-y-0.5">
                 <div>{fmt(frt.totalPrincipal)} Principal</div>
@@ -315,7 +327,7 @@ export function ProjectTerms({ project }: Props) {
             <DataRow
               label="Late Fee Basis"
               value={
-                assetB && bDailyRecap ? (
+                assetB ? (
                   lateFeeBasisWarningB(bKindForTerms, lateFee.basis) ? (
                     <span>
                       {lateFee.basis}{" "}
@@ -339,7 +351,7 @@ export function ProjectTerms({ project }: Props) {
             <DataRow
               label="Late Fee Grace Period (days)"
               value={
-                assetB && bDailyRecap ? (
+                assetB ? (
                   lateFeeGraceWarningB(bKindForTerms, lateFee.gracePeriodDays) ? (
                     <span>
                       {lateFee.gracePeriodDays} days{" "}

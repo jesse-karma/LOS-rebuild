@@ -1,4 +1,4 @@
-import type { ICProject, PastProject, RevenueShareTerms, RevShareTermsSnapshot } from "@/data/types";
+import type { FixedAmountSnapshot, ICProject, PastProject, RevenueShareTerms, RevShareTermsSnapshot } from "@/data/types";
 import { fmtPct } from "@/components/ui/DataRow";
 
 export function toRevShareSnapshot(rst: RevenueShareTerms): RevShareTermsSnapshot {
@@ -16,6 +16,7 @@ export function toRevShareSnapshot(rst: RevenueShareTerms): RevShareTermsSnapsho
     sourceOfRevenueAccrued: rst.sourceOfRevenueAccrued,
     frequency: rst.frequency,
     dueDate: rst.dueDate,
+    revProjectionArray: rst.revProjectionArray,
   };
 }
 
@@ -37,6 +38,26 @@ export function getRecapRowRevShareSnapshot(project: ICProject, p: PastProject):
     return toRevShareSnapshot(project.revenueShareTerms);
   }
   return p.revShareTermsSnapshot ?? null;
+}
+
+/**
+ * Fixed-schedule specifics for a recap row (Cross Projects Table "Fixed Amount" + ROIC rows).
+ * Only historical rows carry this today — the live row has no equivalent narrative/ROIC computation
+ * yet (pctOfDisbursed / installmentDescription / ROIC-per-month aren't derivable from FixedReturnTerms
+ * alone), so a live pure-Fixed Proposed row shows dash here rather than guessing at the figures.
+ */
+export function getRecapRowFixedAmountSnapshot(p: PastProject): FixedAmountSnapshot | null {
+  return p.fixedAmountSnapshot ?? null;
+}
+
+/** True when this row's financing is Fixed-only (no revenue-share component) — the CSV spec's
+ *  distinction between Format A (includes a pure-Fixed row, adds the two ROIC-per-month rows)
+ *  and Format B (Revenue Share family only, those two rows don't apply). */
+export function isPureFixedRow(project: ICProject, p: PastProject): boolean {
+  if (p.isCurrentSubmission) {
+    return Boolean(project.fixedReturnTerms) && !project.revenueShareTerms;
+  }
+  return Boolean(p.fixedAmountSnapshot);
 }
 
 export function formatTimeCapPeriodMonths(s: RevShareTermsSnapshot): string {

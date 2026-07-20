@@ -217,7 +217,10 @@ const projectHolycow: ICProject = {
         sourceOfRevenueAccrued: "Sales setelah dikurangi diskon, sebelum PB1/PPN, sebelum Service Charge",
         frequency: "Monthly",
         dueDate: "Tanggal 15 setiap bulan",
+        revProjectionArray: monthsRevenueProjection(20, 300_000_000),
       },
+      ptName: "PT AHARA BHADRANAYA INDONESIA",
+      branchOpening: { scheduledDate: "2021-05-15", actualDate: "2021-05-15" },
     },
     {
       id: "pp-hc2",
@@ -257,7 +260,10 @@ const projectHolycow: ICProject = {
           "Sales setelah dikurangi diskon, sebelum PB1/PPN, sebelum Service Charge, sebelum komisi online dan biaya EDC/QRIS",
         frequency: "Monthly",
         dueDate: "Tanggal 15 setiap bulan",
+        revProjectionArray: monthsRevenueProjection(24, 300_000_000),
       },
+      ptName: "PT AHARA BHADRANAYA INDONESIA",
+      branchOpening: { scheduledDate: "2022-11-15", actualDate: "2022-11-16" },
     },
     {
       id: "pp-hc3",
@@ -293,6 +299,7 @@ const projectHolycow: ICProject = {
       notes:
         "Outlet Medan pertama Holycow. Lokasi premium di Sun Plaza — anchor tenant di Medan. Total area 350m², kapasitas 120 covers. Pembukaan awal Okt 2024, sekarang sedang dalam tahap full renovation untuk upgrade layout dan kitchen. Kontrak sewa 5 tahun + opsi perpanjang 3 tahun.",
       type: "Opening Branch",
+      scheduledOpeningDate: "2026-06-15",
     },
   ],
   revenueShareTerms: {
@@ -1120,9 +1127,9 @@ const projectCEA: ICProject = {
     secondaryAnalyst: "Armeno Devan",
   },
 
-  projectNumberForKP: 1,
-  brandActiveProjects: 1,
-  brandCompletedProjects: 0,
+  projectNumberForKP: 2,
+  brandActiveProjects: 0,
+  brandCompletedProjects: 1,
   brandBeforeICProjects: 0,
   brandPendingDisbursementProjects: 0,
   mainSector: "Assorted B2B Services and Manufacturing",
@@ -1205,6 +1212,38 @@ const projectCEA: ICProject = {
   ],
 
   pastProjects: [
+    {
+      id: "pp-cea-az0",
+      projectName: "Cahaya Energi Asia - Aztech #0",
+      status: "Completed",
+      icApprovalDate: "2025-06-10",
+      bRecapKind: "B-PO",
+      payors: ["Aztech Group"],
+      returnType: "Daily Interest",
+      amount: 4_000_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 3,
+      otfTermMonths: 3,
+      otfIRR: 17.9,
+      projectedIRR: 17.5,
+      otfMOIC: 1.04,
+      projectedMOIC: "1.04x",
+      projectedBEPMonths: 2,
+      currentDPD: 0,
+      maxDPD: 0,
+      ptName: "PT Cahaya Energi Asia",
+      dailyInterestRecap: {
+        interestRate30DayPct: 1.6,
+        serviceFee30DayPct: 0.6,
+        tenorDays: 90,
+        minInterestPeriodDays: 45,
+        serviceFeeDailyBasis: "Outstanding Principal",
+        lateFeeBasis: "Overdue Amount",
+        gracePeriodDays: 5,
+        dailyPctInvestors: 0.08,
+        dailyPctASN: 0.02,
+      },
+    },
     {
       id: "pp-cea-az1",
       projectName: "Cahaya Energi Asia - Aztech #1",
@@ -1456,6 +1495,40 @@ const projectAssetDPlafond: ICProject = {
 
   pastProjects: [
     {
+      id: "pp-maju-2",
+      projectName: "Maju (#2) — Fixed Repayment Facility",
+      status: "Completed",
+      icApprovalDate: "2024-01-15",
+      sector: "Consumer Goods",
+      taxWithholdings: "Yes",
+      returnType: "Fixed Return",
+      amount: 3_000_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 24,
+      otfTermMonths: 24,
+      otfIRR: 15.8,
+      projectedIRR: 15.2,
+      otfMOIC: 1.24,
+      projectedMOIC: "1.22x",
+      projectedBEPMonths: 13,
+      currentDPD: 0,
+      maxDPD: 0,
+      ptName: "PT Maju (legal name from Brand in Coda)",
+      fixedAmountSnapshot: {
+        totalRepayment: 900_000_000,
+        pctOfDisbursed: 30,
+        installmentDescription: "Fixed Installment: Rp37.5jt per month for 24 months starting from disbursement",
+        investorRoicPerMonthPct: 1.25,
+        totalRoicPerMonthPct: 1.56,
+      },
+      lateFeeRecap: {
+        basis: "Overdue Amount",
+        gracePeriodDays: 5,
+        dailyPctInvestors: 0.08,
+        dailyPctASN: 0.02,
+      },
+    },
+    {
       id: "pp-maju-3",
       projectName: "Maju (#3) — Prior facility",
       status: "Completed",
@@ -1475,6 +1548,7 @@ const projectAssetDPlafond: ICProject = {
       currentDPD: 0,
       maxDPD: 0,
       pvaPct: 0.94,
+      ptName: "PT Maju (legal name from Brand in Coda)",
       revShareTermsSnapshot: {
         capType: "Return Cap",
         capMultiple: 1.3,
@@ -1490,6 +1564,7 @@ const projectAssetDPlafond: ICProject = {
           "KP net sales (after discounts, before VAT) as booked in management accounts — working-capital facility; revenue definition per term sheet",
         frequency: "Monthly",
         dueDate: "10th calendar day",
+        revProjectionArray: monthsRevenueProjection(24, 150_000_000),
       },
       lateFeeRecap: {
         basis: "Overdue Amount",
@@ -3934,6 +4009,695 @@ const projectTokoBangunan: ICProject = {
   conditionsSubsequentLogic: "",
 };
 
+// ─── Project 18: Roti Bahagia — Asset D, Plafond-only (pure limit increase) ──
+// Repeat KP asking for a working-capital plafond increase; no new project/tranche.
+
+const projectRotiBahagiaPlafond: ICProject = {
+  id: "proj-roti-bahagia-plafond",
+  brandName: "Roti Bahagia",
+  brandIsNew: false,
+  projectName: "Roti Bahagia — Working Capital Plafond Increase",
+  approvalType: "Plafond",
+  submittedAt: "2026-07-01T09:00:00Z",
+
+  pic: {
+    submitter: "Priska Ponggawa",
+    primaryAnalyst: "Priska Ponggawa",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 3,
+  brandActiveProjects: 1,
+  brandCompletedProjects: 1,
+  brandBeforeICProjects: 0,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "F&B",
+  subSector: "🍞Bakery & Pastry",
+  syariah: false,
+  assetClass: "D",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 0,
+  icVoteBasisAmount: 5_000_000_000,
+  amountWarning: null,
+  financingUse: "Working Capital Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: {
+      totalLimit: 5_000_000_000,
+      poSubLimit: 0,
+      wcSubLimit: 5_000_000_000,
+    },
+    current: {
+      totalLimit: 3_000_000_000,
+      poSubLimit: 0,
+      wcSubLimit: 3_000_000_000,
+      effectiveDate: "2025-01-15",
+      expiryDate: "2028-01-15",
+      limitStatus: "Active",
+    },
+    outstandingTotal: 1_800_000_000,
+    outstandingWC: 1_800_000_000,
+    remainingTotal: 1_200_000_000,
+    remainingPO: 0,
+    remainingWC: 1_200_000_000,
+    superseded: [
+      {
+        totalLimit: 1_500_000_000,
+        poSubLimit: 0,
+        wcSubLimit: 1_500_000_000,
+        effectiveDate: "2023-06-01",
+        expiryDate: "2025-01-14",
+      },
+    ],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-06-28",
+      financialReportsReviewed: "Management accounts + bank statements Q1-Q2 2026",
+      periodEndingDate: "2026-06-30",
+      limitRecommendation: "Increase",
+      limitCurrentIdr: 3_000_000_000,
+      limitRecommendedIdr: 5_000_000_000,
+      reviewNotes:
+        "Repeat KP dengan 2 fasilitas working capital sebelumnya, keduanya lancar tanpa keterlambatan. Volume produksi naik signifikan setelah buka 2 outlet baru — kebutuhan modal kerja meningkat proporsional.",
+    },
+  ],
+
+  referralSource: "2nd+ project",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  firstProjectReferralOverride: {
+    referralSource: "Cold calling",
+    specificReferror: null,
+    referrorBelongsToKP: null,
+  },
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-rb1",
+      name: "Dewi Anggraini",
+      whatsapp: "+62 - 813 9988 7766",
+      email: "dewi@rotibahagia.id",
+      role: "Founder / Direktur",
+      notesOnPerson:
+        "Founder Roti Bahagia, mengelola 3 outlet bakery. Sangat rapi soal pencatatan keuangan, selalu submit laporan tepat waktu.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-dewi-anggraini",
+      slikExecSummary: "SLIK bersih. Tidak ada catatan negatif per Juni 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-rb-1",
+      projectName: "Roti Bahagia (#1) — Working Capital",
+      status: "Completed",
+      icApprovalDate: "2023-05-20",
+      returnType: "Fixed Return",
+      amount: 1_000_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 18,
+      otfTermMonths: 18,
+      otfIRR: 16.4,
+      projectedIRR: 16.0,
+      otfMOIC: 1.24,
+      projectedMOIC: "1.22x",
+      projectedBEPMonths: 10,
+      currentDPD: 0,
+      maxDPD: 0,
+      pvaPct: 1.0,
+    },
+    {
+      id: "pp-rb-2",
+      projectName: "Roti Bahagia (#2) — Working Capital",
+      status: "Active",
+      icApprovalDate: "2025-01-10",
+      returnType: "Fixed Return",
+      amount: 1_800_000_000,
+      outstandingAmount: 1_800_000_000,
+      projectedTermMonths: 24,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 17.2,
+      otfMOIC: null,
+      projectedMOIC: "1.28x",
+      projectedBEPMonths: 12,
+      currentDPD: 0,
+      maxDPD: 0,
+      pvaPct: 0.58,
+    },
+    {
+      id: "pp-rb-3",
+      projectName: "Roti Bahagia — Working Capital Plafond Increase",
+      status: "Proposed",
+      icApprovalDate: "2026-07-01",
+      isCurrentSubmission: true,
+      returnType: "Fixed Return",
+      amount: 0,
+      outstandingAmount: 0,
+      projectedTermMonths: 0,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 0,
+      otfMOIC: null,
+      projectedMOIC: "—",
+      projectedBEPMonths: 0,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Fixed Return",
+  disbursements: [],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  lateFee: {
+    basis: "Overdue Amount",
+    gracePeriodDays: 5,
+    dailyPctInvestors: 0.08,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Roti Bahagia**\n\nRepeat KP, 2 fasilitas working capital sebelumnya lancar tanpa keterlambatan. Ekspansi ke 2 outlet baru mendorong kebutuhan modal kerja lebih besar.",
+  projectCreditMemo:
+    "**Project Credit Memo — Plafond Increase**\n\nPure limit request, tidak ada tranche/project baru. Kenaikan plafond WC dari Rp3.0B ke Rp5.0B untuk mendukung volume produksi yang meningkat.",
+  financialsLink: null,
+  projectNotes: [
+    {
+      author: "Priska Ponggawa",
+      date: "2026-07-01",
+      noteType: "Project Note",
+      content:
+        "Submission Plafond-only untuk kenaikan limit WC. Tidak ada tranche baru — murni penyesuaian plafond mengikuti pertumbuhan volume produksi.",
+    },
+    {
+      author: "Priska Ponggawa",
+      date: "2026-06-20",
+      noteType: "KP Note",
+      attendee: "Dewi Anggraini",
+      content:
+        "Site visit ke outlet baru — kedua lokasi beroperasi lancar, permintaan produksi konsisten naik sejak dibuka.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-rb1",
+      name: "PT Roti Bahagia Sejahtera",
+      bank: "BCA",
+      accountNumber: "4550019987",
+      accountholderName: "ROTI BAHAGIA SEJAHTERA",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-roti-bahagia",
+      slikExecSummary: "PT aktif sejak 2021. SLIK bersih per Juni 2026.",
+      warnings: [],
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "",
+  specialNotesForIC: "⚠️ Plafond-only request — tidak ada tranche/project baru. Kenaikan limit WC dari Rp3.0B ke Rp5.0B.",
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 19: Sinar Tekstil Abadi — Asset B-I, PO/Invoice + Plafond ───────
+// Invoice financing tranche combined with an invoice sub-limit increase request.
+
+const projectSinarTekstilPlafond: ICProject = {
+  id: "proj-sinar-tekstil-plafond",
+  brandName: "Sinar Tekstil Abadi",
+  brandIsNew: false,
+  projectName: "Sinar Tekstil Abadi (#2) — Invoice Financing: Uniqlo Indonesia",
+  approvalType: "PO/Invoice+Plafond",
+  submittedAt: "2026-07-05T09:00:00Z",
+
+  pic: {
+    submitter: "Nila Layla Melinda",
+    primaryAnalyst: "Nila Layla Melinda",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 2,
+  brandActiveProjects: 1,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 0,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Assorted B2B Services and Manufacturing",
+  subSector: "🎽Clothing Manufacturing",
+  syariah: false,
+  assetClass: "B - I",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 900_000_000,
+  trancheTargetAmount: 900_000_000,
+  icVoteBasisAmount: 2_500_000_000,
+  amountWarning: null,
+  financingUse: "Domestic Invoice Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: {
+      totalLimit: 2_500_000_000,
+      poSubLimit: 2_500_000_000,
+      wcSubLimit: 0,
+    },
+    current: {
+      totalLimit: 1_500_000_000,
+      poSubLimit: 1_500_000_000,
+      wcSubLimit: 0,
+      effectiveDate: "2025-09-01",
+      expiryDate: "2028-09-01",
+      limitStatus: "Active",
+    },
+    outstandingTotal: 600_000_000,
+    outstandingWC: 0,
+    remainingTotal: 900_000_000,
+    remainingPO: 900_000_000,
+    remainingWC: 0,
+    superseded: [],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-07-02",
+      financialReportsReviewed: "Management accounts + rekening koran Q2 2026",
+      periodEndingDate: "2026-06-30",
+      limitRecommendation: "Increase",
+      limitCurrentIdr: 1_500_000_000,
+      limitRecommendedIdr: 2_500_000_000,
+      reviewNotes:
+        "Volume invoice dari Uniqlo Indonesia meningkat konsisten sejak fasilitas pertama — rekomendasi naikkan sub-limit invoice agar sesuai pipeline order 6 bulan ke depan.",
+    },
+  ],
+
+  referralSource: "2nd+ project",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  firstProjectReferralOverride: {
+    referralSource: "Karmapreneur",
+    specificReferror: "Regina Tiffani",
+    referrorBelongsToKP: null,
+  },
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-sta1",
+      name: "Budi Santoso",
+      whatsapp: "+62 - 815 4433 2211",
+      email: "budi@sinartekstil.id",
+      role: "Direktur Operasional",
+      notesOnPerson:
+        "Menjalankan operasional harian, fokus manufaktur garmen untuk retail besar. Detail soal dokumentasi invoice dan PO.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-budi-santoso",
+      slikExecSummary: "SLIK bersih per Juli 2026. Tidak ada catatan negatif.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-sta-1",
+      projectName: "Sinar Tekstil Abadi (#1) — Invoice Financing: Uniqlo Indonesia",
+      status: "Active",
+      icApprovalDate: "2025-09-05",
+      bRecapKind: "B-I",
+      payors: ["Uniqlo Indonesia"],
+      returnType: "Daily Interest",
+      amount: 600_000_000,
+      outstandingAmount: 600_000_000,
+      projectedTermMonths: 3,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 17.8,
+      otfMOIC: null,
+      projectedMOIC: "1.04x",
+      projectedBEPMonths: 2,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+    {
+      id: "pp-sta-2",
+      projectName: "Sinar Tekstil Abadi (#2) — Invoice Financing: Uniqlo Indonesia",
+      status: "Proposed",
+      icApprovalDate: "2026-07-05",
+      isCurrentSubmission: true,
+      bRecapKind: "B-I",
+      payors: ["Uniqlo Indonesia"],
+      returnType: "Daily Interest",
+      amount: 900_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 3,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 18.2,
+      otfMOIC: null,
+      projectedMOIC: "1.05x",
+      projectedBEPMonths: 2,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [{ tranche: 1, plannedAmount: 900_000_000, plannedDate: "2026-07-20" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: {
+    interestRate30DayPct: 1.5,
+    serviceFee30DayPct: 0.5,
+    tenorDays: 90,
+    minInterestPeriodDays: 45,
+    serviceFeeDailyBasis: "Outstanding Principal",
+  },
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.05,
+    dailyPctASN: 0.5 / 30,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Sinar Tekstil Abadi**\n\nManufaktur garmen dengan anchor buyer Uniqlo Indonesia. Fasilitas pertama lancar tanpa keterlambatan, volume order konsisten naik.",
+  projectCreditMemo:
+    "**Project Credit Memo — Invoice Financing #2**\n\nTranche IDR 900jt daily interest, tenor 90 hari. Digabung dengan kenaikan sub-limit invoice dari Rp1.5B ke Rp2.5B untuk mengakomodasi volume order yang bertambah.",
+  financialsLink: "https://docs.google.com/spreadsheets/d/example-sinar-tekstil-calc",
+  projectNotes: [
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-07-05",
+      noteType: "Project Note",
+      content:
+        "Submission PO/Invoice + Plafond. Tranche kedua dengan kenaikan sub-limit invoice mengikuti volume order Uniqlo yang bertambah.",
+    },
+    {
+      author: "Nila Layla Melinda",
+      date: "2026-06-18",
+      noteType: "KP Note",
+      attendee: "Budi Santoso",
+      content: "Follow-up soal volume order Q3 — Budi konfirmasi kenaikan order dari Uniqlo untuk koleksi musim berikutnya.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-sta1",
+      name: "PT Sinar Tekstil Abadi",
+      bank: "Mandiri",
+      accountNumber: "1330045567",
+      accountholderName: "SINAR TEKSTIL ABADI",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-sinar-tekstil",
+      slikExecSummary: "PT aktif sejak 2020. SLIK bersih per Juli 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [
+    {
+      id: "pay-sta-1",
+      payorLabel: "Uniqlo Indonesia",
+      poOrInvoiceNumber: "INV-UNQ-2026-3390",
+      dueDate: "2026-10-18",
+      amount: 900_000_000,
+      currency: "IDR",
+      payorType: "Corporate Invoice (anchor)",
+      payeeProjects: "Sinar Tekstil Abadi — Invoice Financing #2",
+      notes: "Invoice manufaktur garmen; dokumentasi lengkap di GDrive.",
+      riskLevel: "Low",
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "",
+  specialNotesForIC:
+    "⚠️ Combined IC: tranche IDR 900jt (Daily Interest) + plafond line (naik ke IDR 2.5B PO sub-limit dari IDR 1.5B aktif).",
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [
+    { letter: "A", name: "", condition: "Execute invoice documentation before disbursement", approver: "" },
+  ],
+  conditionsSubsequentLogic: "",
+};
+
+// ─── Project 20: Grosir Sembako Makmur — Asset B-PO, Plafond-only ────────────
+// Pure PO sub-limit increase request; no underlying PO/Invoice tranche this round.
+
+const projectGrosirSembakoPlafond: ICProject = {
+  id: "proj-grosir-sembako-plafond",
+  brandName: "Grosir Sembako Makmur",
+  brandIsNew: false,
+  projectName: "Grosir Sembako Makmur — PO Sub-Limit Increase",
+  approvalType: "Plafond",
+  submittedAt: "2026-07-08T09:00:00Z",
+
+  pic: {
+    submitter: "Wesly Simatupang",
+    primaryAnalyst: "Wesly Simatupang",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 4,
+  brandActiveProjects: 1,
+  brandCompletedProjects: 2,
+  brandBeforeICProjects: 0,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "Commodities Trading, Processing, & Distribution",
+  subSector: "🥨FMCG Distribution",
+  syariah: false,
+  assetClass: "B - PO",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 0,
+  icVoteBasisAmount: 4_500_000_000,
+  amountWarning: null,
+  financingUse: "Domestic PO Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: {
+      totalLimit: 4_500_000_000,
+      poSubLimit: 4_500_000_000,
+      wcSubLimit: 0,
+    },
+    current: {
+      totalLimit: 3_000_000_000,
+      poSubLimit: 3_000_000_000,
+      wcSubLimit: 0,
+      effectiveDate: "2024-11-01",
+      expiryDate: "2027-11-01",
+      limitStatus: "Active",
+    },
+    outstandingTotal: 2_200_000_000,
+    outstandingWC: 0,
+    remainingTotal: 800_000_000,
+    remainingPO: 800_000_000,
+    remainingWC: 0,
+    superseded: [
+      {
+        totalLimit: 1_800_000_000,
+        poSubLimit: 1_800_000_000,
+        wcSubLimit: 0,
+        effectiveDate: "2023-02-01",
+        expiryDate: "2024-10-31",
+      },
+    ],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2026-07-06",
+      financialReportsReviewed: "Management accounts + rekening koran Q2 2026",
+      periodEndingDate: "2026-06-30",
+      limitRecommendation: "Increase",
+      limitCurrentIdr: 3_000_000_000,
+      limitRecommendedIdr: 4_500_000_000,
+      reviewNotes:
+        "Volume PO distribusi FMCG terus bertumbuh, headroom plafond saat ini sudah mendekati batas. Rekomendasi naikkan sub-limit PO agar sesuai kapasitas order musiman.",
+    },
+  ],
+
+  referralSource: "2nd+ project",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  firstProjectReferralOverride: {
+    referralSource: "Cold calling",
+    specificReferror: null,
+    referrorBelongsToKP: null,
+  },
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-gsm1",
+      name: "Hendra Wijaya",
+      whatsapp: "+62 - 812 6677 8899",
+      email: "hendra@grosirsembako.id",
+      role: "Founder / Direktur Utama",
+      notesOnPerson:
+        "Mengelola distribusi FMCG ke retail modern dan tradisional. Sudah 3 fasilitas PO sebelumnya, selalu lancar.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: "https://drive.google.com/file/slik-hendra-wijaya",
+      slikExecSummary: "SLIK bersih. Tidak ada catatan negatif per Juli 2026.",
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-gsm-1",
+      projectName: "Grosir Sembako Makmur (#2) — PO Financing",
+      status: "Completed",
+      icApprovalDate: "2024-01-15",
+      bRecapKind: "B-PO",
+      payors: ["Indomarco"],
+      returnType: "Daily Interest",
+      amount: 1_500_000_000,
+      outstandingAmount: 0,
+      projectedTermMonths: 2,
+      otfTermMonths: 2,
+      otfIRR: 19.1,
+      projectedIRR: 18.5,
+      otfMOIC: 1.03,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+    {
+      id: "pp-gsm-2",
+      projectName: "Grosir Sembako Makmur (#3) — PO Financing",
+      status: "Active",
+      icApprovalDate: "2025-03-10",
+      bRecapKind: "B-PO",
+      payors: ["Indomarco", "Alfamart"],
+      returnType: "Daily Interest",
+      amount: 2_200_000_000,
+      outstandingAmount: 2_200_000_000,
+      projectedTermMonths: 2,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 19.8,
+      otfMOIC: null,
+      projectedMOIC: "1.03x",
+      projectedBEPMonths: 1,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+    {
+      id: "pp-gsm-3",
+      projectName: "Grosir Sembako Makmur — PO Sub-Limit Increase",
+      status: "Proposed",
+      icApprovalDate: "2026-07-08",
+      isCurrentSubmission: true,
+      returnType: "Daily Interest",
+      amount: 0,
+      outstandingAmount: 0,
+      projectedTermMonths: 0,
+      otfTermMonths: null,
+      otfIRR: null,
+      projectedIRR: 0,
+      otfMOIC: null,
+      projectedMOIC: "—",
+      projectedBEPMonths: 0,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Daily Interest",
+  disbursements: [],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: null,
+  dailyInterestTerms: null,
+  lateFee: {
+    basis: "Outstanding Principal",
+    gracePeriodDays: 0,
+    dailyPctInvestors: 0.0533,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Grosir Sembako Makmur**\n\nDistributor FMCG dengan 3 fasilitas PO sebelumnya, semua lancar. Volume order terus bertumbuh mengikuti ekspansi jaringan retail modern.",
+  projectCreditMemo:
+    "**Project Credit Memo — PO Sub-Limit Increase**\n\nPure limit request, tidak ada tranche PO baru. Kenaikan sub-limit PO dari Rp3.0B ke Rp4.5B untuk mengakomodasi kapasitas order musiman.",
+  financialsLink: null,
+  projectNotes: [
+    {
+      author: "Wesly Simatupang",
+      date: "2026-07-08",
+      noteType: "Project Note",
+      content:
+        "Submission Plafond-only untuk kenaikan sub-limit PO. Tidak ada tranche baru — murni penyesuaian mengikuti volume order musiman.",
+    },
+    {
+      author: "Wesly Simatupang",
+      date: "2026-06-25",
+      noteType: "KP Note",
+      attendee: "Hendra Wijaya",
+      content: "Check-in rutin — Hendra update volume order Q3 diproyeksi naik seiring musim belanja akhir tahun.",
+    },
+  ],
+
+  ptDetails: [
+    {
+      id: "pt-gsm1",
+      name: "PT Grosir Sembako Makmur",
+      bank: "BNI",
+      accountNumber: "0219987654",
+      accountholderName: "GROSIR SEMBAKO MAKMUR",
+      slikFileUrl: "https://drive.google.com/file/slik-pt-grosir-sembako",
+      slikExecSummary: "PT aktif sejak 2019. SLIK bersih per Juli 2026.",
+      warnings: [],
+    },
+  ],
+
+  payorInvoices: [],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: null, votedAt: null },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: null, votedAt: null },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: null, votedAt: null },
+  ],
+  approvalNotes: "",
+  specialNotesForIC: "⚠️ Plafond-only request — tidak ada tranche PO baru. Kenaikan sub-limit PO dari Rp3.0B ke Rp4.5B.",
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [],
+  conditionsSubsequentLogic: "",
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 
 export const mockProjects: ICProject[] = [
@@ -3953,6 +4717,9 @@ export const mockProjects: ICProject[] = [
   projectBakmiNaga,
   projectPercetakanMedia,
   projectTokoBangunan,
+  projectRotiBahagiaPlafond,
+  projectSinarTekstilPlafond,
+  projectGrosirSembakoPlafond,
 ];
 
 export function getProjectById(id: string): ICProject | undefined {

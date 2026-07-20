@@ -354,9 +354,13 @@ export function ProjectDetailsSection({ project }: Props) {
         <DataRow
           label="Requested Project Amount"
           value={
-            <span className="font-semibold text-gray-900">
-              {fmt(project.trancheTargetAmount ?? project.requestedAmount, project.requestedAmountCurrency)}
-            </span>
+            project.approvalType === "Plafond" && trancheOrProjectAmount === 0 ? (
+              <span className="text-gray-400 italic">N/A — Plafond-only request (limit increase, no project amount)</span>
+            ) : (
+              <span className="font-semibold text-gray-900">
+                {fmt(project.trancheTargetAmount ?? project.requestedAmount, project.requestedAmountCurrency)}
+              </span>
+            )
           }
         />
       </div>

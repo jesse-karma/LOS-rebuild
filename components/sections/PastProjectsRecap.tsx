@@ -8,6 +8,8 @@ import { sortPastProjectsRecapRows } from "@/lib/pastProjectsRecapSort";
 import { isAssetB } from "@/lib/assetClass";
 import {
   getRecapRowRevShareSnapshot,
+  getRecapRowFixedAmountSnapshot,
+  isPureFixedRow,
   formatMinInvestorReturnPaymentType,
   formatMinReturnMultiple,
   formatMinReturnPayableMonths,
@@ -35,6 +37,24 @@ interface Props {
   project: ICProject;
 }
 
+/** "Scheduled: {date}" alone, or "Actual: {date}" + "Scheduled: {date}" + a days early/late diff. */
+function branchOpeningText(scheduledDate: string, actualDate: string | null | undefined): React.ReactNode {
+  if (!actualDate) {
+    return <div>Scheduled: {fmtDate(scheduledDate)}</div>;
+  }
+  const diffDays = Math.round(
+    (new Date(actualDate).getTime() - new Date(scheduledDate).getTime()) / (1000 * 60 * 60 * 24)
+  );
+  const diffLabel = diffDays === 0 ? "On schedule" : diffDays > 0 ? `${diffDays}d late` : `${-diffDays}d early`;
+  return (
+    <div className="leading-snug">
+      <div>Actual: {fmtDate(actualDate)}</div>
+      <div className="text-gray-500 text-[10px]">Scheduled: {fmtDate(scheduledDate)}</div>
+      <div className={diffDays > 0 ? "text-amber-600 text-[10px]" : "text-gray-500 text-[10px]"}>{diffLabel}</div>
+    </div>
+  );
+}
+
 /**
  * Spec (A&D card, "Proposed Project"): transposed recap — one column per project
  * (Proposed to the far left), metric rows grouped A–F. Proposed column reads the
@@ -47,6 +67,10 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
 
   const rst = project.revenueShareTerms;
   const frt = project.fixedReturnTerms;
+
+  // Format A (adds the two Fixed-payment ROIC rows below) vs Format B (Revenue Share family only) —
+  // per the Cross Projects Table spec, those rows only appear when a pure-Fixed row is in the cohort.
+  const hasFixedOnlyRow = projects.some((p) => isPureFixedRow(project, p));
 
   // Baseline for the "different from previous project of the same Financing Type" warnings.
   const prevProject = previousProjectOfSameType(project, projects);
@@ -131,7 +155,7 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         { label: "Financing Use", cell: (p) => (isLiveRow(p) ? project.financingUse : dash) },
         {
           label: "PT (Legal Entity)",
-          cell: (p) => (isLiveRow(p) ? project.ptDetails[0]?.name || dash : dash),
+          cell: (p) => (isLiveRow(p) ? project.ptDetails[0]?.name || dash : p.ptName ?? dash),
         },
         { label: "Amount Disbursed", cell: (p) => <span className="font-medium">{fmt(p.amount)}</span> },
         {
@@ -180,14 +204,27 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         {
           label: "Fixed Amount / Repayment",
           cell: (p) => {
-            if (!isLiveRow(p) || !frt) return dash;
+            if (isLiveRow(p)) {
+              if (!frt) return dash;
+              return (
+                <div>
+                  <div className="font-medium">{fmt(frt.totalRepayment)} total</div>
+                  <div className="text-gray-500 text-[10px]">
+                    {frt.repaymentSchedule.length} months · {fmt(frt.totalPrincipal)} principal ·{" "}
+                    {fmt(frt.totalInterest)} interest
+                  </div>
+                </div>
+              );
+            }
+            const fa = getRecapRowFixedAmountSnapshot(p);
+            if (!fa) return dash;
             return (
               <div>
-                <div className="font-medium">{fmt(frt.totalRepayment)} total</div>
-                <div className="text-gray-500 text-[10px]">
-                  {frt.repaymentSchedule.length} months · {fmt(frt.totalPrincipal)} principal ·{" "}
-                  {fmt(frt.totalInterest)} interest
+                <div className="font-medium">
+                  {fmt(fa.totalRepayment)}
+                  {fa.pctOfDisbursed != null && ` (${fa.pctOfDisbursed}% of Disbursed)`}
                 </div>
+                <div className="text-gray-500 text-[10px]">{fa.installmentDescription}</div>
               </div>
             );
           },
@@ -195,14 +232,16 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         {
           label: "Target Carry",
           cell: (p) => {
-            if (!isLiveRow(p) || !rst) return dash;
+            const s = getRecapRowRevShareSnapshot(project, p);
+            if (!s || s.carryPct === undefined) return dash;
+            const carryPct = s.carryPct;
             const mismatch =
               prevSnapshot?.carryPct !== undefined &&
-              (prevSnapshot.carryPct !== rst.carryPct || prevSnapshot.carryType !== rst.carryType);
+              (prevSnapshot.carryPct !== carryPct || prevSnapshot.carryType !== s.carryType);
             return (
               <div>
                 <div>
-                  {fmtPct(rst.carryPct)} {rst.carryType}
+                  {fmtPct(carryPct)} {s.carryType}
                 </div>
                 {mismatch && differsWarning}
               </div>
@@ -228,19 +267,21 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         {
           label: "Branch Opening",
           cell: (p) => {
-            if (!isLiveRow(p)) return dash;
-            const opening = project.branches.filter((b) => b.type === "Opening Branch");
-            if (opening.length === 0) return dash;
-            return (
-              <div className="leading-snug">
-                {opening.map((b) => (
-                  <div key={b.id}>
-                    {b.name}
-                    {b.area ? ` (${b.area})` : ""}
-                  </div>
-                ))}
-              </div>
-            );
+            if (isLiveRow(p)) {
+              const opening = project.branches.filter(
+                (b) => b.type === "Opening Branch" && b.scheduledOpeningDate
+              );
+              if (opening.length === 0) return dash;
+              return (
+                <div className="space-y-1.5">
+                  {opening.map((b) => (
+                    <div key={b.id}>{branchOpeningText(b.scheduledOpeningDate!, b.actualOpeningDate)}</div>
+                  ))}
+                </div>
+              );
+            }
+            if (!p.branchOpening) return dash;
+            return branchOpeningText(p.branchOpening.scheduledDate, p.branchOpening.actualDate);
           },
         },
       ],
@@ -358,9 +399,10 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         {
           label: "Revenue Projection",
           cell: (p) => {
-            if (!isLiveRow(p) || !rst || rst.revProjectionArray.length === 0) return dash;
-            const arr = rst.revProjectionArray;
-            const avg = arr.reduce((s, r) => s + r.revenue, 0) / arr.length;
+            const snap = getRecapRowRevShareSnapshot(project, p);
+            const arr = snap?.revProjectionArray ?? [];
+            if (arr.length === 0) return dash;
+            const avg = arr.reduce((sum, r) => sum + r.revenue, 0) / arr.length;
             const peak = arr.reduce((a, b) => (b.revenue > a.revenue ? b : a));
             const floor = arr.reduce((a, b) => (b.revenue < a.revenue ? b : a));
             return (
@@ -380,13 +422,14 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         {
           label: "Source of Revenue Accrued",
           cell: (p) => {
-            if (!isLiveRow(p) || !rst) return dash;
+            const s = getRecapRowRevShareSnapshot(project, p);
+            if (!s || s.sourceOfRevenueAccrued === undefined) return dash;
             const mismatch =
               prevSnapshot?.sourceOfRevenueAccrued !== undefined &&
-              prevSnapshot.sourceOfRevenueAccrued !== rst.sourceOfRevenueAccrued;
+              prevSnapshot.sourceOfRevenueAccrued !== s.sourceOfRevenueAccrued;
             return (
               <div>
-                <span className="leading-snug">{rst.sourceOfRevenueAccrued}</span>
+                <span className="leading-snug">{s.sourceOfRevenueAccrued}</span>
                 {mismatch && differsWarning}
               </div>
             );
@@ -400,7 +443,9 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
         {
           label: "Payment Frequency",
           cell: (p) => {
-            if (!isLiveRow(p) || !rst) return dash;
+            const s = getRecapRowRevShareSnapshot(project, p);
+            if (!s || s.frequency === undefined) return dash;
+            const rst = s;
             const text = `${rst.frequency}${rst.dueDate && rst.dueDate !== "—" ? `, ${rst.dueDate}` : ""}`;
             const mismatch =
               (prevSnapshot?.frequency !== undefined && prevSnapshot.frequency !== rst.frequency) ||
@@ -435,6 +480,24 @@ function ADGroupedRecapTable({ project, projects }: { project: ICProject; projec
             return dash;
           },
         },
+        ...(hasFixedOnlyRow
+          ? [
+              {
+                label: "Fixed Payment Investor ROIC per Month",
+                cell: (p: PastProject) => {
+                  const fa = getRecapRowFixedAmountSnapshot(p);
+                  return fa ? fmtPct(fa.investorRoicPerMonthPct) : dash;
+                },
+              },
+              {
+                label: "Fixed Payment Total implied ROIC per Month",
+                cell: (p: PastProject) => {
+                  const fa = getRecapRowFixedAmountSnapshot(p);
+                  return fa ? fmtPct(fa.totalRoicPerMonthPct) : dash;
+                },
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -573,7 +636,8 @@ function AssetBRecapTable({ project, projects }: { project: ICProject; projects:
         { label: "Financing Use", cell: (i) => (isLiveRow(projects[i]) ? project.financingUse : dash) },
         {
           label: "PT (Legal Entity)",
-          cell: (i) => (isLiveRow(projects[i]) ? project.ptDetails[0]?.name || dash : dash),
+          cell: (i) =>
+            isLiveRow(projects[i]) ? project.ptDetails[0]?.name || dash : projects[i].ptName ?? dash,
         },
         { label: "Payor(s)", cell: (i) => cells[i].payors },
         { label: "Amount Disbursed", cell: (i) => cells[i].amount },
@@ -591,7 +655,7 @@ function AssetBRecapTable({ project, projects }: { project: ICProject; projects:
       title: "C — Timeline & Operation",
       rows: [
         { label: "Tenor / Term", cell: (i) => cells[i].term },
-        { label: "Minimum Interest Period (days)", cell: (i) => cells[i].minInt },
+        { label: "Minimum Payment Period", cell: (i) => cells[i].minInt },
       ],
     },
     {
@@ -605,7 +669,11 @@ function AssetBRecapTable({ project, projects }: { project: ICProject; projects:
     },
     {
       title: "F — Payment Mechanics",
-      rows: [{ label: "Late Fee", cell: (i) => cells[i].lateFee }],
+      rows: [
+        { label: "Late Fee", cell: (i) => cells[i].lateFee },
+        { label: "Fixed Payment Investor ROIC per Month", cell: (i) => cells[i].roicInvestor },
+        { label: "Fixed Payment Total implied ROIC per Month", cell: (i) => cells[i].roicTotal },
+      ],
     },
   ];
 
@@ -861,8 +929,25 @@ function bRecapCells(project: ICProject, p: PastProject) {
   const fixedReturnLongWarn = kind === "A/D" && p.returnType === "Fixed Return" && p.projectedTermMonths > 36;
   const generalLongWarn = kind === "A/D" && p.projectedTermMonths > 60;
 
+  // Daily Interest's "Fixed Payment ROIC per Month" rows are the coupon rates themselves,
+  // expressed per 30 days — no separate stored figure needed, unlike the Fixed-schedule case.
+  const roicInvestorCell = daily ? (
+    <span className="text-gray-700">{fmtPct(daily.interestRate30DayPct)} per 30 days</span>
+  ) : (
+    <span className="text-gray-300">—</span>
+  );
+  const roicTotalCell = daily ? (
+    <span className="text-gray-700">
+      {fmtPct(daily.interestRate30DayPct + daily.serviceFee30DayPct)} per 30 days
+    </span>
+  ) : (
+    <span className="text-gray-300">—</span>
+  );
+
   return {
     kind,
+    roicInvestor: roicInvestorCell,
+    roicTotal: roicTotalCell,
     financingType: (
       <div>
         <div>{returnTypeLabel(p.returnType)}</div>
