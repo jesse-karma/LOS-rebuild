@@ -499,3 +499,96 @@ export interface ConcentrationCheck {
   /** ok = proceed · stretch = full Investment Committee sign-off required · blocked = cannot proceed. */
   outcome: "ok" | "stretch" | "blocked";
 }
+
+// ─── Objects layer (Payors / PT registry / Invoices / Feed / Tasks) ──────────
+// Global, deduplicated registries introduced by the "Karma Pipeline" mockup
+// (Ben, ben-mockup branch, Jul 2026). These sit alongside the per-project
+// embedded data above (PayorInvoiceRow, ptDetails, projectNotes) rather than
+// replacing it — e.g. a Payor here can be referenced by many projects' own
+// PayorInvoiceRow lines. Not yet backed by production Coda data; see
+// PAYOR_TYPES / SLIK_PT_STATUSES in masterData.ts for the closed enums.
+
+export interface Payor {
+  id: string;
+  name: string;
+  payorType: string;
+  relatedKP: string; // brandName
+  relatedProjectId: string | null;
+  exposure: number; // IDR
+  riskLevel: "Low" | "Medium" | "Elevated";
+}
+
+/** Global legal-entity (PT) registry — distinct from the per-project `ptDetails` snapshot on ICProject. */
+export interface PTRegistryEntry {
+  id: string;
+  ptName: string;
+  bank: string;
+  accountNumber: string;
+  accountholderName: string;
+  relatedKP: string;
+  slikPtStatus: "Performing" | "Review" | "Pending" | "Missing";
+}
+
+export interface InvoiceRecord {
+  id: string;
+  documentNumber: string; // e.g. "PO-1024" / "INV-2031"
+  docType: "PO" | "Invoice";
+  payorId: string | null;
+  payorName: string;
+  relatedKP: string;
+  relatedProjectId: string | null;
+  amount: number;
+  dueDate: string; // ISO date
+  status: "Financed – In IC" | "Financed – Performing" | "Overdue";
+  /** Days past due — present only when status is "Overdue". */
+  dpd?: number;
+}
+
+export type FeedItemType =
+  | "Promise to Pay"
+  | "Analyst Help Request"
+  | "Monitoring Note"
+  | "Monitoring Visit Note"
+  | "KP Credit Memo"
+  | "Project Credit Memo"
+  | "IC Note"
+  | "Payment"
+  | "Workflow";
+
+export interface PaymentLegAmounts {
+  before: number;
+  after: number;
+}
+
+/** Only present on FeedItems of type "Payment" — the principal/interest/late-fee/ASN movement. */
+export interface FeedItemPayment {
+  principal: PaymentLegAmounts;
+  interest: PaymentLegAmounts;
+  lateFee: PaymentLegAmounts;
+  asn: PaymentLegAmounts;
+}
+
+/** One entry in the cross-cutting Feed / Objects-Notes stream (broader than the per-project `NoteEntry` above). */
+export interface FeedItem {
+  id: string;
+  type: FeedItemType;
+  author: string;
+  timestamp: string; // ISO datetime
+  relatedKP: string | null;
+  relatedProjectId: string | null;
+  text: string;
+  payment?: FeedItemPayment;
+  read: boolean;
+}
+
+export type TaskStatus = "Open" | "In Progress" | "Done";
+
+export interface TaskItem {
+  id: string;
+  title: string;
+  relatedKP: string | null;
+  relatedProjectId: string | null;
+  owner: string;
+  dueDate: string; // ISO date
+  status: TaskStatus;
+}

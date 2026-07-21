@@ -301,3 +301,24 @@ export const ANALYSTS = [
   "Armeno Devan",
   "Wesly Simatupang",
 ];
+
+// ─── §21 Payor Type (Objects/Payors registry — new, from Ben mockup, not yet in Coda) ─
+
+export const PAYOR_TYPES = [
+  "Tier 1 BUMN",
+  "Tier 2 BUMN",
+  "Tier 1 Conglomerate/Private Company",
+  "Tier 2 Conglomerate/Private Company",
+  "Tier 1 Foreign Government/Multi-Laterals",
+  "National/Regional Government",
+  "KP SME",
+  "Other SME",
+] as const;
+
+export type PayorTypeEnum = (typeof PAYOR_TYPES)[number];
+
+// ─── §22 SLIK-PT Status (Objects/PTs registry — new, from Ben mockup) ────────
+
+export const SLIK_PT_STATUSES = ["Performing", "Review", "Pending", "Missing"] as const;
+
+export type SlikPtStatusEnum = (typeof SLIK_PT_STATUSES)[number];
