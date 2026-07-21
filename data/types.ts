@@ -40,8 +40,16 @@ export interface PlafondInfo {
     wcSubLimit: number;
     /** B_MOD: optional next plafond / covenant review date shown on Proposed row. */
     maxReviewDate?: string | null;
-    /** Optional buffer (Rp) above the plafond, entered on Asset B/D submissions. */
+    /** Optional total buffer (Rp) above the plafond, entered on Asset B/D submissions. */
     buffer?: number;
+    /** Optional PO-specific buffer (Rp), entered on Asset B/D submissions. */
+    bufferPO?: number;
+    /** Optional WC-specific buffer (Rp), entered on Asset B/D submissions. */
+    bufferWC?: number;
+    /** Expiry date for the buffer headroom, if set. */
+    bufferExpiryDate?: string | null;
+    /** Analyst's reasons for the buffer, if set. */
+    bufferReasons?: string | null;
   } | null;
   // Current
   current: {

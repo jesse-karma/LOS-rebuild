@@ -132,7 +132,7 @@ function IdleCell({
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-type TabKey = "prep" | "ic" | "finance_slotting" | "legal" | "finance_disbursement";
+type TabKey = "prep" | "ic" | "kp_confirmation" | "finance_slotting" | "legal" | "finance_disbursement";
 
 interface FlowRow {
   /** Project with in-app votes overlaid, so vote chips reflect the recorded state. */
@@ -505,6 +505,7 @@ export default function HomePage() {
   const icRows = byStage("ic_review");
   // Rejected by IC — sent back to the analyst, surfaced alongside drafts in Due Diligence.
   const returnedRows = byStage("funding_lead");
+  const kpConfirmationRows = byStage("kp_confirmation");
   const financeSlottingRows = byStage("finance_slotting");
   const legalRows = byStage("legal");
   const financeDisbursementRows = byStage("finance_disbursement");
@@ -527,6 +528,7 @@ export default function HomePage() {
   const tabs: Array<{ key: TabKey; label: string; count: number }> = [
     { key: "prep", label: STAGE_LABELS.funding_lead, count: prepItems.length },
     { key: "ic", label: STAGE_LABELS.ic_review, count: icRows.length },
+    { key: "kp_confirmation", label: STAGE_LABELS.kp_confirmation, count: kpConfirmationRows.length },
     { key: "finance_slotting", label: STAGE_LABELS.finance_slotting, count: financeSlottingRows.length },
     { key: "legal", label: STAGE_LABELS.legal, count: legalRows.length },
     {
@@ -544,7 +546,16 @@ export default function HomePage() {
     (() => {
       switch (user.team) {
         case "Investments Team":
-          return [{ title: "Continue Due Diligence", items: prepItems, emptyText: "No drafts in preparation." }];
+          return [
+            { title: "Continue Due Diligence", items: prepItems, emptyText: "No drafts in preparation." },
+            {
+              title: "Awaiting KP Confirmation",
+              items: kpConfirmationRows.map((row) =>
+                rowToCardItem(row, <IdleCell since={icDecidedAt(row.project, row.workflow)} />)
+              ),
+              emptyText: "Nothing awaiting KP confirmation.",
+            },
+          ];
         case "Investment Committee": {
           const awaitingMyVote = icRows.filter((row) => !row.rejected && needsVoteFrom(row.project, user.name));
           return [
@@ -696,6 +707,26 @@ export default function HomePage() {
           query={query}
           statusCell={(row) => <IdleCell since={row.project.submittedAt} pendingLabel="Need Review" />}
           emptyText="No pending reviews."
+        />
+        )
+      )}
+
+      {/* Tab: KP Confirmation — IC approved, Karmapreneur confirming the terms */}
+      {tab === "kp_confirmation" && (
+        homeView === "card" ? (
+          <CardGrid
+            items={kpConfirmationRows.map((row) =>
+              rowToCardItem(row, <IdleCell since={icDecidedAt(row.project, row.workflow)} />)
+            )}
+            query={query}
+            emptyText="No projects awaiting KP confirmation."
+          />
+        ) : (
+        <FlowTable
+          flowRows={kpConfirmationRows}
+          query={query}
+          statusCell={(row) => <IdleCell since={icDecidedAt(row.project, row.workflow)} />}
+          emptyText="No projects awaiting KP confirmation."
         />
         )
       )}

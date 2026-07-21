@@ -32,6 +32,7 @@ export const TEAMS: Team[] = [
 export type Stage =
   | "funding_lead"
   | "ic_review"
+  | "kp_confirmation"
   | "finance_slotting"
   | "legal"
   | "finance_disbursement"
@@ -40,6 +41,7 @@ export type Stage =
 export const STAGE_ORDER: Stage[] = [
   "funding_lead",
   "ic_review",
+  "kp_confirmation",
   "finance_slotting",
   "legal",
   "finance_disbursement",
@@ -49,6 +51,7 @@ export const STAGE_ORDER: Stage[] = [
 export const STAGE_LABELS: Record<Stage, string> = {
   funding_lead: "Due Diligence",
   ic_review: "IC Review",
+  kp_confirmation: "KP Confirmation",
   finance_slotting: "Finance Split",
   legal: "Legal Agreement",
   finance_disbursement: "Finance Disbursed",
@@ -63,6 +66,7 @@ export type FieldGroup =
   | "submission" // the analyst form: project details, terms, memos, notes for IC
   | "slik" // SLIK files, exec summaries, UBO exposure — credit-sensitive personal data
   | "icDecision" // IC votes, approval notes, conditions subsequent
+  | "kpConfirmation" // Karmapreneur's accept/negotiate on the IC-approved terms
   | "financeSlotting" // KF/KCF funding split
   | "legalChecklist" // term sheet & loan agreement execution checklist
   | "financeDisbursement" // bank details review, disbursement
@@ -88,6 +92,7 @@ const MATRIX: Record<FieldGroup, GroupRule> = {
     editAt: ["funding_lead"],
   },
   icDecision: { view: "all", editBy: ["Investment Committee"], editAt: ["ic_review"] },
+  kpConfirmation: { view: "all", editBy: ["Investments Team"], editAt: ["kp_confirmation"] },
   financeSlotting: { view: "all", editBy: ["Finance Team"], editAt: ["finance_slotting"] },
   legalChecklist: { view: "all", editBy: ["Legal Team"], editAt: ["legal"] },
   financeDisbursement: { view: "all", editBy: ["Finance Team"], editAt: ["finance_disbursement"] },

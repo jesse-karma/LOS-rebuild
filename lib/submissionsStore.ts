@@ -1,4 +1,4 @@
-import { ApprovalType, CreditMemoSection, ICProject, PastProject, ReturnType } from "@/data/types";
+import { ApprovalType, CreditMemoSection, ICProject, PastProject, PlafondInfo, ReturnType } from "@/data/types";
 import { mockProjects } from "@/data/mock";
 import { isAssetB } from "@/lib/assetClass";
 import {
@@ -306,8 +306,17 @@ export interface SubmissionFormData {
   // Plafond proposal (used when approvalType includes "Plafond")
   proposedTotalLimit: number;
   proposedPOSubLimit: number;
+  proposedWcSubLimit: number;
+  /** B_MOD only: optional next plafond / covenant review date on the Proposed row. */
+  proposedMaxReviewDate: string; // ISO date (yyyy-mm-dd)
+  /** Whether this submission proposes a buffer at all — not every plafond needs one. */
+  proposedBufferEnabled: boolean;
   /** Optional buffer (Rp) above the plafond — only applicable to Asset B/D. */
-  proposedBuffer: number;
+  proposedBufferTotal: number;
+  proposedBufferPO: number;
+  proposedBufferWC: number;
+  proposedBufferExpiryDate: string; // ISO date (yyyy-mm-dd)
+  proposedBufferReasons: string;
   // Financial review (becomes Review 1 on the IC card's Plafond & Financial Reviews section)
   finReviewReportsReviewed: string;
   finReviewPeriodEnding: string; // ISO date (yyyy-mm-dd)
@@ -334,6 +343,14 @@ export interface SubmissionFormData {
   rsPreBEPPct: number;
   rsPostBEPPct: number;
   rsCarryPct: number;
+  /** Minimum Return floor (IC recap band D) — not every Revenue Share deal has one. */
+  rsMinReturnEnabled: boolean;
+  rsMinReturnType: "Continual Rev Share" | "Grossed-Up";
+  rsMinReturnPct: number; // used when rsMinReturnType is "Continual Rev Share"
+  rsMinReturnMultiple: number; // used when rsMinReturnType is "Grossed-Up"
+  rsMinReturnPayableMonths: number;
+  /** Asset A/D Tenor/Term (IC recap band C) — Asset B's tenor lives in diTenorDays below. */
+  projectedTermMonths: number;
   // Deal terms — Fixed repayment schedule (Return Type includes Fixed Amount Repayment)
   fixedSchedule: SubmissionFixedRow[];
   // Deal terms — Daily Interest (Return Type = Daily Interest)
@@ -429,7 +446,14 @@ export function emptySubmissionForm(): SubmissionFormData {
     referralSource: "Cold calling",
     proposedTotalLimit: 0,
     proposedPOSubLimit: 0,
-    proposedBuffer: 0,
+    proposedWcSubLimit: 0,
+    proposedMaxReviewDate: "",
+    proposedBufferEnabled: false,
+    proposedBufferTotal: 0,
+    proposedBufferPO: 0,
+    proposedBufferWC: 0,
+    proposedBufferExpiryDate: "",
+    proposedBufferReasons: "",
     finReviewReportsReviewed: "",
     finReviewPeriodEnding: "",
     finReviewLimitRecommendation: "Keep",
@@ -451,6 +475,12 @@ export function emptySubmissionForm(): SubmissionFormData {
     rsPreBEPPct: 0,
     rsPostBEPPct: 0,
     rsCarryPct: 0,
+    rsMinReturnEnabled: false,
+    rsMinReturnType: "Continual Rev Share",
+    rsMinReturnPct: 0,
+    rsMinReturnMultiple: 0,
+    rsMinReturnPayableMonths: 0,
+    projectedTermMonths: 0,
     fixedSchedule: [],
     diInterestRate30d: 0,
     diServiceFee30d: 0,
@@ -689,6 +719,12 @@ function demoDrafts(): StoredSubmission[] {
         returnType: "Fixed Amount Repayment",
         proposedTotalLimit: 5_000_000_000,
         proposedPOSubLimit: 2_000_000_000,
+        proposedWcSubLimit: 4_000_000_000,
+        proposedBufferEnabled: true,
+        proposedBufferTotal: 500_000_000,
+        proposedBufferWC: 500_000_000,
+        proposedBufferExpiryDate: "2027-01-15",
+        proposedBufferReasons: "Headroom for seasonal inventory build ahead of Lebaran/year-end demand spikes.",
         finReviewReportsReviewed: "https://docs.google.com/document/d/demo-dc-financial-review/edit",
         finReviewPeriodEnding: "2026-06-30",
         finReviewLimitRecommendation: "Increase",
@@ -734,6 +770,41 @@ function demoDrafts(): StoredSubmission[] {
           },
         ],
         disbursements: [{ id: "row-demo-gsm-1", amount: 500_000_000, plannedDate: "2026-08-05" }],
+      },
+    },
+    {
+      // Brand-new KP requesting a plafond for the first time — no Current/Superseded on file,
+      // so the Plafond section should render the "first plafond for this brand" absolute-proposed
+      // path (see PlafondTable's showProposedAbsolute / brandPlafondHistory returning null).
+      id: "sub-demo-new-plafond",
+      status: "draft",
+      leadStatusCode: "2",
+      createdAt: "2026-07-15T10:00:00.000Z",
+      updatedAt: "2026-07-15T10:00:00.000Z",
+      submittedAt: null,
+      form: {
+        ...emptySubmissionForm(),
+        brandName: "Boba Kenangan Sejahtera",
+        brandIsNew: true,
+        projectName: "Boba Kenangan Sejahtera (#1) — Working Capital + Plafond",
+        assetClass: "D",
+        approvalType: "Project+Plafond",
+        createdBy: "Nila Layla Melinda",
+        primaryAnalyst: "Nila Layla Melinda",
+        mainSector: "F&B",
+        subSector: "🧋Snacks, Drinks, & Desserts",
+        requestedAmount: 1_500_000_000,
+        financingUse: "Working Capital Financing",
+        returnType: "Fixed Amount Repayment",
+        proposedTotalLimit: 2_000_000_000,
+        proposedWcSubLimit: 2_000_000_000,
+        finReviewReportsReviewed: "https://docs.google.com/document/d/demo-new-plafond-financial-review/edit",
+        finReviewPeriodEnding: "2026-06-30",
+        finReviewLimitRecommendation: "Increase",
+        finReviewLimitCurrent: 0,
+        finReviewLimitRecommended: 2_000_000_000,
+        finReviewNotes:
+          "First plafond request for this brand-new KP; reviewed 3 months of bank statements ahead of first drawdown.",
       },
     },
     {
@@ -1017,6 +1088,30 @@ export function mostRecentBrandProject(brandName: string): PastProject | null {
   })[0];
 }
 
+/** Shared brand-plafond lookup over a given project list — most recent by `submittedAt`. */
+function latestBrandPlafond(brandName: string, projects: ICProject[]): PlafondInfo | null {
+  const trimmed = brandName.trim();
+  if (!trimmed) return null;
+  const brandProjects = projects.filter(
+    (p) => p.brandName.trim().toLowerCase() === trimmed.toLowerCase()
+  );
+  if (brandProjects.length === 0) return null;
+  const latest = [...brandProjects].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
+  return latest.plafond;
+}
+
+/**
+ * A brand's full plafond record (current + superseded + outstanding/remaining) —
+ * the most recent review-project for this brand across mock seeds and submitted
+ * submissions. Unlike `mostRecentBrandProject`, this returns the whole `PlafondInfo`
+ * (not just `.current`), so callers (the submission form) can render Superseded
+ * history too. Not for use inside `submissionToICProject()` — see its own
+ * mock-only lookup below to avoid re-entering `allReviewProjects()`.
+ */
+export function brandPlafondHistory(brandName: string): PlafondInfo | null {
+  return latestBrandPlafond(brandName, allReviewProjects());
+}
+
 /** Every distinct referror name recorded across mock + in-app submissions, plus every KP contact
  *  (a Karmapreneur is one of the most common referrors — surfacing their name here is what lets
  *  the Specific Referror search resolve them to their Brand). Placeholder contact rows (Coda-sync
@@ -1043,6 +1138,10 @@ export function getAllReferrors(): string[] {
 export function submissionToICProject(sub: StoredSubmission): ICProject {
   const f = sub.form;
   const hasPlafond = f.approvalType.includes("Plafond");
+
+  // mockProjects, not allReviewProjects() — the latter re-converts every submission via
+  // submissionToICProject(), which would call this again for each, recursing forever.
+  const brandPlafond = latestBrandPlafond(f.brandName, mockProjects);
 
   // The analyst's financial review becomes Review 1 on the IC card.
   const financialReviews = f.finReviewReportsReviewed.trim() || f.finReviewPeriodEnding
@@ -1080,9 +1179,11 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
           postBEPRevSharePct: f.rsPostBEPPct,
           carryType: "Fixed Platform Fee",
           carryPct: f.rsCarryPct,
-          minReturn: null,
-          minReturnMultiple: null,
-          minReturnPayableMonths: null,
+          minReturn:
+            f.rsMinReturnEnabled && f.rsMinReturnType === "Continual Rev Share" ? f.rsMinReturnPct : null,
+          minReturnMultiple:
+            f.rsMinReturnEnabled && f.rsMinReturnType === "Grossed-Up" ? f.rsMinReturnMultiple : null,
+          minReturnPayableMonths: f.rsMinReturnEnabled ? f.rsMinReturnPayableMonths || null : null,
           revProjectionArray: [],
         }
       : null;
@@ -1173,16 +1274,24 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
         ? {
             totalLimit: f.proposedTotalLimit,
             poSubLimit: f.proposedPOSubLimit,
-            wcSubLimit: 0,
-            buffer: f.proposedBuffer || undefined,
+            wcSubLimit: f.proposedWcSubLimit,
+            maxReviewDate: f.proposedMaxReviewDate || null,
+            // Only carry buffer fields through when the analyst explicitly opted into a buffer —
+            // guards against stale values lingering after the toggle is switched back off.
+            buffer: f.proposedBufferEnabled ? f.proposedBufferTotal || undefined : undefined,
+            bufferPO: f.proposedBufferEnabled ? f.proposedBufferPO || undefined : undefined,
+            bufferWC: f.proposedBufferEnabled ? f.proposedBufferWC || undefined : undefined,
+            bufferExpiryDate: f.proposedBufferEnabled ? f.proposedBufferExpiryDate || null : null,
+            bufferReasons: f.proposedBufferEnabled ? f.proposedBufferReasons || null : null,
           }
         : null,
-      current: null,
-      outstandingTotal: 0,
-      remainingTotal: 0,
-      remainingPO: 0,
-      remainingWC: 0,
-      superseded: [],
+      current: brandPlafond?.current ?? null,
+      outstandingTotal: brandPlafond?.outstandingTotal ?? 0,
+      outstandingWC: brandPlafond?.outstandingWC,
+      remainingTotal: brandPlafond?.remainingTotal ?? 0,
+      remainingPO: brandPlafond?.remainingPO ?? 0,
+      remainingWC: brandPlafond?.remainingWC ?? 0,
+      superseded: brandPlafond?.superseded ?? [],
     },
 
     financialReviews,
@@ -1219,7 +1328,7 @@ export function submissionToICProject(sub: StoredSubmission): ICProject {
         returnType: legacyReturnType(f.returnType),
         amount: f.requestedAmount,
         outstandingAmount: 0,
-        projectedTermMonths: 0,
+        projectedTermMonths: f.projectedTermMonths,
         otfTermMonths: null,
         otfIRR: null,
         projectedIRR: 0,

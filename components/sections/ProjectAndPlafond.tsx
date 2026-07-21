@@ -1,4 +1,4 @@
-import { ICProject } from "@/data/types";
+import { ICProject, PlafondInfo } from "@/data/types";
 import { SectionCard } from "@/components/ui/SectionCard";
 import { DataRow, fmt, fmtDate } from "@/components/ui/DataRow";
 import { Tag, assetClassVariant } from "@/components/ui/Tag";
@@ -19,6 +19,7 @@ function AbsoluteLimitCell({
   outstanding,
   remaining,
   remainingAfterProposed,
+  bufferAmount,
   ccy = "IDR",
 }: {
   limit: number | null;
@@ -26,6 +27,8 @@ function AbsoluteLimitCell({
   remaining?: number | null;
   /** Remaining − requested project amount; shown for Asset B & D only when provided. */
   remainingAfterProposed?: number | null;
+  /** Buffer headroom above this limit (from the Proposed request) — shown as "Remaining incl. buffer". */
+  bufferAmount?: number;
   ccy?: "IDR" | "USD";
 }) {
   if (limit === null) return <span className="text-gray-300 text-xs">—</span>;
@@ -42,6 +45,11 @@ function AbsoluteLimitCell({
         <div className={`font-medium ${isNegRemaining ? "text-red-600" : "text-gray-700"}`}>
           Remaining: {fmt(remaining, ccy)}
           {isNegRemaining && " ⚠️"}
+        </div>
+      )}
+      {remaining != null && bufferAmount != null && bufferAmount > 0 && (
+        <div className="text-gray-400 text-[11px]">
+          Remaining incl. buffer: {fmt(remaining + bufferAmount, ccy)}
         </div>
       )}
       {remainingAfterProposed != null && remainingAfterProposed !== undefined && (
@@ -74,6 +82,118 @@ function RequestedDeltaCell({ proposed, current }: { proposed: number; current: 
   );
 }
 
+/**
+ * Read-only Current + Superseded `<tr>` rows — shared by the IC card's `PlafondTable`
+ * and the submission form's "Current Plafond on File" reference box, so both render
+ * identical history regardless of how many superseded entries a brand has (0, 1, 2+).
+ */
+export function PlafondCurrentAndSupersededRows({
+  plafond: p,
+  assetClass,
+  ccy = "IDR",
+  requestedProjectAmount,
+  hasProposedDeltaRow = false,
+}: {
+  plafond: PlafondInfo;
+  assetClass: string;
+  ccy?: "IDR" | "USD";
+  /** When provided (Asset B/D), each Current cell also shows "Remaining after current proposed". */
+  requestedProjectAmount?: number;
+  /** Suppresses the duplicate Remaining line on Current when a Proposed delta row already shows it. */
+  hasProposedDeltaRow?: boolean;
+}) {
+  const showBModCols = isAssetB(assetClass);
+  const showRemainingAfterProposed =
+    (isAssetB(assetClass) || isAssetD(assetClass)) && requestedProjectAmount != null;
+  const hideRemainingOnCurrent = hasProposedDeltaRow && !showRemainingAfterProposed;
+  const wcOutstanding = p.outstandingWC;
+  const bufferTotal = p.proposed?.buffer;
+  const bufferPO = p.proposed?.bufferPO;
+  const bufferWC = p.proposed?.bufferWC;
+
+  return (
+    <>
+      {p.current && (
+        <tr>
+          <td className="py-3 px-3 align-top">
+            <div className="font-semibold text-gray-900">Current</div>
+            <div className={`text-[11px] font-medium mt-0.5 ${p.current.limitStatus === "Active" ? "text-emerald-700" : "text-red-600"}`}>
+              {p.current.limitStatus}
+            </div>
+            <div className="text-gray-500 mt-0.5">
+              {fmtDate(p.current.effectiveDate)} – {fmtDate(p.current.expiryDate)}
+            </div>
+            <div className="text-gray-400 text-[11px]">
+              ({daysFromToday(p.current.expiryDate)} days from today)
+            </div>
+          </td>
+          <td className="py-3 pr-3 align-top">
+            <AbsoluteLimitCell
+              limit={p.current.totalLimit}
+              outstanding={p.outstandingTotal}
+              remaining={hideRemainingOnCurrent ? null : p.remainingTotal}
+              remainingAfterProposed={
+                showRemainingAfterProposed ? p.remainingTotal - requestedProjectAmount! : undefined
+              }
+              bufferAmount={bufferTotal}
+              ccy={ccy}
+            />
+          </td>
+          <td className="py-3 pr-3 align-top">
+            <AbsoluteLimitCell
+              limit={p.current.poSubLimit}
+              remaining={hideRemainingOnCurrent ? null : p.remainingPO}
+              remainingAfterProposed={
+                showRemainingAfterProposed ? p.remainingPO - requestedProjectAmount! : undefined
+              }
+              bufferAmount={bufferPO}
+              ccy={ccy}
+            />
+          </td>
+          <td className="py-3 pr-3 align-top">
+            <AbsoluteLimitCell
+              limit={p.current.wcSubLimit}
+              outstanding={
+                p.current.wcSubLimit > 0
+                  ? showBModCols
+                    ? wcOutstanding ?? 0
+                    : p.outstandingTotal
+                  : undefined
+              }
+              remaining={hideRemainingOnCurrent ? null : p.remainingWC}
+              remainingAfterProposed={
+                showRemainingAfterProposed ? p.remainingWC - requestedProjectAmount! : undefined
+              }
+              bufferAmount={bufferWC}
+              ccy={ccy}
+            />
+          </td>
+          {showBModCols && (
+            <td className="py-3 pr-3 align-top text-gray-700">
+              {p.current.maxReviewDate ? fmtDate(p.current.maxReviewDate) : <span className="text-gray-400">—</span>}
+            </td>
+          )}
+        </tr>
+      )}
+
+      {p.superseded.map((s, i) => (
+        <tr key={i} className="text-gray-400">
+          <td className="py-2 px-3 align-top">
+            <div className="font-medium text-gray-500">Superseded</div>
+            <div className="text-gray-300 text-[11px]">
+              {fmtDate(s.effectiveDate)} – {fmtDate(s.expiryDate)}
+            </div>
+          </td>
+          <td className="py-2 pr-3 align-top text-xs">{fmt(s.totalLimit)}</td>
+          <td className="py-2 pr-3 align-top text-xs">{fmt(s.poSubLimit)}</td>
+          <td className="py-2 pr-3 align-top text-xs">{fmt(s.wcSubLimit)}</td>
+          {showBModCols && <td className="py-2 pr-3 align-top text-xs text-gray-300">—</td>}
+        </tr>
+      ))}
+    </>
+  );
+}
+
 /** Plafond table — Proposed / Current / Superseded limit rows. */
 export function PlafondTable({ project }: Props) {
   const p = project.plafond;
@@ -87,13 +207,9 @@ export function PlafondTable({ project }: Props) {
   /** First plafond for the brand: proposed limits shown as absolutes (no current to diff against). */
   const showProposedAbsolute = Boolean(p.proposed && !p.current);
   const showBModCols = isAssetB(project.assetClass);
-  const wcOutstanding = p.outstandingWC;
 
-  const showRemainingAfterProposed = isAssetB(project.assetClass) || isAssetD(project.assetClass);
   const requestedProjectAmount = project.trancheTargetAmount ?? project.requestedAmount;
   const ccy = project.requestedAmountCurrency;
-  /** For B/D, keep Remaining visible on Current row even when Proposed deltas row exists (so “after proposed” sits under it). */
-  const hideRemainingOnCurrent = showProposedDeltas && !showRemainingAfterProposed;
 
   return (
     <div className="space-y-3">
@@ -180,82 +296,13 @@ export function PlafondTable({ project }: Props) {
               </tr>
             )}
 
-            {p.current && (
-              <tr>
-                <td className="py-3 px-3 align-top">
-                  <div className="font-semibold text-gray-900">Current</div>
-                  <div className={`text-[11px] font-medium mt-0.5 ${p.current.limitStatus === "Active" ? "text-emerald-700" : "text-red-600"}`}>
-                    {p.current.limitStatus}
-                  </div>
-                  <div className="text-gray-500 mt-0.5">
-                    {fmtDate(p.current.effectiveDate)} – {fmtDate(p.current.expiryDate)}
-                  </div>
-                  <div className="text-gray-400 text-[11px]">
-                    ({daysFromToday(p.current.expiryDate)} days from today)
-                  </div>
-                </td>
-                <td className="py-3 pr-3 align-top">
-                  <AbsoluteLimitCell
-                    limit={p.current.totalLimit}
-                    outstanding={p.outstandingTotal}
-                    remaining={hideRemainingOnCurrent ? null : p.remainingTotal}
-                    remainingAfterProposed={
-                      showRemainingAfterProposed ? p.remainingTotal - requestedProjectAmount : undefined
-                    }
-                    ccy={ccy}
-                  />
-                </td>
-                <td className="py-3 pr-3 align-top">
-                  <AbsoluteLimitCell
-                    limit={p.current.poSubLimit}
-                    remaining={hideRemainingOnCurrent ? null : p.remainingPO}
-                    remainingAfterProposed={
-                      showRemainingAfterProposed ? p.remainingPO - requestedProjectAmount : undefined
-                    }
-                    ccy={ccy}
-                  />
-                </td>
-                <td className="py-3 pr-3 align-top">
-                  <AbsoluteLimitCell
-                    limit={p.current.wcSubLimit}
-                    outstanding={
-                      p.current.wcSubLimit > 0
-                        ? showBModCols
-                          ? wcOutstanding ?? 0
-                          : p.outstandingTotal
-                        : undefined
-                    }
-                    remaining={hideRemainingOnCurrent ? null : p.remainingWC}
-                    remainingAfterProposed={
-                      showRemainingAfterProposed ? p.remainingWC - requestedProjectAmount : undefined
-                    }
-                    ccy={ccy}
-                  />
-                </td>
-                {showBModCols && (
-                  <td className="py-3 pr-3 align-top text-gray-700">
-                    {p.current.maxReviewDate ? fmtDate(p.current.maxReviewDate) : <span className="text-gray-400">—</span>}
-                  </td>
-                )}
-              </tr>
-            )}
-
-            {p.superseded.map((s, i) => (
-              <tr key={i} className="text-gray-400">
-                <td className="py-2 px-3 align-top">
-                  <div className="font-medium text-gray-500">Superseded</div>
-                  <div className="text-gray-300 text-[11px]">
-                    {fmtDate(s.effectiveDate)} – {fmtDate(s.expiryDate)}
-                  </div>
-                </td>
-                <td className="py-2 pr-3 align-top text-xs">{fmt(s.totalLimit)}</td>
-                <td className="py-2 pr-3 align-top text-xs">{fmt(s.poSubLimit)}</td>
-                <td className="py-2 pr-3 align-top text-xs">{fmt(s.wcSubLimit)}</td>
-                {showBModCols && (
-                  <td className="py-2 pr-3 align-top text-xs text-gray-300">—</td>
-                )}
-              </tr>
-            ))}
+            <PlafondCurrentAndSupersededRows
+              plafond={p}
+              assetClass={project.assetClass}
+              ccy={ccy}
+              requestedProjectAmount={requestedProjectAmount}
+              hasProposedDeltaRow={showProposedDeltas}
+            />
           </tbody>
         </table>
       </div>
@@ -265,6 +312,16 @@ export function PlafondTable({ project }: Props) {
           After approval: proposed ceilings {fmt(p.proposed!.totalLimit)} total / {fmt(p.proposed!.poSubLimit)} PO /{" "}
           {fmt(p.proposed!.wcSubLimit)} WC. Headroom on proposed line: remaining {fmt(p.remainingTotal)} total,{" "}
           {fmt(p.remainingPO)} PO, {fmt(p.remainingWC)} WC (outstanding {fmt(p.outstandingTotal)}).
+        </p>
+      )}
+
+      {p.proposed && (p.proposed.buffer || p.proposed.bufferPO || p.proposed.bufferWC) && (
+        <p className="text-[10px] text-gray-400">
+          Buffer headroom: {fmt(p.proposed.buffer ?? 0)} total
+          {p.proposed.bufferPO ? ` / ${fmt(p.proposed.bufferPO)} PO` : ""}
+          {p.proposed.bufferWC ? ` / ${fmt(p.proposed.bufferWC)} WC` : ""}
+          {p.proposed.bufferExpiryDate ? `, expires ${fmtDate(p.proposed.bufferExpiryDate)}` : ""}
+          {p.proposed.bufferReasons ? ` — ${p.proposed.bufferReasons}` : ""}
         </p>
       )}
     </div>

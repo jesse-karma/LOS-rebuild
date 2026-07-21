@@ -13,7 +13,7 @@ import {
   SECTORS,
   STRUCTURED_LOAN_USES,
   approvalTypesForAssetClass,
-  financingTypesForAssetClass,
+  financingTypesForAssetClassAndApprovalType,
   subSectorsForSector,
 } from "@/data/masterData";
 import { isAssetAOrD, isAssetB, isAssetD } from "@/lib/assetClass";
@@ -35,18 +35,32 @@ import {
   mostRecentBrandProject,
   getAllBrands,
   getAllReferrors,
-  allReviewProjects,
+  brandPlafondHistory,
   ptWarnings,
+  submissionToICProject,
 } from "@/lib/submissionsStore";
 import { useProfile } from "@/lib/profileStore";
 import { canEdit } from "@/lib/access";
 import { resubmitProject } from "@/lib/workflowStore";
 import { existingUboExposure, uboExposureLevel, brandsForPerson } from "@/lib/exposure";
+import { PlafondCurrentAndSupersededRows } from "@/components/sections/ProjectAndPlafond";
+import { PastProjectsRecap } from "@/components/sections/PastProjectsRecap";
 
-function FormSection({ title, children }: { title: string; children: React.ReactNode }) {
+function FormSection({
+  title,
+  badge,
+  children,
+}: {
+  title: string;
+  badge?: React.ReactNode;
+  children: React.ReactNode;
+}) {
   return (
     <div className="border border-gray-200 rounded-lg bg-white shadow-sm px-5 py-4">
-      <h2 className="text-sm font-semibold text-gray-900 mb-2">{title}</h2>
+      <h2 className="text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
+        {title}
+        {badge}
+      </h2>
       {children}
     </div>
   );
@@ -90,6 +104,36 @@ function Field({
         <SourceBadge source={source} />
       </span>
       <div className="flex-1 min-w-0">
+        {children}
+        {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
+      </div>
+    </div>
+  );
+}
+
+/** Label-above-input, for tiling short fields (dropdowns, small amounts) into a grid instead of
+ *  each one claiming a full-width row. Pass `span="full"` for a field that should break out of
+ *  the grid columns (e.g. a textarea that needs real width). */
+function CompactField({
+  label,
+  source,
+  hint,
+  span,
+  children,
+}: {
+  label: string;
+  source: "master" | "free";
+  hint?: string;
+  span?: "full";
+  children: React.ReactNode;
+}) {
+  return (
+    <div className={span === "full" ? "sm:col-span-2 lg:col-span-3" : undefined}>
+      <span className="inline-flex items-center gap-1.5 text-xs text-gray-500 mb-1">
+        {label}
+        <SourceBadge source={source} />
+      </span>
+      <div className="min-w-0">
         {children}
         {hint && <p className="text-xs text-gray-400 mt-1">{hint}</p>}
       </div>
@@ -213,6 +257,46 @@ function AddRowButton({ label, onClick }: { label: string; onClick: () => void }
       <Plus className="w-4 h-4" />
       {label}
     </button>
+  );
+}
+
+/** Icon-only "add" affordance for a transposed table's trailing header column — mirrors
+ *  RemoveRowButton's icon-only style so the header row reads as one consistent action row. */
+function AddColumnButton({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      className="inline-flex items-center gap-1 text-xs font-medium text-white bg-blue-600 hover:bg-blue-700 transition-colors rounded px-2 py-1 whitespace-nowrap"
+    >
+      <Plus className="w-3.5 h-3.5" />
+      Add
+    </button>
+  );
+}
+
+/** One row of a transposed table — a field label on the left, one cell per entity (contact/PT)
+ *  to the right. Lets a multi-field entity list read top-to-bottom (fields) / left-to-right
+ *  (entities) instead of the reverse, without the wide-table horizontal scroll that causes. */
+function TransposedFieldRow<T extends { id: string }>({
+  label,
+  rows,
+  renderCell,
+}: {
+  label: string;
+  rows: T[];
+  renderCell: (row: T) => React.ReactNode;
+}) {
+  return (
+    <tr className="odd:bg-gray-50/50">
+      <td className="py-2 px-3 font-semibold text-gray-700 text-xs whitespace-nowrap align-top">{label}</td>
+      {rows.map((r) => (
+        <td key={r.id} className="py-2 px-3 align-top w-56">
+          {renderCell(r)}
+        </td>
+      ))}
+    </tr>
   );
 }
 
@@ -380,6 +464,11 @@ function blankPT(): SubmissionPTRow {
   };
 }
 
+/** The only Financing Uses that name branches — gates the Branch Details section. */
+function isBranchFinancingUse(financingUse: string): boolean {
+  return financingUse === "Branch Opening/Expansion" || financingUse === "Branch Renovation";
+}
+
 /**
  * Whenever the A&D sections are visible, each table keeps at least one starter
  * row so analysts see the columns to fill, not just [+]. Untouched starter rows
@@ -391,13 +480,15 @@ function withStarterRows(f: SubmissionFormData): SubmissionFormData {
   if (isAssetAOrD(f.assetClass)) {
     if (next.kpContacts.length === 0) next.kpContacts = [blankContact()];
     if (next.ptDetails.length === 0) next.ptDetails = [blankPT()];
-    if (isProject && next.branches.length === 0) next.branches = [blankBranch()];
+    if (isProject && isBranchFinancingUse(f.financingUse) && next.branches.length === 0) {
+      next.branches = [blankBranch()];
+    }
   }
   if (isProject && next.disbursements.length === 0) next.disbursements = [blankDisbursement()];
   if (isProject && isAssetB(f.assetClass) && next.payorInvoices.length === 0) {
     next.payorInvoices = [blankPayorRow()];
   }
-  if (isProject && f.returnType.includes("Fixed Amount Repayment") && next.fixedSchedule.length === 0) {
+  if (f.returnType.includes("Fixed Amount Repayment") && next.fixedSchedule.length === 0) {
     next.fixedSchedule = [blankFixedRow()];
   }
   // Default view is a name search box, not the marketing dropdown — always keep one row
@@ -433,7 +524,12 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const [plafondTexts, setPlafondTexts] = useState({
     total: submission.form.proposedTotalLimit ? formatAmountInput(String(submission.form.proposedTotalLimit)) : "",
     po: submission.form.proposedPOSubLimit ? formatAmountInput(String(submission.form.proposedPOSubLimit)) : "",
-    buffer: submission.form.proposedBuffer ? formatAmountInput(String(submission.form.proposedBuffer)) : "",
+    wc: submission.form.proposedWcSubLimit ? formatAmountInput(String(submission.form.proposedWcSubLimit)) : "",
+    bufferTotal: submission.form.proposedBufferTotal
+      ? formatAmountInput(String(submission.form.proposedBufferTotal))
+      : "",
+    bufferPO: submission.form.proposedBufferPO ? formatAmountInput(String(submission.form.proposedBufferPO)) : "",
+    bufferWC: submission.form.proposedBufferWC ? formatAmountInput(String(submission.form.proposedBufferWC)) : "",
   });
   const [errors, setErrors] = useState<string[]>([]);
   const [brandSearch, setBrandSearch] = useState(form.brandName);
@@ -515,18 +611,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
   const isAssetA = form.assetClass.trim() === "A";
   const isD = isAssetD(form.assetClass);
 
-  // The brand's current active plafond on file, if any — shown as reference at the top of the
-  // Plafond section so the analyst knows whether this is a new plafond request or an update.
-  const brandActivePlafond = (() => {
-    const trimmed = form.brandName.trim();
-    if (!trimmed) return null;
-    const brandProjects = allReviewProjects().filter(
-      (p) => p.brandName.trim().toLowerCase() === trimmed.toLowerCase()
-    );
-    if (brandProjects.length === 0) return null;
-    const latest = [...brandProjects].sort((a, b) => b.submittedAt.localeCompare(a.submittedAt))[0];
-    return latest.plafond.current;
-  })();
+  // The brand's full plafond record (current + superseded + outstanding/remaining), if any —
+  // shown as reference at the top of the Plafond section so the analyst knows whether this is
+  // a new plafond request or an update, and can see the brand's limit history.
+  const brandPlafond = brandPlafondHistory(form.brandName);
   // Which deal-terms subsection the selected Return Type calls for
   const wantsRevShare = form.returnType.includes("Revenue Share") || form.returnType === "Profit Share";
   const wantsFixed = form.returnType.includes("Fixed Amount Repayment");
@@ -534,7 +622,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
 
   // Dependent master-data option lists
   const approvalTypeOptions = approvalTypesForAssetClass(form.assetClass);
-  const financingTypeOptions = financingTypesForAssetClass(form.assetClass);
+  const financingTypeOptions = financingTypesForAssetClassAndApprovalType(form.assetClass, form.approvalType);
   const subSectorOptions = subSectorsForSector(form.mainSector);
 
   // Live warnings (spec column U)
@@ -554,6 +642,11 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
     setForm((f) => ({ ...f, [key]: value }));
   }
 
+  // Live preview of the IC-side project — recomputed on every keystroke so the Proposed &
+  // Past Projects Recap table (below) reads the exact same shape the IC review page will,
+  // with brand history already merged in via submissionToICProject's own pastProjects build.
+  const previewProject = submissionToICProject({ ...submission, form });
+
   /** Asset Class drives allowed Approval Types (ENUM §3/§4) and Financing Types (§5b). */
   function setAssetClass(assetClass: string) {
     setForm((f) => {
@@ -561,7 +654,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
       const approvalType = (
         allowedTypes.includes(f.approvalType) ? f.approvalType : allowedTypes[0]
       ) as ApprovalType;
-      const allowedReturns = financingTypesForAssetClass(assetClass);
+      const allowedReturns = financingTypesForAssetClassAndApprovalType(assetClass, approvalType);
       const returnType = allowedReturns.includes(f.returnType) ? f.returnType : allowedReturns[0];
       return withStarterRows({ ...f, assetClass, approvalType, returnType });
     });
@@ -569,7 +662,7 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
 
   function setApprovalType(approvalType: ApprovalType) {
     setForm((f) => {
-      const allowedReturns = financingTypesForAssetClass(f.assetClass);
+      const allowedReturns = financingTypesForAssetClassAndApprovalType(f.assetClass, approvalType);
       const returnType = allowedReturns.includes(f.returnType) ? f.returnType : allowedReturns[0];
       return withStarterRows({ ...f, approvalType, returnType });
     });
@@ -716,7 +809,10 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         requestedAmount: parseAmount(amountText),
         proposedTotalLimit: parseAmount(plafondTexts.total),
         proposedPOSubLimit: parseAmount(plafondTexts.po),
-        proposedBuffer: parseAmount(plafondTexts.buffer),
+        proposedWcSubLimit: parseAmount(plafondTexts.wc),
+        proposedBufferTotal: parseAmount(plafondTexts.bufferTotal),
+        proposedBufferPO: parseAmount(plafondTexts.bufferPO),
+        proposedBufferWC: parseAmount(plafondTexts.bufferWC),
       },
     };
   }
@@ -1080,137 +1176,148 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               placeholder="e.g. Blok A Expansion"
             />
           </Field>
-          <Field label="Asset Class" source="master" hint="Changing it filters the allowed Types">
-            <select
-              className={inputCls}
-              value={form.assetClass}
-              onChange={(e) => setAssetClass(e.target.value)}
-            >
-              {ASSET_CLASSES.map((a) => (
-                <option key={a} value={a}>
-                  Asset Class {a}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Submission Type" source="master" hint="Allowed options are filtered by Asset Class">
-            <select
-              className={inputCls}
-              value={form.approvalType}
-              onChange={(e) => setApprovalType(e.target.value as ApprovalType)}
-            >
-              {approvalTypeOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Financing Type" source="master" hint="Allowed options are filtered by Asset Class">
-            <select
-              className={inputCls}
-              value={form.returnType}
-              onChange={(e) => setReturnType(e.target.value)}
-            >
-              {financingTypeOptions.map((t) => (
-                <option key={t} value={t}>
-                  {t}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Financing Use" source="master" hint="What the financing is for">
-            <select
-              className={inputCls}
-              value={form.financingUse}
-              onChange={(e) => set("financingUse", e.target.value)}
-            >
-              {STRUCTURED_LOAN_USES.map((u) => (
-                <option key={u} value={u}>
-                  {u}
-                </option>
-              ))}
-            </select>
-          </Field>
-          <Field label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
-            <div className="flex gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-6 gap-y-4 pt-3 pb-2 border-t border-gray-50">
+            <CompactField label="Asset Class" source="master" hint="Changing it filters the allowed Types">
               <select
-                className={`${inputCls} !w-24`}
-                value={form.requestedAmountCurrency}
-                onChange={(e) => set("requestedAmountCurrency", e.target.value as "IDR" | "USD")}
+                className={inputCls}
+                value={form.assetClass}
+                onChange={(e) => setAssetClass(e.target.value)}
               >
-                <option value="IDR">Rp</option>
-                <option value="USD">USD</option>
+                {ASSET_CLASSES.map((a) => (
+                  <option key={a} value={a}>
+                    Asset Class {a}
+                  </option>
+                ))}
               </select>
-              <input
-                className={`${inputCls} font-mono`}
-                inputMode="numeric"
-                value={amountText}
-                onChange={(e) => {
-                  const formatted = formatAmountInput(e.target.value);
-                  setAmountText(formatted);
-                  set("requestedAmount", parseAmount(formatted));
-                }}
-                placeholder="2.000.000.000"
-              />
-            </div>
-            {amountWarning && <InlineWarning message={amountWarning} />}
-          </Field>
-          <Field label="Sector" source="master">
-            <select className={inputCls} value={form.mainSector} onChange={(e) => setSector(e.target.value)}>
-              {SECTORS.map((s) => (
-                <option key={s} value={s}>
-                  {s}
-                </option>
-              ))}
-            </select>
-          </Field>
-          {form.mainSector === "Other" ? (
-            <Field label="Sub-sector" source="free" hint="Free text — no sub-sector list under Other">
-              <input
-                className={inputCls}
-                value={form.subSector}
-                onChange={(e) => set("subSector", e.target.value)}
-                placeholder="e.g. Pet Grooming"
-              />
-            </Field>
-          ) : (
-            <Field label="Sub-sector" source="master" hint={`${subSectorOptions.length} sub-sectors under ${form.mainSector}`}>
+            </CompactField>
+            <CompactField label="Submission Type" source="master" hint="Allowed options are filtered by Asset Class">
               <select
                 className={inputCls}
-                value={form.subSector}
-                onChange={(e) => set("subSector", e.target.value)}
+                value={form.approvalType}
+                onChange={(e) => setApprovalType(e.target.value as ApprovalType)}
               >
-                <option value="">— None —</option>
-                {subSectorOptions.map((s) => (
+                {approvalTypeOptions.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </CompactField>
+            <CompactField label="Financing Type" source="master" hint="Allowed options are filtered by Asset Class">
+              <select
+                className={inputCls}
+                value={form.returnType}
+                onChange={(e) => setReturnType(e.target.value)}
+              >
+                {financingTypeOptions.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </CompactField>
+            {isProjectType && (
+              <>
+                <CompactField label="Financing Use" source="master" hint="What the financing is for">
+                  <select
+                    className={inputCls}
+                    value={form.financingUse}
+                    onChange={(e) => set("financingUse", e.target.value)}
+                  >
+                    {STRUCTURED_LOAN_USES.map((u) => (
+                      <option key={u} value={u}>
+                        {u}
+                      </option>
+                    ))}
+                  </select>
+                </CompactField>
+                <CompactField label="Requested Amount" source="free" hint="USD converts to IDR at JISDOR (T-1 working day)">
+                  <div className="flex gap-2">
+                    <select
+                      className={`${inputCls} !w-24`}
+                      value={form.requestedAmountCurrency}
+                      onChange={(e) => set("requestedAmountCurrency", e.target.value as "IDR" | "USD")}
+                    >
+                      <option value="IDR">Rp</option>
+                      <option value="USD">USD</option>
+                    </select>
+                    <input
+                      className={`${inputCls} font-mono`}
+                      inputMode="numeric"
+                      value={amountText}
+                      onChange={(e) => {
+                        const formatted = formatAmountInput(e.target.value);
+                        setAmountText(formatted);
+                        set("requestedAmount", parseAmount(formatted));
+                      }}
+                      placeholder="2.000.000.000"
+                    />
+                  </div>
+                  {amountWarning && <InlineWarning message={amountWarning} />}
+                </CompactField>
+              </>
+            )}
+            <CompactField label="Sector" source="master">
+              <select className={inputCls} value={form.mainSector} onChange={(e) => setSector(e.target.value)}>
+                {SECTORS.map((s) => (
                   <option key={s} value={s}>
                     {s}
                   </option>
                 ))}
               </select>
-            </Field>
-          )}
-          <Field label="Syariah Project?" source="free">
-            <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
-              <input
-                type="checkbox"
-                checked={form.syariah}
-                onChange={(e) => set("syariah", e.target.checked)}
-                className="rounded border-gray-300"
-              />
-              Syariah
-            </label>
-          </Field>
-          {form.syariah && (
-            <Field label="Syariah Notes" source="free" hint="Shown on the IC card next to the Syariah tag">
-              <textarea
-                className={`${inputCls} min-h-20 resize-y`}
-                value={form.syariahNotes}
-                onChange={(e) => set("syariahNotes", e.target.value)}
-                placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
-              />
-            </Field>
-          )}
+            </CompactField>
+            {form.mainSector === "Other" ? (
+              <CompactField label="Sub-sector" source="free" hint="Free text — no sub-sector list under Other">
+                <input
+                  className={inputCls}
+                  value={form.subSector}
+                  onChange={(e) => set("subSector", e.target.value)}
+                  placeholder="e.g. Pet Grooming"
+                />
+              </CompactField>
+            ) : (
+              <CompactField label="Sub-sector" source="master" hint={`${subSectorOptions.length} sub-sectors under ${form.mainSector}`}>
+                <select
+                  className={inputCls}
+                  value={form.subSector}
+                  onChange={(e) => set("subSector", e.target.value)}
+                >
+                  <option value="">— None —</option>
+                  {subSectorOptions.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </CompactField>
+            )}
+            <CompactField label="Syariah Project?" source="free">
+              <label className="flex items-center gap-2 text-sm text-gray-700 py-2">
+                <input
+                  type="checkbox"
+                  checked={form.syariah}
+                  onChange={(e) => set("syariah", e.target.checked)}
+                  className="rounded border-gray-300"
+                />
+                Syariah
+              </label>
+            </CompactField>
+            {form.syariah && (
+              <CompactField
+                label="Syariah Notes"
+                source="free"
+                hint="Shown on the IC card next to the Syariah tag"
+                span="full"
+              >
+                <textarea
+                  className={`${inputCls} min-h-20 resize-y`}
+                  value={form.syariahNotes}
+                  onChange={(e) => set("syariahNotes", e.target.value)}
+                  placeholder="e.g. Mudarabah scheme using buy-sell to PT Artha"
+                />
+              </CompactField>
+            )}
+          </div>
         </FormSection>
 
         <FormSection title="Plafond & Financial Review">
@@ -1219,17 +1326,17 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               <div className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">
                 Current Plafond on File
               </div>
-              {brandActivePlafond ? (
-                <p className="text-sm text-gray-800">
-                  Total Limit: <span className="font-mono font-medium">Rp {fmtIdr(brandActivePlafond.totalLimit)}</span>
-                  {brandActivePlafond.poSubLimit > 0 && (
-                    <>
-                      {" "}· PO Sub Limit:{" "}
-                      <span className="font-mono font-medium">Rp {fmtIdr(brandActivePlafond.poSubLimit)}</span>
-                    </>
-                  )}
-                  {" "}· expires {brandActivePlafond.expiryDate}
-                </p>
+              {brandPlafond && (brandPlafond.current || brandPlafond.superseded.length > 0) ? (
+                <EditTable
+                  headers={
+                    isB
+                      ? ["Limit Status", "Total Limit", "PO Sub Limit", "Working Capital Sub Limit", "Max review date"]
+                      : ["Limit Status", "Total Limit", "PO Sub Limit", "Working Capital Sub Limit"]
+                  }
+                  minWidthCls="min-w-[560px]"
+                >
+                  <PlafondCurrentAndSupersededRows plafond={brandPlafond} assetClass={form.assetClass} />
+                </EditTable>
               ) : (
                 <p className="text-xs text-gray-500">
                   No active plafond on file for {form.brandName} — this submission is a new plafond request.
@@ -1249,31 +1356,105 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                 Proposed Limit
               </h3>
               <EditTable
-                headers={isB ? ["Limit Status", "Total Limit", "PO Sub Limit"] : ["Limit Status", "Total Limit"]}
+                headers={[
+                  "Limit Status",
+                  "Total Limit",
+                  ...(isB ? ["PO Sub Limit"] : []),
+                  "Working Capital Sub Limit",
+                  ...(isB ? ["Max review date"] : []),
+                ]}
                 minWidthCls="min-w-[480px]"
               >
                 <tr className="bg-purple-50/30 align-top">
                   <td className="py-3 pl-3 pr-2 font-semibold text-purple-800 whitespace-nowrap">Proposed</td>
                   <td className="py-2 px-2">
-                    <input
-                      className={`${cellInputCls} font-mono`}
-                      inputMode="numeric"
-                      value={plafondTexts.total}
-                      onChange={(e) =>
-                        setPlafondTexts((t) => ({ ...t, total: formatAmountInput(e.target.value) }))
-                      }
-                      placeholder="5.000.000.000"
-                    />
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        className={`${cellInputCls} font-mono`}
+                        inputMode="numeric"
+                        value={plafondTexts.total}
+                        onChange={(e) =>
+                          setPlafondTexts((t) => ({ ...t, total: formatAmountInput(e.target.value) }))
+                        }
+                        placeholder="5.000.000.000"
+                      />
+                      {brandPlafond?.current && (
+                        <button
+                          type="button"
+                          className="shrink-0 text-[10px] px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:bg-gray-100"
+                          onClick={() =>
+                            setPlafondTexts((t) => ({
+                              ...t,
+                              total: formatAmountInput(String(brandPlafond.current!.totalLimit)),
+                            }))
+                          }
+                        >
+                          Keep
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                  {isB && (
+                    <td className="py-2 px-2">
+                      <div className="flex items-center gap-1.5">
+                        <input
+                          className={`${cellInputCls} font-mono`}
+                          inputMode="numeric"
+                          value={plafondTexts.po}
+                          onChange={(e) =>
+                            setPlafondTexts((t) => ({ ...t, po: formatAmountInput(e.target.value) }))
+                          }
+                        />
+                        {brandPlafond?.current && (
+                          <button
+                            type="button"
+                            className="shrink-0 text-[10px] px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:bg-gray-100"
+                            onClick={() =>
+                              setPlafondTexts((t) => ({
+                                ...t,
+                                po: formatAmountInput(String(brandPlafond.current!.poSubLimit)),
+                              }))
+                            }
+                          >
+                            Keep
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  )}
+                  <td className="py-2 px-2">
+                    <div className="flex items-center gap-1.5">
+                      <input
+                        className={`${cellInputCls} font-mono`}
+                        inputMode="numeric"
+                        value={plafondTexts.wc}
+                        onChange={(e) =>
+                          setPlafondTexts((t) => ({ ...t, wc: formatAmountInput(e.target.value) }))
+                        }
+                      />
+                      {brandPlafond?.current && (
+                        <button
+                          type="button"
+                          className="shrink-0 text-[10px] px-1.5 py-1 rounded border border-gray-300 text-gray-500 hover:bg-gray-100"
+                          onClick={() =>
+                            setPlafondTexts((t) => ({
+                              ...t,
+                              wc: formatAmountInput(String(brandPlafond.current!.wcSubLimit)),
+                            }))
+                          }
+                        >
+                          Keep
+                        </button>
+                      )}
+                    </div>
                   </td>
                   {isB && (
                     <td className="py-2 px-2">
                       <input
-                        className={`${cellInputCls} font-mono`}
-                        inputMode="numeric"
-                        value={plafondTexts.po}
-                        onChange={(e) =>
-                          setPlafondTexts((t) => ({ ...t, po: formatAmountInput(e.target.value) }))
-                        }
+                        type="date"
+                        className={cellInputCls}
+                        value={form.proposedMaxReviewDate}
+                        onChange={(e) => set("proposedMaxReviewDate", e.target.value)}
                       />
                     </td>
                   )}
@@ -1285,21 +1466,80 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                 </p>
               )}
               <p className="text-[10px] text-gray-400 mt-2">
-                Amounts in Rp. Current and Superseded rows appear on the IC review card once the
-                submission is linked to the KP&apos;s plafond history.
+                Amounts in Rp. Current and Superseded rows above reflect this brand&apos;s plafond
+                history, if any.
               </p>
               {(isB || isD) && (
-                <Field label="Buffer (Rp)" source="free" hint="Optional — buffer held above the plafond">
-                  <input
-                    className={`${inputCls} font-mono`}
-                    inputMode="numeric"
-                    value={plafondTexts.buffer}
-                    onChange={(e) =>
-                      setPlafondTexts((t) => ({ ...t, buffer: formatAmountInput(e.target.value) }))
-                    }
-                    placeholder="200.000.000"
-                  />
-                </Field>
+                <div className="mt-4 p-3 rounded-lg border border-gray-100 bg-gray-50/50">
+                  <label className="flex items-center gap-2 text-xs font-semibold text-gray-500 uppercase tracking-wide cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={form.proposedBufferEnabled}
+                      onChange={(e) => set("proposedBufferEnabled", e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                    Buffer <span className="font-normal normal-case text-gray-400">(headroom above limit)</span>
+                  </label>
+                  {form.proposedBufferEnabled ? (
+                    <div className="mt-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <Field label="Total Buffer" source="free">
+                          <input
+                            className={`${inputCls} font-mono`}
+                            inputMode="numeric"
+                            value={plafondTexts.bufferTotal}
+                            onChange={(e) =>
+                              setPlafondTexts((t) => ({ ...t, bufferTotal: formatAmountInput(e.target.value) }))
+                            }
+                            placeholder="500.000.000"
+                          />
+                        </Field>
+                        {isB && (
+                          <Field label="PO Buffer" source="free">
+                            <input
+                              className={`${inputCls} font-mono`}
+                              inputMode="numeric"
+                              value={plafondTexts.bufferPO}
+                              onChange={(e) =>
+                                setPlafondTexts((t) => ({ ...t, bufferPO: formatAmountInput(e.target.value) }))
+                              }
+                            />
+                          </Field>
+                        )}
+                        <Field label="WC Buffer" source="free">
+                          <input
+                            className={`${inputCls} font-mono`}
+                            inputMode="numeric"
+                            value={plafondTexts.bufferWC}
+                            onChange={(e) =>
+                              setPlafondTexts((t) => ({ ...t, bufferWC: formatAmountInput(e.target.value) }))
+                            }
+                          />
+                        </Field>
+                      </div>
+                      <Field label="Buffer Expiry Date" source="free">
+                        <input
+                          type="date"
+                          className={inputCls}
+                          value={form.proposedBufferExpiryDate}
+                          onChange={(e) => set("proposedBufferExpiryDate", e.target.value)}
+                        />
+                      </Field>
+                      <Field label="Reasons" source="free" hint="Why this buffer is held above the plafond">
+                        <textarea
+                          className={`${inputCls} min-h-16 resize-y`}
+                          value={form.proposedBufferReasons}
+                          onChange={(e) => set("proposedBufferReasons", e.target.value)}
+                          placeholder="e.g. Headroom for seasonal inventory build"
+                        />
+                      </Field>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-gray-400 italic mt-1.5">
+                      No buffer for this plafond.
+                    </p>
+                  )}
+                </div>
               )}
               </>
             )
@@ -1324,44 +1564,186 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
               placeholder="https://docs.google.com/document/d/…"
             />
           </Field>
+          <Field label="Reports' Period Ending" source="free">
+            <input
+              type="date"
+              className={inputCls}
+              value={form.finReviewPeriodEnding}
+              onChange={(e) => set("finReviewPeriodEnding", e.target.value)}
+            />
+          </Field>
+          <Field label="Limit Recommendation" source="free">
+            <select
+              className={inputCls}
+              value={form.finReviewLimitRecommendation}
+              onChange={(e) =>
+                set("finReviewLimitRecommendation", e.target.value as SubmissionFormData["finReviewLimitRecommendation"])
+              }
+            >
+              <option value="Keep">Keep</option>
+              <option value="Increase">Increase</option>
+              <option value="Decrease">Decrease</option>
+            </select>
+          </Field>
+          <Field label="Current Limit (Rp)" source="free" hint="Brand total limit on file at review time; 0 = none">
+            <input
+              className={`${inputCls} font-mono`}
+              inputMode="numeric"
+              value={form.finReviewLimitCurrent ? formatAmountInput(String(form.finReviewLimitCurrent)) : ""}
+              onChange={(e) => set("finReviewLimitCurrent", parseAmount(e.target.value))}
+              placeholder="3.000.000.000"
+            />
+          </Field>
+          {form.finReviewLimitRecommendation !== "Keep" && (
+            <Field label="Recommended Limit (Rp)" source="free">
+              <input
+                className={`${inputCls} font-mono`}
+                inputMode="numeric"
+                value={
+                  form.finReviewLimitRecommended ? formatAmountInput(String(form.finReviewLimitRecommended)) : ""
+                }
+                onChange={(e) => set("finReviewLimitRecommended", parseAmount(e.target.value))}
+                placeholder="5.000.000.000"
+              />
+            </Field>
+          )}
+          <Field label="Notes" source="free">
+            <textarea
+              className={`${inputCls} min-h-20 resize-y`}
+              value={form.finReviewNotes}
+              onChange={(e) => set("finReviewNotes", e.target.value)}
+              placeholder="What was reviewed and why this recommendation"
+            />
+          </Field>
         </FormSection>
 
         {isAD && (
-          <FormSection title="Karmapreneur Contacts">
+          <FormSection
+            title="Karmapreneur Contacts"
+            badge={
+              form.kpContacts.some((c) => c.isKeyPerson && !c.slikFileUrl.trim()) && (
+                <span className="text-[11px] font-medium text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                  SLIK Missing
+                </span>
+              )
+            }
+          >
             <p className="text-xs text-gray-500 mb-3">
               List the people behind this Karmapreneur — owners, directors, and guarantors. Mark at
               least one <strong className="text-gray-600">Key Person</strong>; key persons need a
               SLIK file before IC approval.
             </p>
-            <EditTable
-                headers={[
-                  "#",
-                  "Name",
-                  "WhatsApp",
-                  "Email",
-                  "Role",
-                  "Notes",
-                  "Key Person?",
-                  "SLIK File URL",
-                  "SLIK Exec Summary",
-                  "UBO Exposure (Rp)",
-                  "",
-                ]}
-                minWidthCls="min-w-[1200px]"
+            <div className="overflow-x-auto -mx-1 max-w-[900px]">
+              <table
+                className="text-xs border border-gray-100 rounded-lg overflow-hidden"
+                style={{ minWidth: 144 + form.kpContacts.length * 224 + 96 }}
               >
-                {form.kpContacts.map((c, i) => (
-                  <tr key={c.id} className="align-top">
-                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
-                    <td className="py-2 px-2 min-w-40">
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left">
+                    <th className="py-2 px-3 font-medium w-36">Field</th>
+                    {form.kpContacts.map((c, i) => (
+                      <th key={c.id} className="py-2 px-3 font-medium w-56">
+                        <div className="flex items-center justify-between gap-2">
+                          <span>Contact {i + 1}</span>
+                          <RemoveRowButton onClick={() => removeRow("kpContacts", c.id)} />
+                        </div>
+                      </th>
+                    ))}
+                    <th className="py-2 px-3 whitespace-nowrap w-24">
+                      <AddColumnButton label="Add contact" onClick={addContact} />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  <TransposedFieldRow
+                    label="Name"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
                       <input
                         className={cellInputCls}
                         value={c.name}
                         onChange={(e) => updateRow("kpContacts", c.id, { name: e.target.value })}
                         placeholder="e.g. Tyo Kusumaputera"
                       />
-                    </td>
-                    <td className="py-2 px-2 min-w-32">
-                      <div>
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="Role"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
+                      <input
+                        className={cellInputCls}
+                        value={c.role}
+                        onChange={(e) => updateRow("kpContacts", c.id, { role: e.target.value })}
+                        placeholder="e.g. CEO"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="Key Person?"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
+                      <input
+                        type="checkbox"
+                        checked={c.isKeyPerson}
+                        onChange={(e) => updateRow("kpContacts", c.id, { isKeyPerson: e.target.checked })}
+                        className="rounded border-gray-300"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="SLIK File URL"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
+                      <input
+                        className={cellInputCls}
+                        value={c.slikFileUrl}
+                        onChange={(e) => updateRow("kpContacts", c.id, { slikFileUrl: e.target.value })}
+                        placeholder="https://drive.google.com/…"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="SLIK Exec Summary"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
+                      <input
+                        className={cellInputCls}
+                        value={c.slikExecSummary}
+                        onChange={(e) => updateRow("kpContacts", c.id, { slikExecSummary: e.target.value })}
+                        placeholder="e.g. Kol 1, no arrears"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="UBO Exposure (Rp)"
+                    rows={form.kpContacts}
+                    renderCell={(c) => {
+                      if (!c.name.trim()) return <span className="text-gray-300">—</span>;
+                      const existing = existingUboExposure(c.name);
+                      const includingProposed = proposedIDR > 0 ? existing + proposedIDR : existing;
+                      const level = uboExposureLevel(includingProposed);
+                      return (
+                        <span
+                          className={
+                            level === "over"
+                              ? "font-medium text-red-700"
+                              : level === "stretch"
+                              ? "font-medium text-amber-700"
+                              : "text-gray-700"
+                          }
+                        >
+                          {formatAmountInput(String(existing)) || "0"}
+                          {proposedIDR > 0 && ` (${formatAmountInput(String(includingProposed))} incl.)`}
+                        </span>
+                      );
+                    }}
+                  />
+                  <TransposedFieldRow
+                    label="WhatsApp"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
+                      <>
                         <input
                           className={cellInputCls}
                           inputMode="tel"
@@ -1372,10 +1754,14 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         {!isValidWhatsApp(c.whatsapp) && (
                           <InlineWarning message="Format: +[Country Code] - [Number]" />
                         )}
-                      </div>
-                    </td>
-                    <td className="py-2 px-2 min-w-40">
-                      <div>
+                      </>
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="Email"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
+                      <>
                         <input
                           className={cellInputCls}
                           inputMode="email"
@@ -1386,77 +1772,24 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
                         {!isValidEmail(c.email) && (
                           <InlineWarning message="Must be a valid email (e.g., name@mail.com)" />
                         )}
-                      </div>
-                    </td>
-                    <td className="py-2 px-2 min-w-24">
-                      <input
-                        className={cellInputCls}
-                        value={c.role}
-                        onChange={(e) => updateRow("kpContacts", c.id, { role: e.target.value })}
-                        placeholder="e.g. CEO"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-40">
+                      </>
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="Notes on Person"
+                    rows={form.kpContacts}
+                    renderCell={(c) => (
                       <input
                         className={cellInputCls}
                         value={c.notesOnPerson}
                         onChange={(e) => updateRow("kpContacts", c.id, { notesOnPerson: e.target.value })}
                         placeholder="e.g. Founder; runs day-to-day ops"
                       />
-                    </td>
-                    <td className="py-2 px-2 pt-3.5 text-center">
-                      <input
-                        type="checkbox"
-                        checked={c.isKeyPerson}
-                        onChange={(e) => updateRow("kpContacts", c.id, { isKeyPerson: e.target.checked })}
-                        className="rounded border-gray-300"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-40">
-                      <input
-                        className={cellInputCls}
-                        value={c.slikFileUrl}
-                        onChange={(e) => updateRow("kpContacts", c.id, { slikFileUrl: e.target.value })}
-                        placeholder="https://drive.google.com/…"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-40">
-                      <input
-                        className={cellInputCls}
-                        value={c.slikExecSummary}
-                        onChange={(e) => updateRow("kpContacts", c.id, { slikExecSummary: e.target.value })}
-                        placeholder="e.g. Kol 1, no arrears"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-32 pt-3.5 text-xs">
-                      {(() => {
-                        if (!c.name.trim()) return <span className="text-gray-300">—</span>;
-                        const existing = existingUboExposure(c.name);
-                        const includingProposed = proposedIDR > 0 ? existing + proposedIDR : existing;
-                        const level = uboExposureLevel(includingProposed);
-                        return (
-                          <span
-                            className={
-                              level === "over"
-                                ? "font-medium text-red-700"
-                                : level === "stretch"
-                                ? "font-medium text-amber-700"
-                                : "text-gray-700"
-                            }
-                          >
-                            {formatAmountInput(String(existing)) || "0"}
-                            {proposedIDR > 0 && ` (${formatAmountInput(String(includingProposed))} incl.)`}
-                          </span>
-                        );
-                      })()}
-                    </td>
-                    <td className="py-2 px-2">
-                      <RemoveRowButton onClick={() => removeRow("kpContacts", c.id)} />
-                    </td>
-                  </tr>
-                ))}
-              </EditTable>
-            <AddRowButton label="Add contact" onClick={addContact} />
+                    )}
+                  />
+                </tbody>
+              </table>
+            </div>
             <p className="text-[10px] text-gray-400 mt-1">
               SLIK File URL is required before approval for key persons.
             </p>
@@ -1464,668 +1797,553 @@ export function SubmissionForm({ submission, isNew = false }: Props) {
         )}
 
         {isAD && (
-          <FormSection title="PT Details">
+          <FormSection
+            title="PT Details"
+            badge={
+              form.ptDetails.some((pt) => ptWarnings(pt, form.brandName).length > 0) && (
+                <span className="text-[11px] font-medium text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded uppercase tracking-wide">
+                  Mismatch
+                </span>
+              )
+            }
+          >
             <p className="text-xs text-gray-500 mb-3">
               The legal entities (PTs) receiving disbursements and their bank accounts. The
               accountholder name should match the PT name — mismatches are flagged to IC.
             </p>
-            <EditTable
-              headers={[
-                "#",
-                "PT Name",
-                "Bank",
-                "Account Number",
-                "Accountholder Name",
-                "SLIK-PT File URL",
-                "SLIK-PT Exec Summary",
-                "",
-              ]}
-              minWidthCls="min-w-[960px]"
-            >
-              {form.ptDetails.map((pt, i) => {
-                const warnings = ptWarnings(pt, form.brandName);
-                return (
-                <tr key={pt.id} className="align-top">
-                  <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
-                  <td className="py-2 px-2 min-w-40">
-                    <input
-                      className={cellInputCls}
-                      value={pt.name}
-                      onChange={(e) => updateRow("ptDetails", pt.id, { name: e.target.value })}
-                      placeholder="e.g. PT Tuku Sejahtera"
-                    />
-                  </td>
-                  <td className="py-2 px-2 min-w-24">
-                    <input
-                      className={cellInputCls}
-                      value={pt.bank}
-                      onChange={(e) => updateRow("ptDetails", pt.id, { bank: e.target.value })}
-                      placeholder="e.g. BCA"
-                    />
-                  </td>
-                  <td className="py-2 px-2 min-w-32">
-                    <input
-                      className={cellInputCls}
-                      inputMode="numeric"
-                      value={pt.accountNumber}
-                      onChange={(e) => updateRow("ptDetails", pt.id, { accountNumber: e.target.value })}
-                      placeholder="e.g. 5271038812"
-                    />
-                  </td>
-                  <td className="py-2 px-2 min-w-40">
-                    <input
-                      className={cellInputCls}
-                      value={pt.accountholderName}
-                      onChange={(e) => updateRow("ptDetails", pt.id, { accountholderName: e.target.value })}
-                      placeholder="e.g. PT Tuku Sejahtera"
-                    />
-                    {pt.name.trim() && warnings.map((w, wi) => <InlineWarning key={wi} message={w} />)}
-                  </td>
-                  <td className="py-2 px-2 min-w-40">
-                    <input
-                      className={cellInputCls}
-                      value={pt.slikFileUrl}
-                      onChange={(e) => updateRow("ptDetails", pt.id, { slikFileUrl: e.target.value })}
-                      placeholder="https://drive.google.com/…"
-                    />
-                  </td>
-                  <td className="py-2 px-2 min-w-40">
-                    <input
-                      className={cellInputCls}
-                      value={pt.slikExecSummary}
-                      onChange={(e) => updateRow("ptDetails", pt.id, { slikExecSummary: e.target.value })}
-                      placeholder="e.g. Kol 1, no arrears"
-                    />
-                  </td>
-                  <td className="py-2 px-2">
-                    <RemoveRowButton onClick={() => removeRow("ptDetails", pt.id)} />
-                  </td>
-                </tr>
-                );
-              })}
-            </EditTable>
-            <AddRowButton label="Add PT" onClick={addPT} />
+            <div className="overflow-x-auto -mx-1 max-w-[900px]">
+              <table
+                className="text-xs border border-gray-100 rounded-lg overflow-hidden"
+                style={{ minWidth: 144 + form.ptDetails.length * 224 + 96 }}
+              >
+                <thead>
+                  <tr className="border-b border-gray-100 bg-gray-50 text-gray-500 text-left">
+                    <th className="py-2 px-3 font-medium w-36">Field</th>
+                    {form.ptDetails.map((pt, i) => (
+                      <th key={pt.id} className="py-2 px-3 font-medium w-56">
+                        <div className="flex items-center justify-between gap-2">
+                          <span>PT {i + 1}</span>
+                          <RemoveRowButton onClick={() => removeRow("ptDetails", pt.id)} />
+                        </div>
+                      </th>
+                    ))}
+                    <th className="py-2 px-3 whitespace-nowrap w-24">
+                      <AddColumnButton label="Add PT" onClick={addPT} />
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  <TransposedFieldRow
+                    label="PT Name"
+                    rows={form.ptDetails}
+                    renderCell={(pt) => (
+                      <input
+                        className={cellInputCls}
+                        value={pt.name}
+                        onChange={(e) => updateRow("ptDetails", pt.id, { name: e.target.value })}
+                        placeholder="e.g. PT Tuku Sejahtera"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="Bank"
+                    rows={form.ptDetails}
+                    renderCell={(pt) => (
+                      <input
+                        className={cellInputCls}
+                        value={pt.bank}
+                        onChange={(e) => updateRow("ptDetails", pt.id, { bank: e.target.value })}
+                        placeholder="e.g. BCA"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="Account Number"
+                    rows={form.ptDetails}
+                    renderCell={(pt) => (
+                      <input
+                        className={cellInputCls}
+                        inputMode="numeric"
+                        value={pt.accountNumber}
+                        onChange={(e) => updateRow("ptDetails", pt.id, { accountNumber: e.target.value })}
+                        placeholder="e.g. 5271038812"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="Accountholder Name"
+                    rows={form.ptDetails}
+                    renderCell={(pt) => {
+                      const warnings = ptWarnings(pt, form.brandName);
+                      return (
+                        <>
+                          <input
+                            className={cellInputCls}
+                            value={pt.accountholderName}
+                            onChange={(e) => updateRow("ptDetails", pt.id, { accountholderName: e.target.value })}
+                            placeholder="e.g. PT Tuku Sejahtera"
+                          />
+                          {pt.name.trim() && warnings.map((w, wi) => <InlineWarning key={wi} message={w} />)}
+                        </>
+                      );
+                    }}
+                  />
+                  <TransposedFieldRow
+                    label="SLIK-PT File URL"
+                    rows={form.ptDetails}
+                    renderCell={(pt) => (
+                      <input
+                        className={cellInputCls}
+                        value={pt.slikFileUrl}
+                        onChange={(e) => updateRow("ptDetails", pt.id, { slikFileUrl: e.target.value })}
+                        placeholder="https://drive.google.com/…"
+                      />
+                    )}
+                  />
+                  <TransposedFieldRow
+                    label="SLIK-PT Exec Summary"
+                    rows={form.ptDetails}
+                    renderCell={(pt) => (
+                      <input
+                        className={cellInputCls}
+                        value={pt.slikExecSummary}
+                        onChange={(e) => updateRow("ptDetails", pt.id, { slikExecSummary: e.target.value })}
+                        placeholder="e.g. Kol 1, no arrears"
+                      />
+                    )}
+                  />
+                </tbody>
+              </table>
+            </div>
           </FormSection>
         )}
 
-        {isProjectType && (
+        {(isProjectType || wantsFixed || wantsDaily) && (
           <FormSection title="Project Terms Details">
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3 mt-1">
-              Disbursement Schedule
-            </h3>
-            <p className="text-xs text-gray-500 mb-3">
-              How the requested amount is released in tranches — planned amounts should add up to
-              the Requested Amount.
+            <p className="text-[11px] text-gray-400 -mt-1 mb-3">
+              Grouped to match the IC Review recap&apos;s bands (A-F), so what&apos;s filled in
+              during Due Diligence lines up with what IC reviews later.
             </p>
-            <EditTable
-                headers={[
-                  "#",
-                  `Disbursement Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`,
-                  "Planned Disbursement Date",
-                  "",
-                ]}
-                minWidthCls="min-w-[480px]"
-              >
-                {form.disbursements.map((d, i) => (
-                  <tr key={d.id} className="align-top">
-                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
-                    <td className="py-2 px-2">
-                      <input
-                        className={`${cellInputCls} font-mono`}
-                        inputMode="numeric"
-                        value={d.amount ? formatAmountInput(String(d.amount)) : ""}
-                        onChange={(e) =>
-                          updateRow("disbursements", d.id, { amount: parseAmount(e.target.value) })
-                        }
-                        placeholder="700.000.000"
-                      />
-                    </td>
-                    <td className="py-2 px-2">
-                      <input
-                        type="date"
-                        className={cellInputCls}
-                        value={d.plannedDate}
-                        onChange={(e) => updateRow("disbursements", d.id, { plannedDate: e.target.value })}
-                      />
-                    </td>
-                    <td className="py-2 px-2">
-                      <RemoveRowButton onClick={() => removeRow("disbursements", d.id)} />
-                    </td>
-                  </tr>
-                ))}
-              </EditTable>
-            <AddRowButton label="Add disbursement" onClick={addDisbursement} />
-            {filledDisbursements.length > 0 && (
-              <p className="text-xs text-gray-500 mt-2">
-                Total planned: <span className="font-mono">{fmtIdr(disbursementSum)}</span>
-              </p>
-            )}
-            {disbursementMismatch && (
-              <InlineWarning message="Warning: Not same as Project Target Amount" />
-            )}
 
-            {isB && (
+            {isProjectType && (
               <>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
-                  Payor / PO / Invoice Details
-                </h3>
-                <p className="text-xs text-gray-500 mb-3">
-                  One row per payor / PO or invoice line backing this request — shown on the IC
-                  card&apos;s Payor section.
-                </p>
-                <EditTable
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mb-2 pb-1.5 border-b border-gray-200">
+                A — Identity &amp; Structure
+              </h3>
+              <p className="text-[11px] text-gray-400 mb-3">
+                Financing Type, Asset Class, Financing Use, and PT are captured above in
+                Project&apos;s Application / PT Details.
+              </p>
+              <h4 className="text-xs font-medium text-gray-600 mb-2">Disbursement Schedule</h4>
+              <p className="text-xs text-gray-500 mb-3">
+                How the requested amount is released in tranches — planned amounts should add up to
+                the Requested Amount.
+              </p>
+              <EditTable
                   headers={[
                     "#",
-                    "Payor",
-                    "PO / Invoice #",
-                    "Due Date",
-                    `Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`,
-                    "Payor Type",
-                    "Payee Projects",
-                    "Notes",
-                    "Risk",
+                    `Disbursement Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`,
+                    "Planned Disbursement Date",
                     "",
                   ]}
-                  minWidthCls="min-w-[1100px]"
+                  minWidthCls="min-w-[480px]"
                 >
-                  {form.payorInvoices.map((r, i) => (
-                    <tr key={r.id} className="align-top">
+                  {form.disbursements.map((d, i) => (
+                    <tr key={d.id} className="align-top">
                       <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
-                      <td className="py-2 px-2 min-w-36">
-                        <input
-                          className={cellInputCls}
-                          value={r.payorLabel}
-                          onChange={(e) => updateRow("payorInvoices", r.id, { payorLabel: e.target.value })}
-                          placeholder="e.g. Indomarco Adi Prima"
-                        />
-                      </td>
-                      <td className="py-2 px-2 min-w-28">
-                        <input
-                          className={cellInputCls}
-                          value={r.poOrInvoiceNumber}
-                          onChange={(e) =>
-                            updateRow("payorInvoices", r.id, { poOrInvoiceNumber: e.target.value })
-                          }
-                          placeholder="e.g. PO-2026-0713"
-                        />
-                      </td>
-                      <td className="py-2 px-2 min-w-32">
-                        <input
-                          type="date"
-                          className={cellInputCls}
-                          value={r.dueDate}
-                          onChange={(e) => updateRow("payorInvoices", r.id, { dueDate: e.target.value })}
-                        />
-                      </td>
-                      <td className="py-2 px-2 min-w-32">
+                      <td className="py-2 px-2">
                         <input
                           className={`${cellInputCls} font-mono`}
                           inputMode="numeric"
-                          value={r.amount ? formatAmountInput(String(r.amount)) : ""}
+                          value={d.amount ? formatAmountInput(String(d.amount)) : ""}
                           onChange={(e) =>
-                            updateRow("payorInvoices", r.id, { amount: parseAmount(e.target.value) })
+                            updateRow("disbursements", d.id, { amount: parseAmount(e.target.value) })
                           }
                           placeholder="700.000.000"
                         />
                       </td>
-                      <td className="py-2 px-2 min-w-28">
-                        <select
-                          className={cellInputCls}
-                          value={r.payorType}
-                          onChange={(e) => updateRow("payorInvoices", r.id, { payorType: e.target.value })}
-                        >
-                          <option value="Corporate">Corporate</option>
-                          <option value="Government">Government</option>
-                          <option value="SME">SME</option>
-                          <option value="Individual">Individual</option>
-                        </select>
-                      </td>
-                      <td className="py-2 px-2 min-w-32">
+                      <td className="py-2 px-2">
                         <input
+                          type="date"
                           className={cellInputCls}
-                          value={r.payeeProjects}
-                          onChange={(e) =>
-                            updateRow("payorInvoices", r.id, { payeeProjects: e.target.value })
-                          }
-                          placeholder="e.g. this project only"
-                        />
-                      </td>
-                      <td className="py-2 px-2 min-w-36">
-                        <input
-                          className={cellInputCls}
-                          value={r.notes}
-                          onChange={(e) => updateRow("payorInvoices", r.id, { notes: e.target.value })}
-                          placeholder="e.g. repeat payor, pays on time"
+                          value={d.plannedDate}
+                          onChange={(e) => updateRow("disbursements", d.id, { plannedDate: e.target.value })}
                         />
                       </td>
                       <td className="py-2 px-2">
-                        <select
-                          className={cellInputCls}
-                          value={r.riskLevel}
-                          onChange={(e) =>
-                            updateRow("payorInvoices", r.id, {
-                              riskLevel: e.target.value as SubmissionPayorRow["riskLevel"],
-                            })
-                          }
-                        >
-                          <option value="Low">Low</option>
-                          <option value="Medium">Medium</option>
-                          <option value="High">High</option>
-                        </select>
-                      </td>
-                      <td className="py-2 px-2">
-                        <RemoveRowButton onClick={() => removeRow("payorInvoices", r.id)} />
+                        <RemoveRowButton onClick={() => removeRow("disbursements", d.id)} />
                       </td>
                     </tr>
                   ))}
                 </EditTable>
-                <AddRowButton label="Add payor / invoice" onClick={addPayorRow} />
-                <div className="mt-4">
-                  <Field
-                    label="GDrive Link to Underlying Invoice/PO Docs"
-                    source="free"
-                    hint="Folder or file link with the supporting invoice/PO documents"
-                  >
-                    <input
-                      className={inputCls}
-                      value={form.payorInvoiceDocsLink}
-                      onChange={(e) => set("payorInvoiceDocsLink", e.target.value)}
-                      placeholder="https://drive.google.com/…"
-                    />
-                  </Field>
-                </div>
-              </>
-            )}
-
-            {wantsRevShare && (
-              <>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
-                  Revenue Share Terms
-                </h3>
-                <Field label="Source of Revenue Accrued" source="free">
-                  <input
-                    className={inputCls}
-                    value={form.rsSourceOfRevenue}
-                    onChange={(e) => set("rsSourceOfRevenue", e.target.value)}
-                    placeholder="e.g. All revenue of the financed branches"
-                  />
-                </Field>
-                <Field label="Revenue Share %" source="free" hint="Pre-BEP / Post-BEP, % of revenue">
-                  <div className="flex gap-2">
-                    <input
-                      type="number"
-                      step="any"
-                      inputMode="decimal"
-                      className={inputCls}
-                      value={form.rsPreBEPPct || ""}
-                      onChange={(e) => set("rsPreBEPPct", Number(e.target.value) || 0)}
-                      placeholder="Pre-BEP, e.g. 6"
-                    />
-                    <input
-                      type="number"
-                      step="any"
-                      inputMode="decimal"
-                      className={inputCls}
-                      value={form.rsPostBEPPct || ""}
-                      onChange={(e) => set("rsPostBEPPct", Number(e.target.value) || 0)}
-                      placeholder="Post-BEP, e.g. 4"
-                    />
-                  </div>
-                </Field>
-                <Field label="Carry %" source="free" hint="Fixed Platform Fee">
-                  <input
-                    type="number"
-                    step="any"
-                    inputMode="decimal"
-                    className={inputCls}
-                    value={form.rsCarryPct || ""}
-                    onChange={(e) => set("rsCarryPct", Number(e.target.value) || 0)}
-                    placeholder="e.g. 20"
-                  />
-                </Field>
-                <Field label="Frequency" source="master" hint="Monthly is the default — the IC card warns otherwise">
-                  <select
-                    className={inputCls}
-                    value={form.rsFrequency}
-                    onChange={(e) => set("rsFrequency", e.target.value)}
-                  >
-                    <option value="Monthly">Monthly</option>
-                    <option value="Weekly">Weekly</option>
-                    <option value="Quarterly">Quarterly</option>
-                  </select>
-                </Field>
-                <Field label="Due Date" source="free">
-                  <input
-                    className={inputCls}
-                    value={form.rsDueDate}
-                    onChange={(e) => set("rsDueDate", e.target.value)}
-                    placeholder="e.g. 5th of the following month"
-                  />
-                </Field>
-                <Field label="Cap Type" source="master">
-                  <select
-                    className={inputCls}
-                    value={form.rsCapType}
-                    onChange={(e) =>
-                      set("rsCapType", e.target.value as SubmissionFormData["rsCapType"])
-                    }
-                  >
-                    <option value="Return Cap">Return Cap</option>
-                    <option value="Time Cap">Time Cap</option>
-                  </select>
-                </Field>
-                {form.rsCapType === "Return Cap" ? (
-                  <Field label="Cap Multiple (x)" source="free" hint="Investor cap multiple">
-                    <input
-                      type="number"
-                      step="any"
-                      inputMode="decimal"
-                      className={inputCls}
-                      value={form.rsCapMultiple || ""}
-                      onChange={(e) => set("rsCapMultiple", Number(e.target.value) || 0)}
-                      placeholder="e.g. 1.4"
-                    />
-                  </Field>
-                ) : (
-                  <Field label="Time Cap Period (months)" source="free">
-                    <input
-                      type="number"
-                      inputMode="numeric"
-                      className={inputCls}
-                      value={form.rsCapTimeMonths || ""}
-                      onChange={(e) => set("rsCapTimeMonths", Number(e.target.value) || 0)}
-                      placeholder="e.g. 36"
-                    />
-                  </Field>
-                )}
-                <Field label="Revenue Share Start" source="master">
-                  <select
-                    className={inputCls}
-                    value={form.rsStartType}
-                    onChange={(e) =>
-                      set("rsStartType", e.target.value as SubmissionFormData["rsStartType"])
-                    }
-                  >
-                    <option value="Anchored to Branch Opening">Anchored to Branch Opening</option>
-                    <option value="Fixed">Fixed start date</option>
-                  </select>
-                </Field>
-                {form.rsStartType === "Fixed" && (
-                  <Field label="Fixed Start Date" source="free">
-                    <input
-                      type="date"
-                      className={inputCls}
-                      value={form.rsStartDate}
-                      onChange={(e) => set("rsStartDate", e.target.value)}
-                    />
-                  </Field>
-                )}
-              </>
-            )}
-
-            {wantsFixed && (
-              <>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
-                  Fixed Repayment Schedule
-                </h3>
-                <p className="text-xs text-gray-500 mb-3">
-                  One row per month — principal, interest, and carry per installment. Totals are
-                  computed for the IC card.
+              <AddRowButton label="Add disbursement" onClick={addDisbursement} />
+              {filledDisbursements.length > 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Total planned: <span className="font-mono">{fmtIdr(disbursementSum)}</span>
                 </p>
-                <EditTable
-                  headers={["#", "Principal (Rp)", "Interest (Rp)", "Carry (Rp)", ""]}
-                  minWidthCls="min-w-[560px]"
-                >
-                  {form.fixedSchedule.map((r, i) => (
-                    <tr key={r.id} className="align-top">
-                      <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium whitespace-nowrap">
-                        Month {i + 1}
-                      </td>
-                      <td className="py-2 px-2">
-                        <input
-                          className={`${cellInputCls} font-mono`}
-                          inputMode="numeric"
-                          value={r.principal ? formatAmountInput(String(r.principal)) : ""}
-                          onChange={(e) =>
-                            updateRow("fixedSchedule", r.id, { principal: parseAmount(e.target.value) })
-                          }
-                          placeholder="100.000.000"
-                        />
-                      </td>
-                      <td className="py-2 px-2">
-                        <input
-                          className={`${cellInputCls} font-mono`}
-                          inputMode="numeric"
-                          value={r.interest ? formatAmountInput(String(r.interest)) : ""}
-                          onChange={(e) =>
-                            updateRow("fixedSchedule", r.id, { interest: parseAmount(e.target.value) })
-                          }
-                          placeholder="10.000.000"
-                        />
-                      </td>
-                      <td className="py-2 px-2">
-                        <input
-                          className={`${cellInputCls} font-mono`}
-                          inputMode="numeric"
-                          value={r.carry ? formatAmountInput(String(r.carry)) : ""}
-                          onChange={(e) =>
-                            updateRow("fixedSchedule", r.id, { carry: parseAmount(e.target.value) })
-                          }
-                          placeholder="2.000.000"
-                        />
-                      </td>
-                      <td className="py-2 px-2">
-                        <RemoveRowButton onClick={() => removeRow("fixedSchedule", r.id)} />
-                      </td>
-                    </tr>
-                  ))}
-                </EditTable>
-                <AddRowButton label="Add month" onClick={addFixedRow} />
-                {form.fixedSchedule.some((r) => !fixedRowIsBlank(r)) && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Total repayment:{" "}
-                    <span className="font-mono">
-                      {fmtIdr(
-                        form.fixedSchedule.reduce((s, r) => s + r.principal + r.interest + r.carry, 0)
-                      )}
-                    </span>
+              )}
+              {disbursementMismatch && (
+                <InlineWarning message="Warning: Not same as Project Target Amount" />
+              )}
+
+              {isB && (
+                <>
+                  <h4 className="text-xs font-medium text-gray-600 mb-2 mt-6">Payor / PO / Invoice Details</h4>
+                  <p className="text-xs text-gray-500 mb-3">
+                    One row per payor / PO or invoice line backing this request — shown on the IC
+                    card&apos;s Payor section.
                   </p>
-                )}
+                  <EditTable
+                    headers={[
+                      "#",
+                      "Payor",
+                      "PO / Invoice #",
+                      "Due Date",
+                      `Amount (${form.requestedAmountCurrency === "USD" ? "USD" : "Rp"})`,
+                      "Payor Type",
+                      "Payee Projects",
+                      "Notes",
+                      "Risk",
+                      "",
+                    ]}
+                    minWidthCls="min-w-[1100px]"
+                  >
+                    {form.payorInvoices.map((r, i) => (
+                      <tr key={r.id} className="align-top">
+                        <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                        <td className="py-2 px-2 min-w-36">
+                          <input
+                            className={cellInputCls}
+                            value={r.payorLabel}
+                            onChange={(e) => updateRow("payorInvoices", r.id, { payorLabel: e.target.value })}
+                            placeholder="e.g. Indomarco Adi Prima"
+                          />
+                        </td>
+                        <td className="py-2 px-2 min-w-28">
+                          <input
+                            className={cellInputCls}
+                            value={r.poOrInvoiceNumber}
+                            onChange={(e) =>
+                              updateRow("payorInvoices", r.id, { poOrInvoiceNumber: e.target.value })
+                            }
+                            placeholder="e.g. PO-2026-0713"
+                          />
+                        </td>
+                        <td className="py-2 px-2 min-w-32">
+                          <input
+                            type="date"
+                            className={cellInputCls}
+                            value={r.dueDate}
+                            onChange={(e) => updateRow("payorInvoices", r.id, { dueDate: e.target.value })}
+                          />
+                        </td>
+                        <td className="py-2 px-2 min-w-32">
+                          <input
+                            className={`${cellInputCls} font-mono`}
+                            inputMode="numeric"
+                            value={r.amount ? formatAmountInput(String(r.amount)) : ""}
+                            onChange={(e) =>
+                              updateRow("payorInvoices", r.id, { amount: parseAmount(e.target.value) })
+                            }
+                            placeholder="700.000.000"
+                          />
+                        </td>
+                        <td className="py-2 px-2 min-w-28">
+                          <select
+                            className={cellInputCls}
+                            value={r.payorType}
+                            onChange={(e) => updateRow("payorInvoices", r.id, { payorType: e.target.value })}
+                          >
+                            <option value="Corporate">Corporate</option>
+                            <option value="Government">Government</option>
+                            <option value="SME">SME</option>
+                            <option value="Individual">Individual</option>
+                          </select>
+                        </td>
+                        <td className="py-2 px-2 min-w-32">
+                          <input
+                            className={cellInputCls}
+                            value={r.payeeProjects}
+                            onChange={(e) =>
+                              updateRow("payorInvoices", r.id, { payeeProjects: e.target.value })
+                            }
+                            placeholder="e.g. this project only"
+                          />
+                        </td>
+                        <td className="py-2 px-2 min-w-36">
+                          <input
+                            className={cellInputCls}
+                            value={r.notes}
+                            onChange={(e) => updateRow("payorInvoices", r.id, { notes: e.target.value })}
+                            placeholder="e.g. repeat payor, pays on time"
+                          />
+                        </td>
+                        <td className="py-2 px-2">
+                          <select
+                            className={cellInputCls}
+                            value={r.riskLevel}
+                            onChange={(e) =>
+                              updateRow("payorInvoices", r.id, {
+                                riskLevel: e.target.value as SubmissionPayorRow["riskLevel"],
+                              })
+                            }
+                          >
+                            <option value="Low">Low</option>
+                            <option value="Medium">Medium</option>
+                            <option value="High">High</option>
+                          </select>
+                        </td>
+                        <td className="py-2 px-2">
+                          <RemoveRowButton onClick={() => removeRow("payorInvoices", r.id)} />
+                        </td>
+                      </tr>
+                    ))}
+                  </EditTable>
+                  <AddRowButton label="Add payor / invoice" onClick={addPayorRow} />
+                  <div className="mt-4">
+                    <Field
+                      label="GDrive Link to Underlying Invoice/PO Docs"
+                      source="free"
+                      hint="Folder or file link with the supporting invoice/PO documents"
+                    >
+                      <input
+                        className={inputCls}
+                        value={form.payorInvoiceDocsLink}
+                        onChange={(e) => set("payorInvoiceDocsLink", e.target.value)}
+                        placeholder="https://drive.google.com/…"
+                      />
+                    </Field>
+                  </div>
+                </>
+              )}
               </>
             )}
 
-            {wantsDaily && (
+            {((isProjectType && wantsRevShare) || wantsFixed || wantsDaily) && (
               <>
-                <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
-                  Daily Interest Terms
-                </h3>
-                <Field label="Interest Rate (30-day) %" source="free">
-                  <input
-                    type="number"
-                    step="any"
-                    inputMode="decimal"
-                    className={inputCls}
-                    value={form.diInterestRate30d || ""}
-                    onChange={(e) => set("diInterestRate30d", Number(e.target.value) || 0)}
-                    placeholder="e.g. 1.8"
-                  />
-                </Field>
-                <Field label="Service Fee (30-day) %" source="free">
-                  <input
-                    type="number"
-                    step="any"
-                    inputMode="decimal"
-                    className={inputCls}
-                    value={form.diServiceFee30d || ""}
-                    onChange={(e) => set("diServiceFee30d", Number(e.target.value) || 0)}
-                    placeholder="e.g. 0.2"
-                  />
-                </Field>
-                <Field label="Tenor (days)" source="free">
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    className={inputCls}
-                    value={form.diTenorDays || ""}
-                    onChange={(e) => set("diTenorDays", Number(e.target.value) || 0)}
-                    placeholder="e.g. 90"
-                  />
-                </Field>
-                <Field label="Minimum Interest Period (days)" source="free">
-                  <input
-                    type="number"
-                    inputMode="numeric"
-                    className={inputCls}
-                    value={form.diMinInterestDays || ""}
-                    onChange={(e) => set("diMinInterestDays", Number(e.target.value) || 0)}
-                    placeholder="e.g. 30"
-                  />
-                </Field>
-                <Field label="Service Fee Daily Basis" source="free">
-                  <input
-                    className={inputCls}
-                    value={form.diServiceFeeBasis}
-                    onChange={(e) => set("diServiceFeeBasis", e.target.value)}
-                    placeholder="e.g. Disbursed Amount"
-                  />
-                </Field>
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mt-8 mb-2 pb-1.5 border-b border-gray-200">
+                B — Return Structure
+              </h3>
+
+              {isProjectType && wantsRevShare && (
+                <p className="text-[11px] text-gray-400 mb-3">
+                  Revenue Share %, Cap, Carry, and Start are entered in the Proposed & Past Project
+                  Recap table below.
+                </p>
+              )}
+
+              {wantsFixed && (
+                <>
+                  <h4 className="text-xs font-medium text-gray-600 mb-2 mt-6">Fixed Repayment Schedule</h4>
+                  <p className="text-xs text-gray-500 mb-3">
+                    One row per month — principal, interest, and carry per installment. Totals are
+                    computed for the IC card.
+                  </p>
+                  <EditTable
+                    headers={["#", "Principal (Rp)", "Interest (Rp)", "Carry (Rp)", ""]}
+                    minWidthCls="min-w-[560px]"
+                  >
+                    {form.fixedSchedule.map((r, i) => (
+                      <tr key={r.id} className="align-top">
+                        <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium whitespace-nowrap">
+                          Month {i + 1}
+                        </td>
+                        <td className="py-2 px-2">
+                          <input
+                            className={`${cellInputCls} font-mono`}
+                            inputMode="numeric"
+                            value={r.principal ? formatAmountInput(String(r.principal)) : ""}
+                            onChange={(e) =>
+                              updateRow("fixedSchedule", r.id, { principal: parseAmount(e.target.value) })
+                            }
+                            placeholder="100.000.000"
+                          />
+                        </td>
+                        <td className="py-2 px-2">
+                          <input
+                            className={`${cellInputCls} font-mono`}
+                            inputMode="numeric"
+                            value={r.interest ? formatAmountInput(String(r.interest)) : ""}
+                            onChange={(e) =>
+                              updateRow("fixedSchedule", r.id, { interest: parseAmount(e.target.value) })
+                            }
+                            placeholder="10.000.000"
+                          />
+                        </td>
+                        <td className="py-2 px-2">
+                          <input
+                            className={`${cellInputCls} font-mono`}
+                            inputMode="numeric"
+                            value={r.carry ? formatAmountInput(String(r.carry)) : ""}
+                            onChange={(e) =>
+                              updateRow("fixedSchedule", r.id, { carry: parseAmount(e.target.value) })
+                            }
+                            placeholder="2.000.000"
+                          />
+                        </td>
+                        <td className="py-2 px-2">
+                          <RemoveRowButton onClick={() => removeRow("fixedSchedule", r.id)} />
+                        </td>
+                      </tr>
+                    ))}
+                  </EditTable>
+                  <AddRowButton label="Add month" onClick={addFixedRow} />
+                  {form.fixedSchedule.some((r) => !fixedRowIsBlank(r)) && (
+                    <p className="text-xs text-gray-500 mt-2">
+                      Total repayment:{" "}
+                      <span className="font-mono">
+                        {fmtIdr(
+                          form.fixedSchedule.reduce((s, r) => s + r.principal + r.interest + r.carry, 0)
+                        )}
+                      </span>
+                    </p>
+                  )}
+                </>
+              )}
+
+              {wantsDaily && (
+                <>
+                  <h4 className="text-xs font-medium text-gray-600 mb-2 mt-6">Daily Interest Terms</h4>
+                  <p className="text-[11px] text-gray-400 mb-3">
+                    Interest Rate (30-day) and Service Fee (30-day) are entered in the Proposed &amp;
+                    Past Project Recap table below (Target Carry / Fixed Payment Investor ROIC rows).
+                  </p>
+                  <Field label="Service Fee Daily Basis" source="free">
+                    <input
+                      className={inputCls}
+                      value={form.diServiceFeeBasis}
+                      onChange={(e) => set("diServiceFeeBasis", e.target.value)}
+                      placeholder="e.g. Disbursed Amount"
+                    />
+                  </Field>
+                </>
+              )}
               </>
             )}
 
-            {isAD && (
+            {((isAD && (isProjectType || wantsFixed)) || wantsDaily) && (
               <>
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
-              Branch Details
-            </h3>
-            <p className="text-xs text-gray-500 mb-3">
-              Outlets this financing opens (Opening Branch) or whose revenue repays it (Accruing
-              Branch).
-            </p>
-            <EditTable
-                headers={["#", "Branch Name", "Branch Area", "Type", "Gmaps Link", "Notes", ""]}
-                minWidthCls="min-w-[760px]"
-              >
-                {form.branches.map((b, i) => (
-                  <tr key={b.id} className="align-top">
-                    <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
-                    <td className="py-2 px-2 min-w-36">
-                      <input
-                        className={cellInputCls}
-                        value={b.name}
-                        onChange={(e) => updateRow("branches", b.id, { name: e.target.value })}
-                        placeholder="e.g. Kopi Tuku — Blok A"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-28">
-                      <input
-                        className={cellInputCls}
-                        value={b.area}
-                        onChange={(e) => updateRow("branches", b.id, { area: e.target.value })}
-                        placeholder="e.g. Depok"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-36">
-                      <select
-                        className={cellInputCls}
-                        value={b.type}
-                        onChange={(e) =>
-                          updateRow("branches", b.id, {
-                            type: e.target.value as SubmissionBranchRow["type"],
-                          })
-                        }
-                      >
-                        <option value="Opening Branch">Opening Branch</option>
-                        <option value="Accruing Branch">Accruing Branch</option>
-                      </select>
-                    </td>
-                    <td className="py-2 px-2 min-w-36">
-                      <input
-                        className={cellInputCls}
-                        value={b.gmapsLink}
-                        onChange={(e) => updateRow("branches", b.id, { gmapsLink: e.target.value })}
-                        placeholder="https://maps.app.goo.gl/…"
-                      />
-                    </td>
-                    <td className="py-2 px-2 min-w-36">
-                      <input
-                        className={cellInputCls}
-                        value={b.notes}
-                        onChange={(e) => updateRow("branches", b.id, { notes: e.target.value })}
-                        placeholder="e.g. 2nd outlet in the area"
-                      />
-                    </td>
-                    <td className="py-2 px-2">
-                      <RemoveRowButton onClick={() => removeRow("branches", b.id)} />
-                    </td>
-                  </tr>
-                ))}
-              </EditTable>
-            <AddRowButton label="Add branch" onClick={addBranch} />
-              </>
-            )}
-
-            <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mt-6 mb-3">
-              Late Fees
-            </h3>
-            {isB ? (
-              <p className="text-xs text-gray-500">
-                Asset B late fees follow policy from the Daily Interest terms: basis{" "}
-                <strong className="text-gray-600">Outstanding Principal</strong>, no grace period,
-                daily late fee = 30-day rate ÷ 30. Nothing to fill in here.
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mt-8 mb-2 pb-1.5 border-b border-gray-200">
+                C — Timeline &amp; Operations
+              </h3>
+              <p className="text-[11px] text-gray-400 mb-3">
+                Term / Tenor is entered in the Proposed &amp; Past Project Recap table below.
               </p>
-            ) : (
+
+              {isProjectType && isAD && isBranchFinancingUse(form.financingUse) && (
+                <>
+                  <h4 className="text-xs font-medium text-gray-600 mb-2 mt-6">Branch Details</h4>
+                  <p className="text-xs text-gray-500 mb-3">
+                    Outlets this financing opens (Opening Branch) or whose revenue repays it (Accruing
+                    Branch).
+                  </p>
+                  <EditTable
+                      headers={["#", "Branch Name", "Branch Area", "Type", "Gmaps Link", "Notes", ""]}
+                      minWidthCls="min-w-[760px]"
+                    >
+                      {form.branches.map((b, i) => (
+                        <tr key={b.id} className="align-top">
+                          <td className="py-2 pl-3 pr-2 pt-3.5 text-gray-400 font-medium">{i + 1}</td>
+                          <td className="py-2 px-2 min-w-36">
+                            <input
+                              className={cellInputCls}
+                              value={b.name}
+                              onChange={(e) => updateRow("branches", b.id, { name: e.target.value })}
+                              placeholder="e.g. Kopi Tuku — Blok A"
+                            />
+                          </td>
+                          <td className="py-2 px-2 min-w-28">
+                            <input
+                              className={cellInputCls}
+                              value={b.area}
+                              onChange={(e) => updateRow("branches", b.id, { area: e.target.value })}
+                              placeholder="e.g. Depok"
+                            />
+                          </td>
+                          <td className="py-2 px-2 min-w-36">
+                            <select
+                              className={cellInputCls}
+                              value={b.type}
+                              onChange={(e) =>
+                                updateRow("branches", b.id, {
+                                  type: e.target.value as SubmissionBranchRow["type"],
+                                })
+                              }
+                            >
+                              <option value="Opening Branch">Opening Branch</option>
+                              <option value="Accruing Branch">Accruing Branch</option>
+                            </select>
+                          </td>
+                          <td className="py-2 px-2 min-w-36">
+                            <input
+                              className={cellInputCls}
+                              value={b.gmapsLink}
+                              onChange={(e) => updateRow("branches", b.id, { gmapsLink: e.target.value })}
+                              placeholder="https://maps.app.goo.gl/…"
+                            />
+                          </td>
+                          <td className="py-2 px-2 min-w-36">
+                            <input
+                              className={cellInputCls}
+                              value={b.notes}
+                              onChange={(e) => updateRow("branches", b.id, { notes: e.target.value })}
+                              placeholder="e.g. 2nd outlet in the area"
+                            />
+                          </td>
+                          <td className="py-2 px-2">
+                            <RemoveRowButton onClick={() => removeRow("branches", b.id)} />
+                          </td>
+                        </tr>
+                      ))}
+                    </EditTable>
+                  <AddRowButton label="Add branch" onClick={addBranch} />
+                </>
+              )}
+              </>
+            )}
+
+            {(isProjectType || wantsFixed || wantsDaily) && (
               <>
-            <Field
-              label="Late Fee Basis"
-              source="free"
-              hint="Default: Overdue Amount — the IC card warns on deviations"
-            >
-              <input
-                className={inputCls}
-                value={form.lfBasis}
-                onChange={(e) => set("lfBasis", e.target.value)}
-                placeholder="Overdue Amount"
-              />
-            </Field>
-            <Field label="Grace Period (days)" source="free" hint="Default: 5 days">
-              <input
-                type="number"
-                inputMode="numeric"
-                className={inputCls}
-                value={form.lfGraceDays || ""}
-                onChange={(e) => set("lfGraceDays", Number(e.target.value) || 0)}
-                placeholder="5"
-              />
-            </Field>
-            <Field
-              label="Daily Late Fee %"
-              source="free"
-              hint="To Investors / to ASN — defaults 0.08 / 0.02 per day"
-            >
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  step="any"
-                  inputMode="decimal"
-                  className={inputCls}
-                  value={form.lfDailyPctInvestors || ""}
-                  onChange={(e) => set("lfDailyPctInvestors", Number(e.target.value) || 0)}
-                  placeholder="Investors, e.g. 0.08"
-                />
-                <input
-                  type="number"
-                  step="any"
-                  inputMode="decimal"
-                  className={inputCls}
-                  value={form.lfDailyPctASN || ""}
-                  onChange={(e) => set("lfDailyPctASN", Number(e.target.value) || 0)}
-                  placeholder="ASN, e.g. 0.02"
-                />
-              </div>
-            </Field>
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mt-8 mb-2 pb-1.5 border-b border-gray-200">
+                D — Performance Metrics
+              </h3>
+              <p className="text-[11px] text-gray-400">
+                Minimum Return (if any) is entered in the table below. PvA, IRR, MOIC, BEP, and DPD
+                are calculated after disbursement (LMS) or via the linked Calculator — not entered
+                here.
+              </p>
+              </>
+            )}
+
+            {wantsRevShare && !isB && (
+              <>
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mt-8 mb-2 pb-1.5 border-b border-gray-200">
+                E — Revenue Model
+              </h3>
+              <p className="text-[11px] text-gray-400">
+                Source of Revenue Accrued is entered in the table below. Month-by-month Revenue
+                Projection is maintained in the linked Calculator, not entered here.
+              </p>
+              </>
+            )}
+
+            {isProjectType && (
+              <>
+              <h3 className="text-xs font-bold text-gray-700 uppercase tracking-wide mt-8 mb-2 pb-1.5 border-b border-gray-200">
+                F — Payment Mechanics
+              </h3>
+              <p className="text-[11px] text-gray-400">
+                {isB
+                  ? "Payment Frequency is fixed (at maturity / bullet repayment) for this asset class. Late fees follow policy from the Daily Interest terms — nothing to fill in here."
+                  : "Frequency, Due Date, and Late Fee terms are entered in the Proposed & Past Project Recap table below."}
+              </p>
               </>
             )}
           </FormSection>
+        )}
+
+        {(isProjectType || wantsFixed || wantsDaily) && (
+          <PastProjectsRecap project={previewProject} editableProposed={{ form, set }} />
         )}
 
         <FormSection title="Credit Memo and Notes">

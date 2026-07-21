@@ -42,6 +42,23 @@ export interface RejectionRecord {
   votedAt: string;
 }
 
+/** The Karmapreneur's accept/negotiate response to the IC-approved terms. */
+export interface KpConfirmationState {
+  outcome: "Accepted" | "Negotiating" | null;
+  decidedAt: string | null; // ISO
+  decidedBy: string;
+  /** Required when outcome is "Negotiating" — what the KP wants changed. */
+  negotiationNotes: string;
+}
+
+/** A KP negotiation ask, archived when the revised submission is resubmitted so the
+ *  ask stays visible to IC on re-review — parallel to RejectionRecord. */
+export interface KpNegotiationRecord {
+  requestedAt: string;
+  requestedBy: string;
+  notes: string;
+}
+
 export interface ProjectWorkflow {
   /** Votes recorded in the app, by IC memberId — override the baked-in mock votes. */
   votes: Record<string, RecordedVote>;
@@ -54,6 +71,9 @@ export interface ProjectWorkflow {
   conditionsSubsequentLogic: string | null; // null = untouched, fall back to the project's value
   /** Notes Feed — null = untouched, fall back to the project's baked-in notes. */
   notes: NoteEntry[] | null;
+  kpConfirmation: KpConfirmationState;
+  /** Negotiation asks archived on resubmit — parallel to rejectionHistory. */
+  kpNegotiationHistory: KpNegotiationRecord[];
   legal: LegalState;
   finance: FinanceState;
 }
@@ -68,6 +88,13 @@ export function emptyWorkflow(): ProjectWorkflow {
     conditionsSubsequent: null,
     conditionsSubsequentLogic: null,
     notes: null,
+    kpConfirmation: {
+      outcome: null,
+      decidedAt: null,
+      decidedBy: "",
+      negotiationNotes: "",
+    },
+    kpNegotiationHistory: [],
     legal: {
       termSheetSigned: false,
       agreementDrafted: false,
@@ -111,6 +138,7 @@ export function getWorkflow(projectId: string): ProjectWorkflow {
     ? {
         ...emptyWorkflow(),
         ...stored,
+        kpConfirmation: { ...emptyWorkflow().kpConfirmation, ...stored.kpConfirmation },
         legal: { ...emptyWorkflow().legal, ...stored.legal },
         finance: { ...emptyWorkflow().finance, ...stored.finance },
       }
@@ -136,6 +164,19 @@ export function resubmitProject(projectId: string): void {
     .map(([memberId, v]) => ({ memberId, votedAt: v.votedAt }));
   wf.rejectionHistory = [...wf.rejectionHistory, ...rejections];
   wf.votes = {};
+  // KP wanted different terms — archive the ask, then reset so a fresh IC approval
+  // requires a fresh KP confirmation too, not a stale "Negotiating" carried over.
+  if (wf.kpConfirmation.outcome === "Negotiating") {
+    wf.kpNegotiationHistory = [
+      ...wf.kpNegotiationHistory,
+      {
+        requestedAt: wf.kpConfirmation.decidedAt!,
+        requestedBy: wf.kpConfirmation.decidedBy,
+        notes: wf.kpConfirmation.negotiationNotes,
+      },
+    ];
+    wf.kpConfirmation = emptyWorkflow().kpConfirmation;
+  }
   saveWorkflow(projectId, wf);
 }
 
@@ -254,6 +295,21 @@ export function seedDefaultWorkflows() {
 
   // Shushu (Asset A) intentionally left at its raw mock (unvoted) state — IC Review
   // needs a genuinely pending example of every asset class, and A had none.
+
+  // Steak Hotel by Holycow — IC-approved (baked-in Principal vote) and KP has
+  // confirmed the terms, but Finance hasn't slotted the KF/KCF split yet — the
+  // Finance Team's Finance Split queue needs a genuinely pending example, same
+  // reasoning as Shushu above for IC Review.
+  if (!all["proj-holycow"]) {
+    const wf = emptyWorkflow();
+    wf.kpConfirmation = {
+      outcome: "Accepted",
+      decidedAt: "2026-02-22T10:00:00Z",
+      decidedBy: "Priska Ponggawa",
+      negotiationNotes: "",
+    };
+    all["proj-holycow"] = wf;
+  }
 
   // Cipta Usaha Media — through Legal, awaiting Finance Disbursement.
   if (!all["proj-cum"]) {
@@ -446,16 +502,26 @@ export interface StageInfo {
   stage: Stage;
   /** IC rejected — the project moves back to the analyst's Due Diligence queue, marked Rejected. */
   rejected: boolean;
+  /** KP wants different terms — the project moves back to Due Diligence, marked Negotiating (not Rejected — IC approved it). */
+  kpNegotiating: boolean;
 }
 
 export function stageInfo(project: ICProject, wf: ProjectWorkflow): StageInfo {
   const outcome = icOutcome(project, wf);
-  if (outcome === "rejected") return { stage: "funding_lead", rejected: true };
-  if (outcome === null) return { stage: "ic_review", rejected: false };
-  // completedAt implies slotting already happened, for workflows saved under the old single-stage Finance model.
-  const slotted = !!(wf.finance.slottedAt || wf.finance.completedAt);
-  if (!slotted) return { stage: "finance_slotting", rejected: false };
-  if (!wf.legal.completedAt) return { stage: "legal", rejected: false };
-  if (!wf.finance.completedAt) return { stage: "finance_disbursement", rejected: false };
-  return { stage: "onboarded", rejected: false };
+  if (outcome === "rejected") return { stage: "funding_lead", rejected: true, kpNegotiating: false };
+  if (outcome === null) return { stage: "ic_review", rejected: false, kpNegotiating: false };
+  if (wf.kpConfirmation.outcome === "Negotiating") {
+    return { stage: "funding_lead", rejected: false, kpNegotiating: true };
+  }
+  // finance.slottedAt/completedAt implies KP confirmation already happened, for
+  // workflows saved before this stage existed — same convention as the
+  // completedAt-implies-slotting check below, for the same reason.
+  const pastKpConfirmation = !!(wf.finance.slottedAt || wf.finance.completedAt);
+  if (wf.kpConfirmation.outcome !== "Accepted" && !pastKpConfirmation) {
+    return { stage: "kp_confirmation", rejected: false, kpNegotiating: false };
+  }
+  if (!pastKpConfirmation) return { stage: "finance_slotting", rejected: false, kpNegotiating: false };
+  if (!wf.legal.completedAt) return { stage: "legal", rejected: false, kpNegotiating: false };
+  if (!wf.finance.completedAt) return { stage: "finance_disbursement", rejected: false, kpNegotiating: false };
+  return { stage: "onboarded", rejected: false, kpNegotiating: false };
 }

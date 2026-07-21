@@ -819,6 +819,7 @@ const projectCUM: ICProject = {
       projectName: "Cipta Usaha Media (#22) — PO - Orang Tua (Apr 2025)",
       status: "Completed",
       icApprovalDate: "2025-04-18",
+      ptName: "PT Cipta Usaha Media",
       bRecapKind: "B-PO",
       payors: ["Orang Tua Group"],
       lateFeeRecap: {
@@ -839,12 +840,20 @@ const projectCUM: ICProject = {
       projectedBEPMonths: 1,
       currentDPD: 0,
       maxDPD: 0,
+      fixedAmountSnapshot: {
+        totalRepayment: 386_250_000,
+        pctOfDisbursed: 103,
+        installmentDescription: "2 monthly installments",
+        investorRoicPerMonthPct: 1.6,
+        totalRoicPerMonthPct: 2.2,
+      },
     },
     {
       id: "pp-cum-23",
       projectName: "Cipta Usaha Media (#23) — PO - Orang Tua (Jun 2025)",
       status: "Completed",
       icApprovalDate: "2025-06-22",
+      ptName: "PT Cipta Usaha Media",
       bRecapKind: "B-PO",
       payors: ["Orang Tua Group"],
       lateFeeRecap: {
@@ -865,12 +874,20 @@ const projectCUM: ICProject = {
       projectedBEPMonths: 1,
       currentDPD: 0,
       maxDPD: 0,
+      fixedAmountSnapshot: {
+        totalRepayment: 309_000_000,
+        pctOfDisbursed: 103,
+        installmentDescription: "2 monthly installments",
+        investorRoicPerMonthPct: 1.6,
+        totalRoicPerMonthPct: 2.2,
+      },
     },
     {
       id: "pp-cum-24",
       projectName: "Cipta Usaha Media (#24) — PO - Orang Tua (Sep 2025)",
       status: "Completed",
       icApprovalDate: "2025-09-30",
+      ptName: "PT Cipta Usaha Media",
       bRecapKind: "B-PO",
       payors: ["Orang Tua Group"],
       lateFeeRecap: {
@@ -891,12 +908,20 @@ const projectCUM: ICProject = {
       projectedBEPMonths: 1,
       currentDPD: 0,
       maxDPD: 0,
+      fixedAmountSnapshot: {
+        totalRepayment: 256_470_000,
+        pctOfDisbursed: 103,
+        installmentDescription: "2 monthly installments",
+        investorRoicPerMonthPct: 1.6,
+        totalRoicPerMonthPct: 2.2,
+      },
     },
     {
       id: "pp-cum-25",
       projectName: "Cipta Usaha Media (#25) — PO - Orang Tua (Jan 2026)",
       status: "Active",
       icApprovalDate: "2026-01-12",
+      ptName: "PT Cipta Usaha Media",
       sector: "Agencies",
       subSector: "Workforce Outsourcing",
       taxWithholdings: "Yes",
@@ -923,12 +948,20 @@ const projectCUM: ICProject = {
       overdueHistory: [
         { dueDate: "2026-03-15", daysOverdue: 3, status: "Paid" },
       ],
+      fixedAmountSnapshot: {
+        totalRepayment: 332_867_550,
+        pctOfDisbursed: 103,
+        installmentDescription: "2 monthly installments",
+        investorRoicPerMonthPct: 1.6,
+        totalRoicPerMonthPct: 2.2,
+      },
     },
     {
       id: "pp-cum-queue-27",
       projectName: "Cipta Usaha Media (#27) — PO: Orang Tua (draft, pending submission)",
       status: "Pending IC submission",
       icApprovalDate: null,
+      ptName: "PT Cipta Usaha Media",
       bRecapKind: "B-PO",
       payors: ["Orang Tua Group"],
       lateFeeRecap: {
@@ -949,6 +982,13 @@ const projectCUM: ICProject = {
       projectedBEPMonths: 1,
       currentDPD: 0,
       maxDPD: 0,
+      fixedAmountSnapshot: {
+        totalRepayment: 185_400_000,
+        pctOfDisbursed: 103,
+        installmentDescription: "2 monthly installments",
+        investorRoicPerMonthPct: 1.6,
+        totalRoicPerMonthPct: 2.2,
+      },
     },
     {
       id: "pp-cum-26",
@@ -4698,6 +4738,185 @@ const projectGrosirSembakoPlafond: ICProject = {
   conditionsSubsequentLogic: "",
 };
 
+// ─── Project: Dapur Cokelat — Asset D, prior Working Capital plafond ────────
+// Brand-history seed only (already IC-approved & active) — not itself a draft submission.
+// Backs `sub-demo-dc` (Dapur Cokelat #2, a draft) so its plafond box shows a real Current
+// limit plus 2 Superseded entries, exercising the "existing KP with prior limit history"
+// case end-to-end via `brandPlafondHistory()`.
+
+const projectDapurCokelatPlafond: ICProject = {
+  id: "proj-dc-plafond-hist",
+  brandName: "Dapur Cokelat",
+  brandIsNew: false,
+  projectName: "Dapur Cokelat (#1) — Working Capital",
+  approvalType: "Project+Plafond",
+  submittedAt: "2025-01-10T09:00:00Z",
+
+  pic: {
+    submitter: "Priska Ponggawa",
+    primaryAnalyst: "Priska Ponggawa",
+    secondaryAnalyst: null,
+  },
+
+  projectNumberForKP: 1,
+  brandActiveProjects: 1,
+  brandCompletedProjects: 0,
+  brandBeforeICProjects: 0,
+  brandPendingDisbursementProjects: 0,
+  mainSector: "F&B",
+  subSector: "🧋Snacks, Drinks, & Desserts",
+  syariah: false,
+  assetClass: "D",
+  requestedAmountCurrency: "IDR",
+  requestedAmount: 2_500_000_000,
+  amountWarning: null,
+  financingUse: "Working Capital Financing",
+  sectorWarning: null,
+
+  plafond: {
+    proposed: null,
+    current: {
+      totalLimit: 3_000_000_000,
+      poSubLimit: 0,
+      wcSubLimit: 3_000_000_000,
+      effectiveDate: "2025-01-15",
+      expiryDate: "2027-01-15",
+      limitStatus: "Active",
+    },
+    outstandingTotal: 1_800_000_000,
+    remainingTotal: 1_200_000_000,
+    remainingPO: 0,
+    remainingWC: 1_200_000_000,
+    superseded: [
+      {
+        totalLimit: 1_000_000_000,
+        poSubLimit: 0,
+        wcSubLimit: 1_000_000_000,
+        effectiveDate: "2023-06-01",
+        expiryDate: "2024-05-31",
+      },
+      {
+        totalLimit: 500_000_000,
+        poSubLimit: 0,
+        wcSubLimit: 500_000_000,
+        effectiveDate: "2022-01-01",
+        expiryDate: "2023-05-31",
+      },
+    ],
+  },
+
+  financialReviews: [
+    {
+      submissionDate: "2025-01-05",
+      financialReportsReviewed: "Bank statements + management accounts H2 2024",
+      periodEndingDate: "2024-12-31",
+      limitRecommendation: "Increase",
+      limitCurrentIdr: 1_000_000_000,
+      limitRecommendedIdr: 3_000_000_000,
+      reviewNotes:
+        "Strong revenue growth across retail outlets; limit increase supports inventory build ahead of expansion.",
+    },
+  ],
+
+  referralSource: "Karmapreneur",
+  specificReferror: null,
+  referrorBelongsToKP: null,
+  otherReferees: [],
+
+  kpContacts: [
+    {
+      id: "kpc-dc-1",
+      name: "Dapur Cokelat Signatory",
+      whatsapp: "",
+      email: "",
+      role: "Direktur Utama",
+      notesOnPerson: "Placeholder KP contact — brand-history seed for plafond continuity only.",
+      referredProjects: [],
+      associatedKPs: [],
+      isKeyPerson: true,
+      slikFileUrl: null,
+      slikExecSummary: null,
+    },
+  ],
+
+  pastProjects: [
+    {
+      id: "pp-dc-1",
+      projectName: "Dapur Cokelat (#1) — Working Capital",
+      status: "Active",
+      icApprovalDate: "2025-01-10",
+      sector: "F&B",
+      taxWithholdings: "Yes",
+      returnType: "Fixed Return",
+      amount: 2_500_000_000,
+      outstandingAmount: 1_800_000_000,
+      projectedTermMonths: 24,
+      otfTermMonths: 18,
+      otfIRR: 14.5,
+      projectedIRR: 14.0,
+      otfMOIC: 1.2,
+      projectedMOIC: "1.18x",
+      projectedBEPMonths: 10,
+      currentDPD: 0,
+      maxDPD: 0,
+    },
+  ],
+
+  returnType: "Fixed Return",
+  disbursements: [{ tranche: 1, plannedAmount: 2_500_000_000, plannedDate: "2025-01-20" }],
+  branches: [],
+  revenueShareTerms: null,
+  fixedReturnTerms: {
+    repaymentSchedule: fixedReturnScheduleFromTotals(24, 2_500_000_000, 375_000_000, 50_000_000),
+    totalRepayment: 2_925_000_000,
+    totalPrincipal: 2_500_000_000,
+    totalInterest: 375_000_000,
+    carry: 50_000_000,
+  },
+  lateFee: {
+    basis: "Overdue Amount",
+    gracePeriodDays: 5,
+    dailyPctInvestors: 0.08,
+    dailyPctASN: 0.02,
+  },
+  termSheetLink: null,
+
+  kpCreditMemo:
+    "**KP Credit Memo — Dapur Cokelat**\n\nEstablished F&B brand; working-capital facility supports inventory cycle across retail outlets.",
+  projectCreditMemo:
+    "**Project Credit Memo — Dapur Cokelat (#1) Working Capital**\n\nFixed-repayment working-capital facility, 24-month term. Brand-history seed backing sub-demo-dc's plafond continuity.",
+  financialsLink: null,
+  projectNotes: [],
+
+  ptDetails: [
+    {
+      id: "pt-dc-1",
+      name: "PT Dapur Cokelat Indonesia",
+      bank: "BCA",
+      accountNumber: "TBD",
+      accountholderName: "PT Dapur Cokelat Indonesia",
+      slikFileUrl: null,
+      slikExecSummary: null,
+      warnings: [],
+    },
+  ],
+
+  fundingSource: "KF & KCF",
+  bankDetailsReviewed: true,
+  taxWithholdings: "Yes",
+  icVotes: [
+    { memberId: "ic-1", memberName: "Ben Elberger", isPrincipal: true, vote: "Approve", votedAt: "2025-01-10" },
+    { memberId: "ic-2", memberName: "Aldi Haryopratomo", isPrincipal: false, vote: "Approve", votedAt: "2025-01-10" },
+    { memberId: "ic-3", memberName: "Junaidi", isPrincipal: false, vote: "Approve", votedAt: "2025-01-10" },
+  ],
+  approvalNotes: "Approved — brand-history seed backing sub-demo-dc's plafond continuity.",
+  specialNotesForIC: null,
+  conditionsPrecedent: [],
+  conditionsPrecedentLogic: "",
+  conditionsSubsequent: [],
+  conditionsSubsequentLogic: "",
+};
+
 // ─── Export ───────────────────────────────────────────────────────────────────
 
 export const mockProjects: ICProject[] = [
@@ -4720,6 +4939,7 @@ export const mockProjects: ICProject[] = [
   projectRotiBahagiaPlafond,
   projectSinarTekstilPlafond,
   projectGrosirSembakoPlafond,
+  projectDapurCokelatPlafond,
 ];
 
 export function getProjectById(id: string): ICProject | undefined {

@@ -137,3 +137,68 @@ export function pvaClass(pct: number | null | undefined): "red" | "amber" | "gre
   if (pct < 90) return "amber";
   return "green";
 }
+
+export type FixedOrDailyUnit = "per month" | "per 30 days";
+
+export interface FixedOrDailyCarryInfo {
+  carryPct: number;
+  investorRoicPct: number;
+  totalRoicPct: number;
+  unit: FixedOrDailyUnit;
+}
+
+function isLiveRecapRow(row: PastProject): boolean {
+  return Boolean(row.isCurrentSubmission) || row.status === "Proposed";
+}
+
+/**
+ * Target Carry / ROIC figures for Fixed Return and Daily Interest recap rows (Cross Projects
+ * Table Band B). Revenue Share rows keep using `getRecapRowRevShareSnapshot`'s own
+ * `carryPct`/`carryType` — this only covers the two return types that don't carry a rev-share
+ * snapshot.
+ */
+export function fixedOrDailyCarryInfo(project: ICProject, row: PastProject): FixedOrDailyCarryInfo | null {
+  if (row.returnType === "Daily Interest") {
+    const recap = effectiveDailyRecap(project, row);
+    if (!recap) return null;
+    return {
+      carryPct: recap.serviceFee30DayPct,
+      investorRoicPct: recap.interestRate30DayPct,
+      totalRoicPct: recap.interestRate30DayPct + recap.serviceFee30DayPct,
+      unit: "per 30 days",
+    };
+  }
+  if (row.returnType === "Fixed Return") {
+    if (isLiveRecapRow(row)) {
+      const frt = project.fixedReturnTerms;
+      if (!frt || frt.repaymentSchedule.length === 0 || frt.totalPrincipal <= 0) return null;
+      const months = frt.repaymentSchedule.length;
+      const investorRoicPct = (frt.totalInterest / frt.totalPrincipal / months) * 100;
+      const totalRoicPct = ((frt.totalInterest + frt.carry) / frt.totalPrincipal / months) * 100;
+      return { carryPct: totalRoicPct - investorRoicPct, investorRoicPct, totalRoicPct, unit: "per month" };
+    }
+    const fa = row.fixedAmountSnapshot;
+    if (!fa) return null;
+    return {
+      carryPct: fa.totalRoicPerMonthPct - fa.investorRoicPerMonthPct,
+      investorRoicPct: fa.investorRoicPerMonthPct,
+      totalRoicPct: fa.totalRoicPerMonthPct,
+      unit: "per month",
+    };
+  }
+  return null;
+}
+
+/** Cohort-level visibility gates for the recap table's conditionally-shown Band B/C rows. */
+export function cohortHasFixedOrDaily(projects: PastProject[]): boolean {
+  return projects.some((p) => p.returnType === "Fixed Return" || p.returnType === "Daily Interest");
+}
+
+export function cohortHasDaily(projects: PastProject[]): boolean {
+  return projects.some((p) => p.returnType === "Daily Interest");
+}
+
+/** Drives the "⚠ Unit differs by type" warning — only relevant when a cohort mixes both. */
+export function cohortMixesFixedAndDaily(projects: PastProject[]): boolean {
+  return cohortHasDaily(projects) && projects.some((p) => p.returnType === "Fixed Return");
+}

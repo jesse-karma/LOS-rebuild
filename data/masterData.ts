@@ -131,6 +131,12 @@ export function returnTypesForApprovalType(approvalType: string): string[] {
   );
 }
 
+/** Intersection of what's legal for this Asset Class and this Submission Type. */
+export function financingTypesForAssetClassAndApprovalType(assetClass: string, approvalType: string): string[] {
+  const byApprovalType = returnTypesForApprovalType(approvalType);
+  return financingTypesForAssetClass(assetClass).filter((t) => byApprovalType.includes(t));
+}
+
 // ─── §12 Funding Source ───────────────────────────────────────────────────────
 
 export const FUNDING_SOURCES = ["Members", "KF/ KCF/KS", "TradingCo"] as const;

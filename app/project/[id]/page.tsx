@@ -20,6 +20,7 @@ import { ProjectTerms } from "@/components/sections/ProjectTerms";
 import { CreditMemoNotes } from "@/components/sections/CreditMemoNotes";
 import { PTDetails } from "@/components/sections/PTDetails";
 import { ApprovalSection } from "@/components/sections/ApprovalSection";
+import { KPConfirmationSection } from "@/components/sections/KPConfirmationSection";
 import { LegalSection } from "@/components/sections/LegalSection";
 import { FinanceSlottingSection } from "@/components/sections/FinanceSlottingSection";
 import { FinanceDisbursementSection } from "@/components/sections/FinanceDisbursementSection";
@@ -46,11 +47,13 @@ function RejectionBanner({
   project,
   workflow,
   rejected,
+  kpNegotiating,
   canResubmit,
 }: {
   project: ICProject;
   workflow: ProjectWorkflow;
   rejected: boolean;
+  kpNegotiating: boolean;
   canResubmit: boolean;
 }) {
   const memberName = (memberId: string) =>
@@ -81,6 +84,32 @@ function RejectionBanner({
     );
   }
 
+  if (kpNegotiating) {
+    return (
+      <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-center justify-between gap-4 flex-wrap">
+        <div>
+          <p className="text-sm font-semibold text-amber-800">Karmapreneur wants to negotiate terms</p>
+          {workflow.kpConfirmation.negotiationNotes && (
+            <p className="text-xs text-amber-700 mt-0.5">{workflow.kpConfirmation.negotiationNotes}</p>
+          )}
+          {workflow.kpConfirmation.decidedAt && (
+            <p className="text-xs text-amber-600 mt-0.5">
+              {workflow.kpConfirmation.decidedBy} · {fmtDate(workflow.kpConfirmation.decidedAt)}
+            </p>
+          )}
+        </div>
+        {canResubmit && (
+          <Link
+            href={`/submission/${project.id}`}
+            className="inline-flex items-center gap-1.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition-colors shrink-0 whitespace-nowrap"
+          >
+            Revise &amp; Resubmit to IC
+          </Link>
+        )}
+      </div>
+    );
+  }
+
   if (workflow.rejectionHistory.length > 0) {
     return (
       <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
@@ -89,6 +118,21 @@ function RejectionBanner({
           {workflow.rejectionHistory.map((r, i) => (
             <li key={i}>
               {memberName(r.memberId)} · {fmtDate(r.votedAt)}
+            </li>
+          ))}
+        </ul>
+      </div>
+    );
+  }
+
+  if (workflow.kpNegotiationHistory.length > 0) {
+    return (
+      <div className="mb-4 rounded-lg border border-amber-200 bg-amber-50 p-4">
+        <p className="text-sm font-semibold text-amber-800 mb-1">Previously, KP requested different terms</p>
+        <ul className="text-xs text-amber-700 space-y-0.5">
+          {workflow.kpNegotiationHistory.map((r, i) => (
+            <li key={i}>
+              {r.notes} — {r.requestedBy} · {fmtDate(r.requestedAt)}
             </li>
           ))}
         </ul>
@@ -153,13 +197,14 @@ export default function ProjectPage() {
 
       {/* Lifecycle stage */}
       <div className="mb-4">
-        <StageStepper stage={stage.stage} rejected={stage.rejected} />
+        <StageStepper stage={stage.stage} rejected={stage.rejected} kpNegotiating={stage.kpNegotiating} />
       </div>
 
       <RejectionBanner
         project={project}
         workflow={wf}
         rejected={stage.rejected}
+        kpNegotiating={stage.kpNegotiating}
         canResubmit={user.team === "Investments Team"}
       />
 
@@ -246,6 +291,21 @@ export default function ProjectPage() {
       </div>
 
       {/* Post-IC stages appear once the project reaches them */}
+      {(stage.stage === "kp_confirmation" ||
+        stage.stage === "finance_slotting" ||
+        stage.stage === "legal" ||
+        stage.stage === "finance_disbursement" ||
+        stage.stage === "onboarded") && (
+        <div className="mb-4">
+          <KPConfirmationSection
+            key={user.id}
+            project={project}
+            workflow={wf}
+            stageInfo={stage}
+            onWorkflowChange={handleWorkflowChange}
+          />
+        </div>
+      )}
       {(stage.stage === "finance_slotting" ||
         stage.stage === "legal" ||
         stage.stage === "finance_disbursement" ||
