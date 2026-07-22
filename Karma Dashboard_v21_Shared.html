@@ -364,7 +364,7 @@
   .finfo{display:inline-flex;align-items:center;justify-content:center;width:1.35em;height:1.35em;border-radius:50%;background:transparent;border:1.2px solid #cbd5e1;color:var(--ink-400);vertical-align:middle;font-size:0.7em;font-weight:700;font-style:normal;margin-left:5px;cursor:help;flex:none;vertical-align:middle;transition:border-color .12s,color .12s,background .12s;}
   .finfo:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
   /* ===== Clean custom tooltip (replaces browser-native title) ===== */
-  .tt-bubble{position:fixed;z-index:9999;max-width:290px;background:var(--ink-900);color:#fff;font-size:11.5px;font-weight:400;font-style:normal;line-height:1.5;letter-spacing:0;text-transform:none;padding:8px 11px;border-radius:8px;box-shadow:0 10px 30px rgba(15,23,42,.28);pointer-events:none;opacity:0;transform:translateY(2px);transition:opacity .12s,transform .12s;}
+  .tt-bubble{position:fixed;z-index:9999;max-width:290px;background:var(--ink-900);color:#fff;font-size:11.5px;font-weight:400;font-style:normal;line-height:1.5;letter-spacing:0;text-transform:none;padding:8px 11px;border-radius:8px;box-shadow:0 10px 30px rgba(15,23,42,.28);pointer-events:none;opacity:0;transform:translateY(2px);transition:opacity .12s,transform .12s;white-space:pre-line;}
   .tt-bubble.show{opacity:1;transform:translateY(0);}
   .tt-bubble .tt-arrow{position:absolute;width:9px;height:9px;background:var(--ink-900);transform:rotate(45deg);border-radius:1px;}
   .search-results{position:absolute;top:32px;left:0;right:0;background:#fff;border:1px solid var(--line);border-radius:10px;box-shadow:0 12px 30px rgba(15,23,42,.16);z-index:200;max-height:360px;overflow-y:auto;display:none;}
@@ -644,6 +644,39 @@
   #page-onboarding table.tbl-co td.tiny,#page-support table.tbl-co td.tiny{white-space:normal;}
   table.tbl-co tbody tr:hover td{background:#fafbff;}
   .pd-grid{padding:12px 0;}
+
+  /* ===== Project Detail: header + PIC/Karmapreneur/Project Details cards ===== */
+  .pd-headcard{padding:18px 20px;}
+  .pd-kp-name{margin:0 0 3px;font-size:12.5px;}
+  .pd-head h1{margin:0;}
+  .pd-head-right{display:flex;flex-direction:column;align-items:flex-end;gap:10px;}
+  .pd-type-badge{font-size:11.5px;padding:3px 11px;}
+  .pd-card{border:1px solid var(--line);border-radius:12px;background:#fff;padding:18px 20px;margin-bottom:16px;}
+  .pd-cards{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;}
+  @media(max-width:860px){.pd-cards{grid-template-columns:1fr;}}
+  .los-sec-title.pd-card-title{display:flex;align-items:center;flex-wrap:wrap;justify-content:flex-start;gap:10px;text-transform:none;letter-spacing:normal;font-size:14.5px;font-weight:700;color:var(--ink-900);border-top:none;padding-top:0;margin:0 0 14px;padding-bottom:13px;border-bottom:1px solid var(--line);}
+  .los-sec-title.pd-card-title::before{content:none;}
+  .los-sec-title.pd-card-title::after{content:'\25be';color:var(--ink-400);font-size:11px;transition:transform .15s;margin-left:auto;}
+  .los-sec-title.pd-card-title.sec-collapsed::after{transform:rotate(-90deg);}
+  .pd-kv{display:flex;flex-direction:column;gap:15px;}
+  .pd-kv-row{display:flex;flex-wrap:wrap;column-gap:14px;row-gap:4px;align-items:flex-start;}
+  .pd-kv-row .k{flex:0 0 130px;color:var(--ink-500);font-size:12.5px;padding-top:1px;}
+  .pd-kv-row .v{flex:1 1 auto;min-width:160px;font-size:13px;color:var(--ink-900);font-weight:600;}
+  .pd-rows{display:flex;flex-direction:column;}
+  .pd-row{display:flex;flex-wrap:wrap;column-gap:16px;row-gap:6px;align-items:flex-start;padding:13px 0;border-bottom:1px solid #f1f5f9;}
+  .pd-row:last-child{border-bottom:none;}
+  .pd-row .k{flex:0 0 200px;color:var(--ink-500);font-size:12.5px;padding-top:1px;}
+  .pd-row .v{flex:1 1 auto;min-width:200px;font-size:13px;color:var(--ink-900);font-weight:500;}
+  .pd-row>.fg-flag{flex:1 1 100%;}
+  .pd-back{margin:8px 0 20px;}
+  .pd-desc-block{margin-top:18px;padding-top:18px;border-top:1px solid var(--line);}
+  .pd-fp-dd{position:relative;border:1px solid var(--line);border-radius:999px;background:#fff;padding:4px 24px 4px 12px!important;}
+  .pd-fp-dd:hover{border-color:var(--primary);}
+  .pd-fp-dd::after{content:'\25be';position:absolute;right:10px;top:50%;transform:translateY(-50%);color:var(--ink-400);font-size:9px;}
+  .pd-fp-dd .pill{background:transparent;color:var(--ink-700);padding:0;font-weight:600;}
+  .pd-fp-dd .pill-ph{color:var(--ink-400);padding:0;}
+  .pd-buffer-toggle{margin:0 0 16px;display:none;}
+  .pd-buffer-toggle .ms-opt{font-size:11.5px;}
 </style>
 </head>
 <body class="role-hor">
@@ -1826,38 +1859,61 @@
 </section>
 <!-- ============ LOS PROJECT DETAIL (proj-cea-aztech) ============ -->
 <section class="page" id="page-los-project">
-<div style="margin:8px 0 2px"><button class="btn btn-sm nav-only" onclick="backToPipeline()">← All submissions</button></div>
-<div class="page-head">
+<div class="pd-back"><button class="btn btn-sm nav-only" onclick="backToPipeline()">← All submissions</button></div>
+<div class="card card-pad pd-headcard">
+<div class="page-head pd-head">
 <div>
+<div class="page-sub pd-kp-name" id="pjSub">Kaisar Factory</div>
 <h1 id="pjTitle">Kaisar Factory - Project/PO/Invoice - Gemini has told us</h1>
-<div class="page-sub" id="pjSub">Kaisar Factory · Project/PO/Invoice</div>
 </div>
-<div class="head-actions"><button class="btn btn-sm nav-only" onclick="collapseAllSections(true)">Collapse all</button><button class="btn btn-sm nav-only" onclick="collapseAllSections(false)">Expand all</button><button class="btn btn-primary nav-only" onclick="showPage(&#39;los-card&#39;)" style="display:none">Open IC field guide →</button></div>
-</div>
-<div class="card card-pad">
-<div class="los-sec-title proj-dep" id="pjDescTitle">KP &amp; Description</div>
-<div style="margin:4px 0 10px;display:flex;align-items:center;gap:6px"><span class="tiny muted">KP:</span><span class="ap-chip" id="pjKpChip" onclick="event.stopPropagation();pjKpMenu(event)"><span>Kaisar Factory</span> <span class="ptp-car" title="Remove KP" onclick="event.stopPropagation();pjKpRemove()">✕</span></span></div>
-<div class="proj-dep" id="pjDescField"><textarea id="pjDescription" oninput="pjDescStore()" onkeydown="pjDescKey(event)" placeholder="Describe the project / PO / invoice being financed… (Enter to save, Shift+Enter for new line)" style="width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 12.5px; resize: vertical; margin-bottom: 14px; display: none;" class="ic-locked-field"></textarea><div class="ipm" id="pjDescView" ondblclick="pjDescEdit()" style="white-space: pre-wrap; cursor: pointer; margin-bottom: 14px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas);" title="Double-click to edit">Gemini has told us</div></div>
-<div class="los-sec-title">PIC</div>
-<div class="ipm">Submitter: <b id="pjSubmitter">Ben Elberger</b> &nbsp;·&nbsp; Primary Analyst: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Ben Elberger||Hanny Aqmarina||Junaidi Junaidi||Priska Ponggawa||Wesly Simatupang||Nila Layla Melinda||Sharfina Nindita||Armeno Devan" data-fp-val="Ben Elberger" data-fpd="1" id="pjPrimary"><span class="pill"><span class="pill-t">Ben Elberger</span></span></span> &nbsp;·&nbsp; Secondary Analyst: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="— None —||Ben Elberger||Hanny Aqmarina||Junaidi Junaidi||Priska Ponggawa||Wesly Simatupang||Nila Layla Melinda||Sharfina Nindita||Armeno Devan" data-fp-val="Armeno Devan" data-fpd="1" id="pjSecondary"><span class="pill"><span class="pill-t">Armeno Devan</span></span></span></div>
-<div class="ipm">Status: <span class="st-chip" id="pjStatusChip" onclick="event.stopPropagation();pjStatusMenu(event)" style="cursor:pointer">IC Credit Review</span></div>
-<div class="los-form-grid" style="margin-top:12px">
-<div class="field"><label>Referral Source <span class="tiny muted">(lookup to a contact)</span> <span class="finfo" data-tip="A Referral Source is attached to the KP. That referral source will populate on all future submissions for that KP.">i</span></label>
-<div id="pjRefList" style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch"><div class="refc" style="flex: 0 1 auto; max-width: 280px; position: relative; cursor: pointer; padding-right: 22px;" data-contact-id="seed-pjref"><div class="refc-name" id="pjRefName">MARIO PANJI PRASETYA</div><div class="refc-sub" id="pjRefSub">Karmapreneur - Kaisar Factory</div><button type="button" class="refc-x" title="Remove as referral source" style="position: absolute; top: 4px; right: 4px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; background: transparent; color: var(--ink-400); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px;">✕</button></div><button class="btn btn-sm ic-locked-field" id="pjRefAddBtn" onclick="addRefSource()" style="align-self:stretch;white-space:nowrap">＋ Add referral source</button></div>
-</div>
-<div class="field"><label>Submission Type <span class="tiny muted">(multi-select)</span></label>
-<div class="ms" id="subTypeMS"><span class="ms-opt sel" id="msProj" onclick="msToggle(this)">Project/PO/Invoice</span><span class="ms-opt" id="msPlafond" onclick="msToggle(this)">Plafond</span><span class="ms-opt" id="msBuffer" onclick="msToggle(this)">Buffer</span></div>
+<div class="pd-head-right">
+<span class="chip c-green pd-type-badge" id="pjTypeBadge">Project</span>
+<div class="head-actions"><button class="btn btn-primary nav-only" onclick="showPage(&#39;los-card&#39;)" style="display:none">Open IC field guide →</button></div>
 </div>
 </div>
-<div class="los-sec-title proj-dep">Karmapreneur &amp; Project Details</div>
-<div class="los-form-grid proj-dep">
-<div class="dl proj-dep"><div class="k">Project #</div><div class="v"><div id="pjProjNum">Project for Kaisar Factory (IC Credit Review)</div><div class="tiny">1 active</div><div class="tiny">0 completed</div><div class="tiny">0 before IC</div><div class="tiny">0 pending disbursement</div></div></div>
-<div class="dl proj-dep"><div class="k">Sector / Sub-Sector</div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="ap-chip" id="pjSectorChip" onclick="event.stopPropagation();pjSectorMenu(event)"><span class="muted" id="pjSector">Select sector…</span> <span class="ptp-car">▾</span></span><span class="ap-chip" id="pjSubSectorChip" onclick="event.stopPropagation();pjSubSectorMenu(event)"><span class="muted" id="pjSubSector">Select sector first…</span> <span class="ptp-car">▾</span></span></div></div>
-<div class="dl proj-dep"><div class="k">Financing Type <span class="finfo" title="How investors are repaid: Revenue Share (% of monthly revenue), Fixed Return (fixed schedule), Daily Interest (accrues daily on outstanding), or a Fixed+Revenue Share blend. Drives which Recap rows and rate fields apply. Read-only — always mirrors the Proposed project row in the Recap table below.">i</span></div><div class="v noedit" style="display:inline-flex;align-items:center;gap:0" title="Read-only — mirrors the Proposed row in Proposed &amp; Past Projects Recap"><span id="pjFinType">Fixed Return</span><span class="finfo" id="warnFinTypeIcon" style="display:none;color:#b45309;border-color:#f59e0b;background:#fffbeb">⚠</span></div><div class="fg-flag warn tiny" id="warnFinType" style="display: none; margin-top: 6px; padding: 5px 8px;"></div></div>
-<div class="dl proj-dep"><div class="k">Asset Class / Syariah <span class="finfo" title="Asset Class sets the deal structure (A/D = branch or working-capital financing, B-I/B-PO = invoice/PO financing, C/E = equity-adjacent — hides most fields below). Syariah flags Sharia-compliant structuring (late fees route through ASN).">i</span></div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Asset Class A||Asset Class B - I||Asset Class B - PO||Asset Class C||Asset Class D||Asset Class E" data-fp-val="Asset Class A" data-fpd="1" id="pjAssetFp"><span class="pill"><span class="pill-t">Asset Class A</span></span></span><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Not Syariah||Syariah" data-fp-val="Not Syariah" data-fpd="1" id="syariahFp"><span class="pill"><span class="pill-t">Not Syariah</span></span></span></div></div>
-<div class="dl proj-dep" id="syariahNotesRow" style="display:none;grid-column:2"><div class="k">Syariah Notes</div><div class="v"><textarea id="syariahNotes" maxlength="255" oninput="syariahCount()" placeholder="Syariah structure notes (max 255 characters)" style="width:100%;min-height:60px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:12.5px;resize:vertical" class="ic-locked-field"></textarea><div class="tiny muted" id="syariahCountLbl" style="margin-top:2px">0 / 255</div></div></div>
+<div class="pd-desc-block">
+<div class="proj-dep" id="pjDescField"><textarea id="pjDescription" oninput="pjDescStore()" onkeydown="pjDescKey(event)" placeholder="Describe the project / PO / invoice being financed… (Enter to save, Shift+Enter for new line)" style="width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 12.5px; resize: vertical; margin-bottom: 0; display: none;" class="ic-locked-field"></textarea><div class="ipm" id="pjDescView" ondblclick="pjDescEdit()" style="white-space: pre-wrap; cursor: pointer; margin-bottom: 0; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas);" title="Double-click to edit">Gemini has told us</div></div>
 </div>
-<div class="los-sec-title">Plafond &amp; Financial Review</div>
+</div>
+<div class="pd-cards">
+<div class="pd-card">
+<div class="los-sec-title pd-card-title">PIC</div>
+<div class="pd-kv">
+<div class="pd-kv-row"><div class="k">Submitter</div><div class="v"><b id="pjSubmitter">Ben Elberger</b></div></div>
+<div class="pd-kv-row"><div class="k">Primary Analyst</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Ben Elberger||Hanny Aqmarina||Junaidi Junaidi||Priska Ponggawa||Wesly Simatupang||Nila Layla Melinda||Sharfina Nindita||Armeno Devan" data-fp-val="Ben Elberger" data-fpd="1" id="pjPrimary"><span class="pill"><span class="pill-t">Ben Elberger</span></span></span></div></div>
+<div class="pd-kv-row"><div class="k">Secondary Analyst</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="— None —||Ben Elberger||Hanny Aqmarina||Junaidi Junaidi||Priska Ponggawa||Wesly Simatupang||Nila Layla Melinda||Sharfina Nindita||Armeno Devan" data-fp-val="Armeno Devan" data-fpd="1" id="pjSecondary"><span class="pill"><span class="pill-t">Armeno Devan</span></span></span></div></div>
+<div class="pd-kv-row"><div class="k">Status</div><div class="v"><span class="st-chip" id="pjStatusChip" onclick="event.stopPropagation();pjStatusMenu(event)" style="cursor:pointer">IC Credit Review</span></div></div>
+</div>
+</div>
+<div class="pd-card">
+<div class="los-sec-title pd-card-title">Karmapreneur Details</div>
+<div class="pd-kv">
+<div class="pd-kv-row"><div class="k">Project #</div><div class="v"><div id="pjProjNum">Project for Kaisar Factory (IC Credit Review)</div><div class="tiny">1 active</div><div class="tiny">0 completed</div><div class="tiny">0 before IC</div><div class="tiny">0 pending disbursement</div></div></div>
+<div class="pd-kv-row"><div class="k">Referral Source <span class="finfo" data-tip="A Referral Source is attached to the KP. That referral source will populate on all future submissions for that KP.">i</span></div><div class="v"><div id="pjRefList" style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch"><div class="refc" style="flex: 0 1 auto; max-width: 280px; position: relative; cursor: pointer; padding-right: 22px;" data-contact-id="seed-pjref"><div class="refc-name" id="pjRefName">MARIO PANJI PRASETYA</div><div class="refc-sub" id="pjRefSub">Karmapreneur - Kaisar Factory</div><button type="button" class="refc-x" title="Remove as referral source" style="position: absolute; top: 4px; right: 4px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; background: transparent; color: var(--ink-400); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px;">✕</button></div><button class="btn btn-sm ic-locked-field" id="pjRefAddBtn" onclick="addRefSource()" style="align-self:stretch;white-space:nowrap">＋ Add referral source</button></div></div></div>
+</div>
+</div>
+</div>
+<div class="pd-card">
+<div class="los-sec-title pd-card-title">Project Details</div>
+<div class="pd-rows">
+<div class="pd-row"><div class="k">Submission Type</div><div class="v"><div class="ms" id="subTypeMS"><span class="ms-opt sel" id="msProj" onclick="msToggle(this)">Project</span><span class="ms-opt" id="msPlafond" onclick="msToggle(this)">Plafond</span></div></div></div>
+<div class="proj-dep">
+<div class="pd-row"><div class="k">Sector / Sub-Sector</div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="ap-chip" id="pjSectorChip" onclick="event.stopPropagation();pjSectorMenu(event)"><span class="muted" id="pjSector">Select sector…</span> <span class="ptp-car">▾</span></span><span class="ap-chip" id="pjSubSectorChip" onclick="event.stopPropagation();pjSubSectorMenu(event)"><span class="muted" id="pjSubSector">Select sector first…</span> <span class="ptp-car">▾</span></span></div></div>
+<div class="pd-row"><div class="k">Asset Class / Syariah <span class="finfo" title="Asset Class sets the deal structure (A/D = branch or working-capital financing, B-I/B-PO = invoice/PO financing, C/E = equity-adjacent — hides most fields below). Syariah flags Sharia-compliant structuring (late fees route through ASN).">i</span></div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Asset Class A||Asset Class B - I||Asset Class B - PO||Asset Class C||Asset Class D||Asset Class E" data-fp-val="Asset Class A" data-fpd="1" id="pjAssetFp"><span class="pill"><span class="pill-t">Asset Class A</span></span></span><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Not Syariah||Syariah" data-fp-val="Not Syariah" data-fpd="1" id="syariahFp"><span class="pill"><span class="pill-t">Not Syariah</span></span></span></div></div>
+<div class="pd-row" id="syariahNotesRow" style="display:none"><div class="k">Syariah Notes</div><div class="v"><textarea id="syariahNotes" maxlength="255" oninput="syariahCount()" placeholder="Syariah structure notes (max 255 characters)" style="width:100%;min-height:60px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:12.5px;resize:vertical" class="ic-locked-field"></textarea><div class="tiny muted" id="syariahCountLbl" style="margin-top:2px">0 / 255</div></div></div>
+<div class="pd-row"><div class="k">Financing Type <span class="finfo" data-tip="How investors are repaid — options depend on Asset Class:
+• Daily Interest — Asset Class B-I / B-PO (PO/Invoice financing), accrues daily on the outstanding balance
+• Revenue Share — % of monthly revenue, capped return (Asset Class A)
+• Fixed Return — fixed repayment schedule (Asset Class A/D)
+• Fixed Return + Revenue Share — blended structure (Asset Class A/D)
+• Profit Share — Asset Class C/E (equity-adjacent) only">i</span></div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Revenue Share||Fixed Return||Fixed Return + Revenue Share||Daily Interest||Profit Share" data-fp-val="Revenue Share" data-fpd="1" id="pjFinType"><span class="pill"><span class="pill-t">Revenue Share</span></span></span><span class="finfo" id="warnFinTypeIcon" style="display:none;color:#b45309;border-color:#f59e0b;background:#fffbeb">⚠</span></div><div class="fg-flag warn tiny" id="warnFinType" style="display: none; margin-top: 6px; padding: 5px 8px;"></div></div>
+<div class="pd-row"><div class="k">Financing Use</div><div class="v"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Branch Opening/Expansion||Branch Renovation||Rent-Only Financing||Factory Expansion||Moveable Asset Financing||Export Invoice Financing||Export PO Financing||Domestic Invoice Financing||Domestic PO Financing||Temp Financing||Previous Investor Buyout||Working Capital Financing||Movie/Concert||Agri Plot Growing||General Equity" data-fp-val="Branch Opening/Expansion" data-fpd="1" id="pjFinUse"><span class="pill"><span class="pill-t">Branch Opening/Expansion</span></span></span></div></div>
+<div class="pd-row"><div class="k">Requested Amount</div><div class="v" style="display:flex;align-items:center;gap:8px"><span class="cur-pill ic-locked-field" id="pjDetailsCur" onclick="pjDetailsCurToggle()">IDR</span><input id="pjDetailsAmt" oninput="pjDetailsAmtFmt(this)" placeholder="0" style="font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;width:200px" class="ic-locked-field"></div></div>
+</div>
+</div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">Plafond &amp; Financial Review</div>
+<div class="pd-buffer-toggle" id="bufferToggleWrap"><div class="ms"><span class="ms-opt" id="msBuffer" onclick="msToggle(this)">+ Include Buffer <span class="tiny muted" style="font-weight:400">(optional — headroom above limit, no proposed line)</span></span></div></div>
 <div id="bufferSec" style="font-size: 11px; font-weight: 600; color: var(--ink-500); margin: 10px 0px 6px; padding-left: 10px; border-left: 2px solid var(--line); text-transform: none; letter-spacing: 0px; display: none;">Buffer <span class="tiny muted" style="font-weight:400">(headroom above limit — no proposed line)</span></div>
 <div class="tbl-scroll" id="bufferWrap" style="display: none;"><table class="plafond-tbl" style="min-width:920px">
 <thead><tr><th>Line</th><th>Total Buffer (+ from limit)</th><th>PO Sub Buffer (+ from limit)</th><th>Working Capital Buffer (+ from limit)</th><th>Expiry Date</th><th>Reasons</th></tr></thead>
@@ -1900,7 +1956,8 @@
 </table></div>
 <div class="dl proj-dep" style="margin-top:8px"><div class="k">Calculator</div><div class="v"><span class="editable empty ic-locked-field" data-raw="" id="pjCalcLink" ondblclick="editCalcLink(this)">Double-click to paste a Google Sheets link…</span> <a class="tiny" href="file:///C:/Users/benja/AppData/Roaming/Claude/local-agent-mode-sessions/b99f2eb9-5526-457e-b1a7-91a9c1d20c6f/d14fc280-07a1-4922-b222-9fa0f38d6bdb/local_384ba7dd-bcf0-416a-ae7d-eff471d5856d/outputs/Karma%20Dashboard_v20.html#" id="pjCalcOpenBtn" rel="noopener noreferrer" style="display:none;margin-left:8px" target="_blank">Open ↗</a></div></div>
 <div class="proj-dep" id="pjCalcEmbedWrap" style="margin-top: 8px;"><iframe id="pjCalcEmbedFrame" loading="lazy" src="./Karma Dashboard_v21_Shared_files/saved_resource.html" style="width:100%;height:440px;border:1px solid var(--line);border-radius:8px;background:#fff" title="Calculator (Google Sheets)"></iframe></div>
-<div class="los-sec-title">Karmapreneur Contacts <span class="chip c-red" style="font-size:10px">SLIK missing</span></div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">Karmapreneur Contacts <span class="chip c-red" style="font-size:10px">SLIK missing</span></div>
 <div style="align-items: stretch; gap: 8px;">
 <div class="tbl-scroll" style="flex:1;min-width:0"><table class="pterms-tbl" id="projContactsTbl" style="min-width:420px"><thead><tr id="projContactsHead">
 <th style="width:180px">Field</th>
@@ -1918,7 +1975,8 @@
 </tbody></table></div>
 <button class="btn ic-locked-field" onclick="addProjContact()" style="width:44px;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1" title="Add contact">＋</button>
 </div>
-<div class="los-sec-title">Proposed &amp; Past Projects Recap</div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">Proposed &amp; Past Projects Recap</div>
 <div class="tbl-scroll"><table class="recap-tbl" style="min-width:600px">
 <thead><tr>
 <th class="fld">FIELD</th>
@@ -1961,9 +2019,11 @@
 </div>
 <div class="footnote">⚠️ OTF MOIC and PvA are not currently available from the LMS Reporting Layer. Rows sorted: Proposed first, then by IC approval date (newest first). This is Project #1 for the KP — no past projects yet.</div>
 <div id="poSection" style="display: none;">
-<div class="los-sec-title">Payor / PO / Invoice Financing <span class="tiny muted">(Asset B only)</span></div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">Payor / PO / Invoice Financing <span class="tiny muted">(Asset B only)</span></div>
 <div id="poInvoiceWrap"><div class="tbl-scroll"><table class="po-tbl" style="min-width:460px"><thead><tr><th class="fld">FIELD</th><th>PO 1</th></tr></thead><tbody><tr><td class="fld">PO Number <span class="finfo" data-tip="Reference number of the po being financed, from the underlying document.">i</span></td><td><input value="PO-AZTECH-DOM-2025-8841" onchange="poSet(0,&#39;num&#39;,this.value)"></td></tr><tr><td class="fld">PO Issue Date <span class="finfo" data-tip="Date the po was issued — start of the cashflow gap used in pricing.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;issue&quot;)">2025-10-15 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Expected Delivery Date <span class="finfo" data-tip="Expected delivery date of goods/services under the PO.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;delivery&quot;)">2026-01-20 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Expected Payment Date <span class="finfo" data-tip="Date the payer is expected to pay. Repayment due date defaults to this + 15 days.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;payment&quot;)">2026-02-12 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">PO Amount <span class="finfo" data-tip="Face value of the po. Karma finances up to the advance rate of this amount, capped by the Payer Limit.">i</span></td><td><span class="cur-pill" onclick="poCcyMenu(event,0)">IDR <span class="ptp-car">▾</span></span> <input value="6.000.000.000" onchange="poSet(0,&#39;amount&#39;,this.value)"></td></tr><tr><td class="fld">Payer (lookup — search or create) <span class="finfo" data-tip="The obligor who ultimately pays. Type a new name to add a payer to the lookup.">i</span></td><td><span class="ap-chip po-payer-chip" onclick="poPayerMenu(event,0)">Aztech Industries Berhad <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Payer Notes <span class="finfo" data-tip="Diligence notes on the payer — anchor relationship, documentation location, etc.">i</span></td><td><input value="Corporate PO anchor; diligence pack in GDrive." onchange="poSet(0,&#39;payerNotes&#39;,this.value)"></td></tr><tr><td class="fld">Payer Type <span class="finfo" data-tip="Payer category drives risk scoring. Tier-2 payers and regional governments add a pricing premium.">i</span></td><td><select onchange="poSet(0,&#39;payerType&#39;,this.value)"><option></option><option>Tier 1 BUMN</option><option selected="">Tier 1 Conglomerate/Private Company</option><option>National Government</option><option>Regional Government</option><option>Tier 2 BUMN</option><option>Tier 2 Conglomerate/Private Company</option><option>KP SME</option><option>Other SME</option><option>Tier 1 Foreign Government/Multi-Laterals</option><option>Tier 2 Foreign Government/Multi-Laterals</option></select></td></tr><tr><td class="fld">Strength of Payor <span class="finfo" data-tip="Auto-derived from Payer Type — Strength of Payor tiering used in pricing.">i</span></td><td><span class="ro">5: Tier 1 Payer</span></td></tr><tr><td class="fld">Payer's Payee Projects <span class="finfo" data-tip="Read-only — projects of the borrower (payee) this payer is linked to.">i</span></td><td><span class="ro po-payee-projects"><span class="tiny">Cahaya Energi Asia — Aztech #1 <span class="muted">(no linked submission on file)</span></span></span></td></tr><tr><td class="fld">History of Payer Paying On Time <span class="finfo" data-tip="Track record of this payer paying Karmapreneurs on time. Recurring on-time history lowers the rate; no history raises it.">i</span></td><td><span class="ap-chip po-hist-chip" onclick="poHistMenu(event,0)">1: No prior payment history from payer to Karmapreneur <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Payer Limit<div class="sub">uneditable — set in Payer Limit box below</div></td><td class="ro">Rp 20.000.000.000</td></tr><tr><td class="fld">PO Already Used<div class="sub">calculated</div></td><td class="calc">Rp 0</td></tr><tr><td class="fld">Remaining PO Financing Available<div class="sub">calculated</div></td><td class="avail-bad">Rp 4.800.000.000<div class="sub" style="color:var(--red-tx)">requested Rp 6.000.000.000 exceeds available</div></td></tr><tr><td class="fld">Repayment Due Date<div class="sub">default = expected payment/last payment + 15 days; editable</div></td><td><input type="date" value="2026-02-27" onchange="poSet(0,&#39;repayDue&#39;,this.value)" style=""></td></tr></tbody></table></div><button class="btn btn-sm po-add" onclick="poAddLine()">＋ Add PO (new column)</button><div class="po-limits"><div class="lrow">Payer Limit: <input value="Rp 20.000.000.000" onchange="poSetG(&#39;payerLimit&#39;,this.value)"> <span>(Rp 0 already used)</span><span>(Rp 20.000.000.000 remaining)</span> <span class="muted">{ total exposure to this payer across all projects: <b>Rp 0</b> }</span></div><div class="lrow">PO Limit: <input value="80" onchange="poSetG(&#39;advanceRate&#39;,this.value)" style="width:60px">% advance rate <span>(Rp 0 already used)</span><span>(Rp 4.800.000.000 remaining)</span> <span class="tiny muted">(PO limit: Rp 4.800.000.000)</span></div></div><div class="po-price"><b>Suggested investor pricing</b> <span class="tiny muted">per 30 days of principal outstanding, pro-rated daily</span><div class="adj">Standard starting rate (PO)<span class="d">1.70% /30d</span></div><label class="adj"><input type="checkbox" onchange="poAdj(&quot;karmaserve&quot;,this.checked)" title="Manually toggle"> KarmaServe + CFO-as-a-service<span class="d">-0.10% /30d</span></label><label class="adj"><input type="checkbox" disabled="" title="Auto-computed — locked"> Strength of Payer = 5: Tier 1 Payer <span class="tiny muted">— auto</span><span class="d">+0.10% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled="" title="Auto-computed — locked"> Expected cashflow gaps until due = Standard 2 <span class="tiny muted">— auto</span><span class="d">+0.15% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled="" title="Auto-computed — locked"> No prior payment history (Standard 1) <span class="tiny muted">— auto</span><span class="d">+0.10% /30d</span></label><label class="adj"><input type="checkbox" disabled="" title="Auto-computed — locked"> Recurring monthly, 3+ on-time (Standard 5) <span class="tiny muted">— auto</span><span class="d">-0.10% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled=""> Large PO Risk (≥ Rp 5 bn) — auto<span class="d">+0.15% /30d or kicker</span></label><div class="rate">≈ 2.10% per 30 days <span class="tiny muted">(min 1.7%)</span></div></div><div class="fg-flag warn">Large-ticket po (&gt; Rp 1 bn): enhanced payer diligence required before approval.</div><div class="fg-flag warn"><b>Large PO Risk</b> — this po is ≥ Rp 5 bn (applies even if Karma funds less). Payers apply extra scrutiny / audits on large pos, raising delay/default risk. Apply the risk premium via a higher rate (+0.15%/30d) <b>or</b> warrants/equity kicker — if a kicker, it is paid to ASN, not investors.</div><div class="footnote">1 repayment date is set · partial payment allowed before/on/after · interest charged only on the outstanding amount. Due date = expected last payment date on the po + 15 days. Partial payment is required earlier if any part of the po is paid earlier than due (see Denda).</div></div>
-<div class="los-sec-title" id="scoringSec" style="display: none;margin-top:12px">Diligence Scoring <span class="tiny muted">(shared — one set of scores for the whole submission, not per PO/Invoice)</span></div>
+</div>
+<div class="pd-card" id="scoringSec" style="display:none"><div class="los-sec-title pd-card-title">Diligence Scoring <span class="tiny muted">(shared — one set of scores for the whole submission, not per PO/Invoice)</span></div>
 <div class="los-form-grid" id="scoringGrid" style="display: none;">
 <div class="dl scr-bi" style="display: none;"><div class="k">Authenticity &amp; Veracity of Invoice &amp; BAST</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="5: Direct confirmation to payer by Karma — invoice received/processed &amp; BAST issued||4: Analyst in-person/virtual/recorded view of KP confirmation||3: Forwarded email/screenshot of KP confirmation||1: Analyst manual review &amp; sanity check" data-fp-val="" data-fpd="1"><span class="pill-ph">Select…</span></span></div></div>
 <div class="dl scr-bi scr-bpo" style="display: none;"><div class="k">Existence &amp; Authenticity of Supporting Docs</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="5: Direct confirmation to payer by Karma — PO issued &amp; KP in good standing||4: Analyst in-person/virtual/recorded view||3: Forwarded email/screenshot||2: AI analysis of PDF tampering||1: Analyst manual review &amp; sanity check" data-fp-val="" data-fpd="1"><span class="pill-ph">Select…</span></span></div></div>
@@ -1982,7 +2042,8 @@
 <tr><td class="fld">Service fee basis</td><td class="editable ic-locked-field" data-raw="Outstanding Principal" style="white-space:normal">Outstanding Principal</td><td></td></tr>
 <tr><td class="fld">Late fees</td><td class="editable ic-locked-field" data-raw="Overdue Amount · grace 5 days · 0.1% inv / 0.0% ASN per day" style="white-space:normal">Overdue Amount · grace 5 days · 0.1% inv / 0.0% ASN per day <span class="tiny" style="color:var(--yellow-tx)">⚠ differs from type defaults</span></td><td></td></tr>
 </tbody></table></div>
-<div class="los-sec-title">KP Credit Memo</div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">KP Credit Memo</div>
 <div class="dl"><div class="k">KP Credit Memo <span class="tiny muted">(rich text · embedded table)</span></div></div>
 <table class="kpmemo-tbl" id="kpMemoTbl"><thead><tr><th>Company Credit Memo</th><th>Company</th></tr></thead><tbody>
 <tr><td class="noedit">Why should we work with this Karmapreneur?</td><td class="editable ic-locked-field" data-raw=""></td></tr>
@@ -1997,9 +2058,11 @@
 <tr><td class="noedit"><b>Existing Financing</b><div class="sub">How has the Brand/Company financed themselves so far?<br>Are there any fixed rate loans due to friends, fintechs, or banks? When are they due? (checking whether repaying them endangers the company's ability to operate and/or repay us)</div></td><td class="editable ic-locked-field" data-raw=""></td></tr>
 <tr><td class="noedit"><b>Bank vs Sales</b><div class="sub">What is the variance of bank statements vs sales reports?<br>What was compared (specific branches, whole company)?</div></td><td class="editable ic-locked-field" data-raw=""></td></tr>
 </tbody></table>
-<div class="los-sec-title proj-dep">Project Credit Memo <span class="tiny muted">(shown when Project is selected — questions depend on Submission Type &amp; Asset Class)</span></div>
+</div>
+<div class="pd-card proj-dep"><div class="los-sec-title pd-card-title">Project Credit Memo <span class="tiny muted">(shown when Project is selected — questions depend on Submission Type &amp; Asset Class)</span></div>
 <div class="proj-dep" id="pjMemoHost"><table class="kpmemo-tbl" data-memo="A"><thead><tr><th>Project Credit Memo</th><th>Project</th></tr></thead><tbody><tr><td class="noedit">What is the project for / branch(es) to be opened?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_what" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Project Financial Analysis</td></tr><tr><td class="noedit">What is the estimated steady state revenue at Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rev12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is the amount the Karmapreneur will need to pay Investors+Karma in Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_pay12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is Net Income before Depreciation after paying Investors+Karma in Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_ni12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is the lowest revenue the Karmapreneur needs to be able to pay Investors+Karma and profit = 0?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_lowrev" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Rent Contract (for the branch we're doing revenue share for)</td></tr><tr><td class="noedit">What is the rent contract length?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rentlen" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Does the entrepreneur have a contractual right to extend? If not, who is the landlord and what is relationship to entrepreneur?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rentext" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Space</td></tr><tr><td class="noedit">How many parking spaces will there be?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_parking" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">How many seats/beds/etc. will there be in the branch?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_seats" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Licenses (for the branch we're doing revenue share for)</td></tr><tr><td class="noedit">Does new branch require izin (medical, alcohol, etc)?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_izin" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Do they have the license yet?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_haslic" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Location/Target Buyer Analysis</td></tr><tr><td class="noedit">What is the analysts' assessment of the new location?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_locassess" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Activation Plan and Dependencies</td></tr><tr><td class="noedit">What is marketing plan for the new branch?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_marketing" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Are there any key dependencies not yet covered above critical to the project's success?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_deps" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Post-Funding Promises</td></tr><tr><td class="noedit">Is the entrepreneur willing to give us log-in to their POS?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_pos" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr></tbody></table></div>
-<div class="los-sec-title proj-dep">Notes</div>
+</div>
+<div class="pd-card proj-dep"><div class="los-sec-title pd-card-title">Notes</div>
 <div class="proj-dep">
 <div class="nf-tabs" id="pjNfTabs" style="display: none;"><button class="nf-tab on ic-locked-field" onclick="nfTab(&#39;all&#39;,this)">All</button><button class="nf-tab ic-locked-field" onclick="nfTab(&#39;kp&#39;,this)">KP</button><button class="nf-tab ic-locked-field" onclick="nfTab(&#39;project&#39;,this)">Project/PO/Invoice</button></div>
 <div class="note-box" style="margin-bottom:10px">
@@ -2013,7 +2076,8 @@
 </div>
 <div class="notes-scroll" id="pjNotesFeed"><div class="feed"><div class="feed-item"><div class="feed-ico" style="background:var(--purple-bg);color:var(--purple-tx)">⚖</div><div class="feed-body"><div class="fh"><b>Junaidi</b> · <span class="chip c-blue">Project</span> <span class="chip c-purple">IC Review</span><span class="feed-time">22 Oct 2025</span></div><div class="feed-snip">Submission PO/Invoice + Plafond. Calculator extracted — rates match term sheet.</div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px"><span class="chip c-gray" style="font-size:10px">🔖 Aztech #1 (Project)</span> <span class="chip c-gray" style="font-size:10px">🔖 PO-AZTECH-DOM-2025-8841 (PO)</span></div></div></div><div class="feed-item"><div class="feed-ico" style="background:var(--blue-bg);color:var(--blue-tx)">✎</div><div class="feed-body"><div class="fh"><b>Project Credit Memo</b> · <span class="chip c-blue">Project</span> <span class="chip c-purple">General</span><span class="feed-time">20 Oct 2025</span></div><div class="feed-snip">Aztech #1: IDR 6B domestic PO financing, daily interest, 90-day tenor. Payor diligence completed.</div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px"><span class="chip c-gray" style="font-size:10px">🔖 Aztech #1 (Project)</span> <span class="chip c-gray" style="font-size:10px">🔖 Aztech Industries Berhad (Payor)</span></div></div></div><div class="feed-item"><div class="feed-ico" style="background:var(--primary-light);color:var(--primary)">📍</div><div class="feed-body"><div class="fh"><b>Priska Ponggawa</b> · <span class="chip c-gray">KP</span> <span class="chip c-purple">Monitoring</span><span class="feed-time">12 Oct 2025</span></div><div class="feed-snip">Cahaya Energi Asia — diversified oil &amp; gas services revenue, anchor PO. No arrears across active lines.</div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px"><span class="chip c-gray" style="font-size:10px">🔖 Cahaya Energi Asia (KP)</span></div></div></div><div class="feed-item"><div class="feed-ico" style="background:var(--blue-bg);color:var(--blue-tx)">✎</div><div class="feed-body"><div class="fh"><b>KP Credit Memo</b> · <span class="chip c-gray">KP</span> <span class="chip c-purple">General</span><span class="feed-time">02 Oct 2025</span></div><div class="feed-snip">Cahaya Energi Asia bound to KF &amp; KCF. Existing plafond IDR 12B active.</div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px"><span class="chip c-gray" style="font-size:10px">🔖 Cahaya Energi Asia (KP)</span> <span class="chip c-gray" style="font-size:10px">🔖 PT Cahaya Energi Asia (PT)</span></div></div></div><div class="feed-item"><div class="feed-ico" style="background:var(--blue-bg);color:var(--blue-tx)">✎</div><div class="feed-body"><div class="fh"><b>Henry Sutioso</b> · <span class="chip c-gray">KP</span> <span class="chip c-purple">General</span><span class="feed-time">28 Sep 2025</span></div><div class="feed-snip">Referral source &amp; UBO. Confirmed signing authority; SLIK clean.</div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px"><span class="chip c-gray" style="font-size:10px">🔖 Henry Sutioso (Contact)</span> <span class="chip c-gray" style="font-size:10px">🔖 Cahaya Energi Asia (KP)</span></div></div></div><div class="feed-item"><div class="feed-ico" style="background:var(--green-bg);color:var(--green-tx)">₨</div><div class="feed-body"><div class="fh"><b>Ben Elberger</b> · <span class="chip c-blue">Project</span> <span class="chip c-purple">PtP</span><span class="feed-time">18 Oct 2025</span></div><div class="feed-snip">Payor confirmed payment schedule aligns with the 90-day tenor.</div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px"><span class="chip c-gray" style="font-size:10px">🔖 Aztech #1 (Project)</span></div></div></div><div class="feed-item"><div class="feed-ico" style="background:var(--yellow-bg);color:var(--yellow-tx)">◎</div><div class="feed-body"><div class="fh"><b>Rizky A.</b> · <span class="chip c-gray">KP</span> <span class="chip c-purple">Onboarding</span><span class="feed-time">01 Oct 2025</span></div><div class="feed-snip">Account setup complete; disbursement readiness pending SLIK-PT.</div><div style="margin-top:5px;display:flex;flex-wrap:wrap;gap:4px"><span class="chip c-gray" style="font-size:10px">🔖 Cahaya Energi Asia (KP)</span></div></div></div></div></div>
 </div>
-<div class="los-sec-title">PT Details</div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">PT Details</div>
 <div class="tbl-scroll"><table class="pterms-tbl pt-tbl" id="ptDetailsTbl" style="min-width:620px"><thead><tr id="ptDetailsHead">
 <th class="fld" style="width:210px">Field</th>
 <th>PT 1</th>
@@ -2031,7 +2095,8 @@
 </tbody></table></div>
 <button class="btn btn-sm ic-locked-field" onclick="addPtCol()" style="margin-top:8px">＋ PT to add</button>
 <div class="ec-hint" style="margin-top:4px">Double-click any cell to edit · ✎ edit · – delete. Flags: Accountholder Name ≠ PT Name, and Account Number differing from prior projects.</div>
-<div class="los-sec-title proj-dep">Other</div>
+</div>
+<div class="pd-card proj-dep"><div class="los-sec-title pd-card-title">Other</div>
 <div class="ipm proj-dep">Funding Source: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="KF/KCF/KS||Members" data-fp-val="KF/KCF/KS" data-fpd="1"><span class="pill"><span class="pill-t">KF/KCF/KS</span></span></span> &nbsp;·&nbsp; Tax Withholdings: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Karmapreneur will withhold||Karmapreneur will NOT withhold" data-fp-val="Karmapreneur will withhold" data-fpd="1"><span class="pill"><span class="pill-t">Karmapreneur will withhold</span></span></span></div>
 <div class="los-form-grid proj-dep" style="margin-top:10px">
 <div class="dl"><div class="k">GDrive</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="link" data-fp-empty="＋ Create folder" data-fp-href="https://drive.google.com" data-fp-label="Project Folder ↗" data-fp-val="Project Folder ↗" data-fpd="1"><span class="pill pill-link"><span class="pill-t">Project Folder ↗</span><span class="pill-x">×</span></span></span></div></div>
@@ -2048,12 +2113,14 @@
 <button class="btn btn-sm ic-locked-field" style="margin-top:6px">＋ Add branch</button>
 </div>
 <div class="fg-flag warn" id="icLockHint" style="margin-top: 12px; display: block;">🔒 Acting as Head of Risk / IC Member — fields above Approval are locked. Switch Role to Analyst to edit them.</div>
-<div class="los-sec-title" id="condSec">Conditions Precedent &amp; Subsequent <span class="finfo" data-tip="Before this deal is submitted to IC, the primary analyst can add, edit, or remove conditions. Once submitted to IC Credit Review, only the Head of Risk (Principal) can edit them — analysts see a read-only view of what was submitted.">i</span></div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title" id="condSec">Conditions Precedent &amp; Subsequent <span class="finfo" data-tip="Before this deal is submitted to IC, the primary analyst can add, edit, or remove conditions. Once submitted to IC Credit Review, only the Head of Risk (Principal) can edit them — analysts see a read-only view of what was submitted.">i</span></div>
 <div class="ipm" id="condHint" style="margin-bottom:8px;background:var(--canvas);border-radius:8px;padding:7px 10px">⚖️ This deal is with IC — as Head of Risk (Principal) you can add, edit, or remove conditions.</div>
 <div class="dl" style="margin-top:10px"><div class="k">Conditions Precedent</div><div class="v tiny"><div id="cpItems"><div class="cond-row"><span class="cond-text">• Signed term sheet on file before disbursement</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• SLIK &amp; SLIK-PT checks cleared</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><span id="cpAutoBank"></span><span id="cpAutoToken"></span></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;cpItems&#39;)">+ Add condition</button></div></div>
 <div class="dl" style="margin-top:10px"><div class="k">Conditions Subsequent</div><div class="v tiny"><div id="csItems"><div class="cond-row"><span class="cond-text">• Execute PO / underlying invoice documentation before first disbursement</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• Confirm plafond registry update in Coda after IC approval</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;csItems&#39;)">+ Add condition</button></div></div>
 <div id="apprWrap">
-<div class="los-sec-title" id="apprSec">Approval</div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title" id="apprSec">Approval</div>
 <div class="fg-flag warn">⚠️ Combined IC: tranche IDR 6B (Daily Interest) + plafond line (naik ke IDR 15B PO sub-limit dari IDR 12B aktif). Outstanding KP IDR 6B — sisa headroom setelah approval tercermin di baris Proposed.</div>
 <div id="icApprovalSummary" style=""><div class="fg-flag" style="background:#f2fdf6;border-color:#bbf7d0;color:var(--green-tx)">✓ Approved at IC Credit Review · 17 Jul 2026 — voting is closed.</div><div class="ipm" style="margin-bottom:8px"><b>Rule:</b> ≤ IDR 6B — only Principal vote required · 1/1 obtained</div><div class="vote-row"><span class="avatar">B</span> <b>Ben Elberger</b> <span class="tiny">Principal · IC Member</span><span class="spacer" style="flex:1"></span><span class="chip c-green">Approved</span></div><div class="vote-row"><span class="avatar">A</span> Aldi Haryopratomo <span class="tiny">IC Member</span><span class="spacer" style="flex:1"></span><span class="chip c-gray">Not required (≤ IDR 6B)</span></div><div class="vote-row"><span class="avatar">J</span> Junaidi <span class="tiny">IC Member</span><span class="spacer" style="flex:1"></span><span class="chip c-gray">Not required (≤ IDR 6B)</span></div></div>
 <div id="icApprovalBody" style="display: none;">
@@ -2068,13 +2135,16 @@
 </div>
 </div>
 <!-- Item 18: Deal Workflow moved to render after Approval (was previously before Conditions/Approval) -->
-<div class="los-sec-title" id="wfSec">Deal Workflow <span class="finfo" data-tip="Where this deal sits in the origination-to-disbursement pipeline. Everyone can see the stage; only the role responsible for the current step can act on it.">i</span></div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title" id="wfSec">Deal Workflow <span class="finfo" data-tip="Where this deal sits in the origination-to-disbursement pipeline. Everyone can see the stage; only the role responsible for the current step can act on it.">i</span></div>
 <div id="wfPanel"><div class="wf-steps"><div class="wf-step done"><span class="wf-dot">✓</span>1. Submit Prep</div><div class="wf-step done"><span class="wf-dot">✓</span>IC Review</div><div class="wf-step current"><span class="wf-dot">3</span>Finance Split</div><div class="wf-step "><span class="wf-dot">4</span>Legal</div><div class="wf-step "><span class="wf-dot">5</span>Disbursement</div><div class="wf-step "><span class="wf-dot">6</span>Active</div></div><div class="wf-action"><div class="wf-h">With Finance — KF/KCF split</div><div class="wf-sub">Finance is splitting the approved Rp 3.390.000.000 across KF and KCF before the deal moves to Legal.</div></div></div>
-<div class="los-sec-title sec-collapsed">Warnings</div>
+</div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">Warnings</div>
 <div class="fg-flag err" data-was-visible="1" onclick="losScrollTo(&#39;Karmapreneur Contacts&#39;)" style="cursor: pointer;">✖ [KP Contacts] SLIK-Key Person file missing for key person: KP signatory (from diligence). Must be received before approval.</div>
 <div class="fg-flag warn" data-was-visible="1" onclick="losScrollTo(&#39;Plafond&#39;)" style="cursor: pointer;">[Financial Reviews] Warning: More than 9 months ago (submitted 2025-10-20).</div>
 <div class="fg-flag warn" data-was-visible="1" id="pjTplNote" style="display: block;">Credit detail below (Plafond, Recap, Terms, Approval) is shown as an illustrative worked example — the identity fields above reflect the selected project.</div>
 </div>
+
 </section>
 <!-- ============ OBJECTS: Notes ============ -->
 <section class="page" id="page-obj-notes">
@@ -3112,7 +3182,16 @@ function ptpMenu(e,id){e.stopPropagation();closePtpMenu();var m=document.createE
  document.body.appendChild(m);var t=(e.target.closest&&e.target.closest('.ptp-chip'))||e.target;var r=t.getBoundingClientRect();m.style.left=(r.left+window.scrollX)+'px';m.style.top=(r.bottom+window.scrollY+4)+'px';
  setTimeout(function(){document.addEventListener('click',closePtpMenu,{once:true});},0);}
 /* ================= v14: submission type multi-select + editable analysts on Early Leads ================= */
-function msToggle(el){el.classList.toggle('sel');if(typeof updatePjTitleSub==='function')updatePjTitleSub();if(el.id==='msProj'){var on=el.classList.contains('sel');document.querySelectorAll('#page-los-project .proj-dep').forEach(function(x){x.style.display=on?'':'none';});if(typeof plfCalc==='function')plfCalc();}if(el.id==='msPlafond'){syncPlafProposed();updateApprovalRule();}if(typeof bufferGate==='function')bufferGate();}
+function msToggle(el){
+  if((el.id==='msProj'||el.id==='msPlafond')&&el.classList.contains('sel')){
+    var otherId=el.id==='msProj'?'msPlafond':'msProj';
+    var other=document.getElementById(otherId);
+    if(!(other&&other.classList.contains('sel'))){
+      if(typeof wfToast==='function')wfToast('Select at least one','Submission Type needs Project or Plafond selected — choose the other one before removing this.');
+      return;
+    }
+  }
+  el.classList.toggle('sel');if(typeof updatePjTitleSub==='function')updatePjTitleSub();if(el.id==='msProj'){var on=el.classList.contains('sel');document.querySelectorAll('#page-los-project .proj-dep').forEach(function(x){x.style.display=on?'':'none';});if(typeof plfCalc==='function')plfCalc();}if(el.id==='msPlafond'){syncPlafProposed();updateApprovalRule();}if(typeof bufferGate==='function')bufferGate();}
 function syncPlafProposed(){var mp=document.getElementById('msPlafond');var on=mp&&mp.classList.contains('sel');document.querySelectorAll('#page-los-project tr.plaf-proposed').forEach(function(x){x.style.display=on?'':'none';});}
 function apParseRp(s){if(!s)return 0;var n=Number((''+s).replace(/[^0-9]/g,''));return isNaN(n)?0:n;}
 function plfCalc(){var inp=document.getElementById('plfTotal'),rec=document.getElementById('plfRec');if(!inp||!rec)return;var curEl=document.querySelector('#page-los-project .plafond-tbl tbody tr:not(.plaf-proposed):not(.sup) td:nth-child(2) .lim');var cur=curEl?apParseRp(curEl.textContent):0;if(!inp.value.trim()){rec.className='chip c-gray';rec.textContent='—';updateApprovalRule();return;}var val=apParseRp(inp.value);if(val>cur){rec.className='chip c-green';rec.textContent='Increase';}else if(val<cur){rec.className='chip c-red';rec.textContent='Decrease';}else{rec.className='chip c-gray';rec.textContent='Maintain';}updateApprovalRule();}
@@ -3254,10 +3333,11 @@ function projUse(t){if(t.indexOf('PO')>=0)return 'Domestic PO Financing';if(t.in
 var PROJ_SECTOR={'Kaisar Factory':'Assorted B2B Services & Manufacturing','Regen':'F&B: Beverages','Twalen Spirits':'F&B: Bar','Scuto':'Assorted Retail Services: Automotive','Begor Pondok Suryo':'F&B: Full Service Resto','Kopi Bajawa Flores':'F&B: Cafe','Dakota Mitra Tama':'Garment Manufacturing','Padel Rally Club':'Sports, Recreation & Wellness','Kirei':'Retail Brands','Fragrant':'F&B','Geoff Max':'Retail Brands: Footwear','Cahaya Energi Asia':'Assorted B2B Services & Manufacturing: Oil and Gas Services','Cipta Usaha Media':'Agencies','Kedai Mie Aceh':'F&B: Restaurant','Solusi Musi Persada':'Assorted B2B Services & Manufacturing: Oil and Gas Services','Maju':'Assorted B2B Services & Manufacturing','Steak Hotel by Holycow':'F&B: Full Service Resto','Shushu':'F&B: Cafe','Maju Manufaktur Indonesia':'Assorted B2B Services & Manufacturing','Kopikina':'F&B: Coffee Shop','Kopitagram':'F&B: Coffee Shop','Palapa (PHL)':'Entertainment','PT Investo Medika Asia':'Assorted B2B Services & Manufacturing','PT. Semesta Energi Services':'Assorted B2B Services & Manufacturing: Oil and Gas Services','The Houseplants Coffee':'F&B: Cafe','Anomali':'F&B: Cafe','Sirtanio':'Agriculture','Kopi Kalyan':'F&B','Sunyi Coffee':'F&B: Cafe','Dokter Anggi Dental Clinic':'Healthcare and Petcare Clinics','Kosambi Maternal & Children Center':'Healthcare and Petcare Clinics','Rumah Tani':'Agriculture','Sanobar':'Commodities Trading, Processing & Distribution','Halmampol':'Assorted Retail Services','Konsersium':'Assorted B2B Services & Manufacturing','Warung Nusantara':'F&B: Restaurant','Batik Prawira':'Retail Brands','Sambal Bu Rudy Nusantara':'F&B','Roti Manis Bandung':'F&B: Bakery','Teh Poci Sejahtera':'Commodities Trading, Processing & Distribution','Bengkel Auto Prima':'Assorted Retail Services: Automotive','Klinik Sehat Sentosa':'Healthcare and Petcare Clinics','Toko Emas Mulia':'Assorted Retail Services','Ayam Geprek Juara':'F&B: QSR','Es Teler Pelangi':'F&B: Snacks, Drinks & Desserts','Furnitur Jati Makmur':'Assorted B2B Services & Manufacturing','Laundry Kilat Bersih':'Assorted Retail Services','Optik Cemerlang':'Commodities Trading, Processing & Distribution','Bakmi Naga Mas':'F&B: Restaurant','Seafood Bahari Jaya':'Commodities Trading, Processing & Distribution','Percetakan Grafika Jaya':'Agencies'};
 var PROJ_REF={'Kaisar Factory':['MARIO PANJI PRASETYA','Karmapreneur - Kaisar Factory'],'Regen':['Nilai','Karmapreneur - Regen; Node - F&B'],'Twalen Spirits':['Mario Sugianto','Karmapreneur - Twalen Spirits'],'Begor Pondok Suryo':['Ben Elberger','Karma Staff - Origination'],'Dakota Mitra Tama':['Azhar Gilang','Karmapreneur - Dakota Mitra Tama'],'Kopi Bajawa Flores':['Junaidi','Karma Staff - Origination'],'Padel Rally Club':['Karma.Club Website','Inbound lead'],'Kirei':['David Arnold Halim','Karmapreneur - Kirei'],'Fragrant':['Cold calling','Outbound'],'Geoff Max':['Yusuf Ramdhani','Karmapreneur - Geoff Max'],'Kedai Mie Aceh':['Rian Ashari','Karmapreneur - Kedai Mie Aceh'],'Solusi Musi Persada':['Junaidi','Karma Staff - Origination'],'Scuto':['Inbound web form','Karmapreneur - Scuto'],'Cahaya Energi Asia':['Karma Node','Karma Node - Origination'],'Cipta Usaha Media':['KarmaClub Member','Karma Node - Origination'],'Maju Manufaktur Indonesia':['Karma.Club Website','Karma Node - Origination'],'Steak Hotel by Holycow':['Inbound web form','Karmapreneur - Steak Hotel by Holycow'],'Shushu':['Existing KP intro','Karmapreneur - Shushu'],'Kopikina':['KarmaClub Member','Karmapreneur - Kopikina'],'Kopitagram':['Karma.Club Website','Karmapreneur - Kopitagram'],'Palapa (PHL)':['Inbound web form','Karmapreneur - Palapa (PHL)'],'PT Investo Medika Asia':['Inbound web form','Karma Node - Origination'],'PT. Semesta Energi Services':['Cold calling','Karma Node - Origination'],'The Houseplants Coffee':['KarmaClub Member','Karmapreneur - The Houseplants Coffee'],'Anomali':['Existing KP intro','Karmapreneur - Anomali'],'Sirtanio':['KarmaClub Member','Karma Node - Origination'],'Kopi Kalyan':['Karmapreneur referral','Karmapreneur - Kopi Kalyan'],'Sunyi Coffee':['KarmaClub Member','Karmapreneur - Sunyi Coffee'],'Dokter Anggi Dental Clinic':['Inbound web form','Karmapreneur - Dokter Anggi Dental Clinic'],'Kosambi Maternal & Children Center':['Karma.Club Website','Karmapreneur - Kosambi Maternal & Children Center'],'Rumah Tani':['Inbound web form','Karma Node - Origination'],'Sanobar':['Karmapreneur referral','Karma Node - Origination'],'Halmampol':['Karmapreneur referral','Karmapreneur - Halmampol'],'Konsersium':['Inbound web form','Karma Node - Origination'],'Warung Nusantara':['Existing KP intro','Karmapreneur - Warung Nusantara'],'Batik Prawira':['Cold calling','Karmapreneur - Batik Prawira'],'Sambal Bu Rudy Nusantara':['Karma Node','Karmapreneur - Sambal Bu Rudy Nusantara'],'Roti Manis Bandung':['Cold calling','Karmapreneur - Roti Manis Bandung'],'Teh Poci Sejahtera':['KarmaClub Member','Karma Node - Origination'],'Bengkel Auto Prima':['Cold calling','Karmapreneur - Bengkel Auto Prima'],'Klinik Sehat Sentosa':['Karma.Club Website','Karmapreneur - Klinik Sehat Sentosa'],'Toko Emas Mulia':['Karma Node','Karmapreneur - Toko Emas Mulia'],'Ayam Geprek Juara':['Karmapreneur referral','Karmapreneur - Ayam Geprek Juara'],'Es Teler Pelangi':['Existing KP intro','Karmapreneur - Es Teler Pelangi'],'Furnitur Jati Makmur':['Karma Node','Karma Node - Origination'],'Laundry Kilat Bersih':['Karma Node','Karmapreneur - Laundry Kilat Bersih'],'Optik Cemerlang':['Karma.Club Website','Karma Node - Origination'],'Bakmi Naga Mas':['Cold calling','Karmapreneur - Bakmi Naga Mas'],'Seafood Bahari Jaya':['KarmaClub Member','Karma Node - Origination'],'Percetakan Grafika Jaya':['Karma.Club Website','Karma Node - Origination']};
 function msTypeLabels(){var ids=['msPlafond','msProj','msBuffer'];var out=[];ids.forEach(function(id){var e=document.getElementById(id);if(e&&e.classList.contains('sel'))out.push(e.textContent.trim());});return out;}
-function updatePjTitleSub(){var r=window.__curProjRow;if(!r)return;var types=msTypeLabels();var d=document.getElementById('pjDescription');var desc=d?d.value.trim():'';var parts=[r.kp];if(types.length)parts.push(types.join(' \u00b7 '));if(desc)parts.push(desc);_s('pjTitle',parts.join(' - '));_h('pjSub',esc(r.kp)+' &middot; '+esc(types.join('/')||r.type));if(typeof window.renderPjKpChip==='function')window.renderPjKpChip();if(typeof window.__syncKpMemoFromStore==='function')window.__syncKpMemoFromStore();if(typeof window.pjMemoRender==='function')window.pjMemoRender();}
+function updatePjTitleSub(){var r=window.__curProjRow;if(!r)return;var types=msTypeLabels();var d=document.getElementById('pjDescription');var desc=d?d.value.trim():'';_s('pjTitle',desc||r.project||types.join(' \u00b7 ')||r.type);_s('pjSub',r.kp);_s('pjTypeBadge',types.join(' + ')||r.type);if(typeof window.renderPjKpChip==='function')window.renderPjKpChip();if(typeof window.__syncKpMemoFromStore==='function')window.__syncKpMemoFromStore();if(typeof window.pjMemoRender==='function')window.pjMemoRender();}
 function renderProject(id){var r=LP_DATA[id];if(!r)return;window.__curProjRow=r;
  _s('pjTitle',r.project);
- _h('pjSub',esc(r.kp)+' &middot; '+esc(r.type)+'');
+ _s('pjSub',r.kp);
+ _s('pjTypeBadge',r.type);
  _s('pjSubmitter','Ben Elberger');
  /* Item 46: render Primary/Secondary Analyst as chips (matching the interactive single-select
     pill look) instead of plain text. Set data-fp-val (so item 3's dedup + fp:change handlers stay
@@ -3269,8 +3349,7 @@ function renderProject(id){var r=LP_DATA[id];if(!r)return;window.__curProjRow=r;
  /* Item 17: Financing Type is derived once from r.type and mirrored read-only into both the
     Karmapreneur & Project Details field and the Proposed row of the Recap table so they can
     never diverge. */
- var _finTypeVal=projFinType(r.type,r);_s('pjFinType',_finTypeVal);var _recapFT=document.getElementById('recapFinTypeChip');if(_recapFT)_recapFT.textContent=_finTypeVal;
- var _ast=r.asset.replace('Asset ','Asset Class ');var _ae=document.getElementById('pjAsset');if(_ae)_ae.textContent=_ast;var _sc=document.getElementById('syariahChk');if(_sc){_sc.checked=false;toggleSyariah();}_s('pjFinUse',projUse(r.type));var _ra=document.getElementById('pjReqAmt');var _rc=document.getElementById('pjReqCur');if(_ra&&_rc){_rc.setAttribute('data-cur','IDR');_rc.textContent='IDR';_rc.classList.remove('usd');_ra.value=(r.amount||'').replace(/[^0-9]/g,'');pjReqFmt(_ra);}
+ var _ast=r.asset.replace('Asset ','Asset Class ');var _ae=document.getElementById('pjAsset');if(_ae)_ae.textContent=_ast;var _sc=document.getElementById('syariahChk');if(_sc){_sc.checked=false;toggleSyariah();}var _ra=document.getElementById('pjReqAmt');var _rc=document.getElementById('pjReqCur');if(_ra&&_rc){_rc.setAttribute('data-cur','IDR');_rc.textContent='IDR';_rc.classList.remove('usd');_ra.value=(r.amount||'').replace(/[^0-9]/g,'');pjReqFmt(_ra);}
  _s('pjProjNum','Project for '+r.kp+' ('+r.status.split('·')[0].trim()+')');
  var plaf=r.type.indexOf('Plafond')>=0;var mp=document.getElementById('msPlafond');if(mp)mp.classList.toggle('sel',plaf);var mj=document.getElementById('msProj');if(mj)mj.classList.add('sel');
  var buf=r.type.indexOf('Buffer')>=0;var mb=document.getElementById('msBuffer');if(mb)mb.classList.toggle('sel',buf);if(typeof bufferGate==='function')bufferGate();
@@ -4501,6 +4580,37 @@ poRender();
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
   setTimeout(init,800);
 })();
+/* ===== Financing Type: options constrained by Asset Class ===== */
+(function(){
+  function finTypeOptions(v){
+    if(/B - I/.test(v)||/B - PO/.test(v))return ['Daily Interest'];
+    if(/Class C/.test(v)||/Class E/.test(v))return ['Profit Share'];
+    if(/Class D/.test(v))return ['Fixed Return','Fixed Return + Revenue Share'];
+    return ['Revenue Share','Fixed Return','Fixed Return + Revenue Share'];
+  }
+  function mirror(v){var chip=document.getElementById('recapFinTypeChip');if(chip)chip.textContent=v;}
+  function finTypeGate(v){
+    var el=document.getElementById('pjFinType');if(!el)return;
+    var opts=finTypeOptions(v);
+    el.setAttribute('data-fp-opts',opts.join('||'));
+    var cur=el.getAttribute('data-fp-val');
+    if(opts.indexOf(cur)<0){
+      var next=opts[0];
+      el.setAttribute('data-fp-val',next);
+      el.innerHTML='<span class="pill"><span class="pill-t">'+next+'</span></span>';
+      mirror(next);
+    }
+    if(typeof window.checkAssetDRules==='function')window.checkAssetDRules();
+  }
+  document.addEventListener('fp:change',function(e){
+    if(e.target.id==='pjAssetFp')finTypeGate(e.detail.value);
+    if(e.target.id==='pjFinType'){mirror(e.detail.value);if(typeof window.checkAssetDRules==='function')window.checkAssetDRules();}
+  });
+  window.finTypeGate=finTypeGate;
+  function init(){var a=document.getElementById('pjAssetFp');finTypeGate(a?a.getAttribute('data-fp-val'):'Asset Class A');}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  setTimeout(init,800);
+})();
 /* ===== Asset D minimum-standards check: Tenor / Target Investor IRR / Financing Type ===== */
 (function(){
   function isAssetD(){var a=document.getElementById('pjAssetFp');return a&&(a.getAttribute('data-fp-val')||'').indexOf('Class D')>=0;}
@@ -5139,7 +5249,7 @@ poRender();
 <script>
 /* ===== Phase E (batch 5c): Buffer submission type ===== */
 (function(){
-  function bufferGate(){var b=document.getElementById('msBuffer');var on=b&&b.classList.contains('sel');['bufferSec','bufferWrap'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=on?'':'none';});}
+  function bufferGate(){var b=document.getElementById('msBuffer');var on=b&&b.classList.contains('sel');['bufferSec','bufferWrap'].forEach(function(id){var e=document.getElementById(id);if(e)e.style.display=on?'':'none';});var p=document.getElementById('msPlafond');var pOn=p&&p.classList.contains('sel');var btw=document.getElementById('bufferToggleWrap');if(btw)btw.style.display=pOn?'block':'none';if(!pOn&&b)b.classList.remove('sel');}
   window.bufferGate=bufferGate;
   function init(){var b=document.getElementById('msBuffer');if(b&&!b.__bg){b.__bg=1;b.addEventListener('click',function(){setTimeout(bufferGate,0);});}bufferGate();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
@@ -6245,17 +6355,99 @@ poRender();
     });
   };
 
+  /* KP -> (sector,sub-sector) hints for demo KPs that don't have r.sector/r.subSector set yet.
+     Keywords are matched against the real SECTOR_SUBSECTOR vocabulary at runtime (below) so the
+     resolved values are always valid, selectable options — never invented strings. */
+  var KP_SECTOR_HINT={
+    'Kaisar Factory':['Assorted B2B Services and Manufacturing','Assorted Manufacturing'],
+    'Regen':['F&B','Snacks, Drinks'],'Twalen Spirits':['F&B','Bar'],
+    'Scuto':['Assorted Retail Services','Car Wash'],
+    'Begor Pondok Suryo':['F&B','Full Service Resto'],'Kopi Bajawa Flores':['F&B','Cafe'],
+    'Dakota Mitra Tama':['Assorted B2B Services and Manufacturing','Clothing Manufacturing'],
+    'Padel Rally Club':['Sports, Recreation, and Wellness','Sports Court'],
+    'Kirei':['Retail Brands','Beauty'],'Fragrant':['F&B','Snacks, Drinks'],
+    'Geoff Max':['Retail Brands','Fashion'],
+    'Cahaya Energi Asia':['Assorted B2B Services and Manufacturing','Oil and Gas'],
+    'Cipta Usaha Media':['Agencies','Production House'],'Kedai Mie Aceh':['F&B','Full Service Resto'],
+    'Solusi Musi Persada':['Assorted B2B Services and Manufacturing','Oil and Gas'],
+    'Maju':['Assorted B2B Services and Manufacturing','Assorted Manufacturing'],
+    'Steak Hotel by Holycow':['F&B','Full Service Resto'],'Shushu':['F&B','Cafe'],
+    'Maju Manufaktur Indonesia':['Assorted B2B Services and Manufacturing','Assorted Manufacturing'],
+    'Kopikina':['F&B','Cafe'],'Kopitagram':['F&B','Cafe'],'Palapa (PHL)':['Entertainment','Movie'],
+    'PT Investo Medika Asia':['Assorted B2B Services and Manufacturing','Assorted Manufacturing'],
+    'PT. Semesta Energi Services':['Assorted B2B Services and Manufacturing','Oil and Gas'],
+    'The Houseplants Coffee':['F&B','Cafe'],'Anomali':['F&B','Cafe'],
+    'Sirtanio':['Agriculture','Agri-Growing'],'Kopi Kalyan':['F&B','Cafe'],
+    'Sunyi Coffee':['F&B','Cafe'],
+    'Dokter Anggi Dental Clinic':['Healthcare and Petcare Clinics','Dentist'],
+    'Kosambi Maternal & Children Center':['Healthcare and Petcare Clinics','Doctor Clinic'],
+    'Rumah Tani':['Agriculture','Agri-Growing'],
+    'Sanobar':['Commodities Trading, Processing, & Distribution','FMCG Distribution'],
+    'Halmampol':['Assorted Retail Services','Home Improvement'],
+    'Konsersium':['Assorted B2B Services and Manufacturing','Construction'],
+    'Warung Nusantara':['F&B','Full Service Resto'],'Batik Prawira':['Retail Brands','Fashion'],
+    'Sambal Bu Rudy Nusantara':['F&B','Snacks, Drinks'],'Roti Manis Bandung':['F&B','Snacks, Drinks'],
+    'Teh Poci Sejahtera':['Commodities Trading, Processing, & Distribution','Tea'],
+    'Bengkel Auto Prima':['Assorted Retail Services','Car Wash'],
+    'Klinik Sehat Sentosa':['Healthcare and Petcare Clinics','Doctor Clinic'],
+    'Toko Emas Mulia':['Commodities Trading, Processing, & Distribution','Minerals'],
+    'Ayam Geprek Juara':['F&B','QSR'],'Es Teler Pelangi':['F&B','Snacks, Drinks'],
+    'Furnitur Jati Makmur':['Assorted B2B Services and Manufacturing','Assorted Manufacturing'],
+    'Laundry Kilat Bersih':['Assorted Retail Services','Laundry'],
+    'Optik Cemerlang':['Commodities Trading, Processing, & Distribution','Eyewear'],
+    'Bakmi Naga Mas':['F&B','Full Service Resto'],
+    'Seafood Bahari Jaya':['Commodities Trading, Processing, & Distribution','Seafood'],
+    'Percetakan Grafika Jaya':['Agencies','Production House'],
+    'Karya Logistik Prima':['Assorted B2B Services and Manufacturing','Logistics']
+  };
+  function resolveKPSector(kp){
+    var hint=KP_SECTOR_HINT[kp];if(!hint)return null;
+    var keys=Object.keys(SECTOR_SUBSECTOR);
+    var sectorKey=keys.find(function(k){return k.indexOf(hint[0])===0||hint[0].indexOf(k)===0;});
+    if(!sectorKey)return null;
+    var subs=SECTOR_SUBSECTOR[sectorKey];
+    var sub=subs.find(function(s){return s.indexOf(hint[1])>=0;});
+    return {sector:sectorKey,subSector:sub||subs[0]};
+  }
   /* keep the Sector/Sub-Sector pills in sync with the open project's stored values */
   if(typeof renderProject==='function'){
     var _rpSector=renderProject;
     window.renderProject=renderProject=function(id){
       _rpSector(id);
       var r=(typeof LP_DATA!=='undefined')?LP_DATA[id]:null; if(!r)return;
+      if(!r.sector){var guess=resolveKPSector(r.kp);if(guess){r.sector=guess.sector;r.subSector=guess.subSector;}}
       var sEl=document.getElementById('pjSector');
       if(sEl){ sEl.textContent=r.sector||'Select sector…'; sEl.classList.toggle('muted',!r.sector); }
       var ssEl=document.getElementById('pjSubSector');
       if(ssEl){ ssEl.textContent=r.subSector||(r.sector?'Select sub-sector…':'Select sector first…'); ssEl.classList.toggle('muted',!r.subSector); }
       if(typeof poRender==='function')poRender();
+    };
+  }
+})();
+</script>
+<script>
+/* keep Asset Class and Financing Use pills in sync with the open project's stored values */
+(function(){
+  function setPill(id,v){var e=document.getElementById(id);if(!e)return;e.setAttribute('data-fp-val',v);e.innerHTML='<span class="pill"><span class="pill-t">'+esc(v)+'</span></span>';}
+  function fire(id){var e=document.getElementById(id);if(e)e.dispatchEvent(new CustomEvent('fp:change',{bubbles:true,detail:{value:e.getAttribute('data-fp-val')}}));}
+  window.pjDetailsAmtFmt=function(el){var d=(el.value||'').replace(/[^0-9]/g,'');el.value=d?Number(d).toLocaleString('en-US'):'';};
+  window.pjDetailsCurToggle=function(){var el=document.getElementById('pjDetailsCur');if(!el)return;var c=el.textContent.trim()==='IDR'?'USD':'IDR';el.textContent=c;el.classList.toggle('usd',c==='USD');};
+  if(typeof renderProject==='function'){
+    var _rpAsset=renderProject;
+    window.renderProject=renderProject=function(id){
+      _rpAsset(id);
+      var r=(typeof LP_DATA!=='undefined')?LP_DATA[id]:null; if(!r)return;
+      var assetVal=(r.asset||'Asset A').replace('Asset ','Asset Class ');
+      setPill('pjAssetFp',assetVal);
+      fire('pjAssetFp');
+      setPill('pjFinUse',projUse(r.type));
+      var curEl=document.getElementById('pjDetailsCur'),amtEl=document.getElementById('pjDetailsAmt');
+      if(curEl&&amtEl){
+        var isUsd=/USD/i.test(r.amount||'');
+        curEl.textContent=isUsd?'USD':'IDR';curEl.classList.toggle('usd',isUsd);
+        var digits=(r.amount||'').replace(/[^0-9]/g,'');
+        amtEl.value=digits?Number(digits).toLocaleString('en-US'):'';
+      }
     };
   }
 })();
