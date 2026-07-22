@@ -234,7 +234,11 @@
 
   /* ---- Credit Ops interactive table ---- */
   .co-controls{display:flex;align-items:center;gap:8px;margin:0 0 12px;flex-wrap:wrap;}
-  .tbl-scroll{overflow-x:auto;width:100%;}
+  .tbl-scroll{overflow-x:auto;width:100%;scrollbar-width:thin;scrollbar-color:var(--ink-400) transparent;}
+  .tbl-scroll::-webkit-scrollbar{height:8px;}
+  .tbl-scroll::-webkit-scrollbar-track{background:transparent;}
+  .tbl-scroll::-webkit-scrollbar-thumb{background:var(--ink-400);border-radius:4px;}
+  .tbl-scroll::-webkit-scrollbar-thumb:hover{background:var(--ink-500);}
   .co-table{table-layout:fixed;border-collapse:separate;border-spacing:0;}
   .co-table th{cursor:pointer;user-select:none;background:#fff;white-space:normal;vertical-align:bottom;}
   .co-table th .sortwrap{display:inline-flex;align-items:flex-end;gap:5px;}
@@ -391,6 +395,8 @@
   .st-dot{width:8px;height:8px;border-radius:50%;display:inline-block;flex:none;}
   .st-chip{display:inline-flex;align-items:center;gap:5px;cursor:pointer;font-size:11.5px;border:1px solid var(--line);border-radius:999px;padding:2px 9px;background:#fff;color:var(--ink-700);white-space:nowrap;max-width:none;}
   .st-chip:hover{border-color:var(--primary);}
+  .st-chip.noedit{cursor:default;}
+  .st-chip.noedit:hover{border-color:var(--line);}
   .ptp-menu .stg-h{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--ink-400);padding:8px 8px 2px;}
   .lp-viewsw{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;margin-right:12px;}
   .lp-viewsw button{border:none;background:#fff;font:inherit;font-size:12px;padding:5px 12px;cursor:pointer;color:var(--ink-600);}
@@ -400,6 +406,9 @@
   .lp-bcol{flex:0 0 262px;background:var(--canvas);border:1px solid var(--line);border-radius:10px;padding:9px;}
   .lp-bcol h4{margin:2px 3px 9px;font-size:11.5px;font-weight:700;color:var(--ink-700);display:flex;align-items:center;gap:6px;}
   .lp-bcard{background:#fff;border:1px solid var(--line);border-radius:8px;padding:9px 10px;margin-bottom:8px;cursor:pointer;}
+  .lp-cardgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:2px 0 12px;}
+  .lp-cardgrid .lp-bcard{margin-bottom:0;transition:box-shadow .12s,border-color .12s;}
+  .lp-cardgrid .lp-bcard:hover{border-color:var(--primary);box-shadow:0 6px 18px rgba(15,23,42,.08);}
   .lp-bcard:hover{border-color:var(--primary);}
   .lp-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
   .lp-card{border:1px solid var(--line);border-radius:10px;padding:13px 14px;background:#fff;display:flex;flex-direction:column;gap:7px;}
@@ -487,6 +496,7 @@
   .ms-opt.sel{background:var(--primary-light);border-color:var(--primary);color:var(--primary);font-weight:600;}
   .ms-opt.sel:before{content:"✓";font-size:10px;}
   .ap-chip{cursor:pointer;display:inline-flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;background:#fff;font-size:11.5px;font-weight:600;color:var(--ink-700);line-height:1.4;}
+  .ap-chip.noedit{cursor:default;}
 #pjKpChip{min-width:170px;justify-content:space-between;}
   .ap-chip .muted{color:var(--ink-400);font-weight:500;}
   .ap-chip .ptp-car{color:var(--ink-400);font-size:9px;}
@@ -602,6 +612,10 @@
   .entryfield-l{font-size:9.5px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--ink-400);}
   .entryfield-v{font-size:12px;color:var(--ink-700);white-space:normal;word-break:break-word;}
   .entryfield-v .chip{font-size:10.5px;}
+  /* Keep pill/chip values on one line so cards in the same grid row stay aligned field-for-field —
+     a wrapped name in one card was pushing every field below it down, out of line with its neighbors. */
+  .entryfield-v .ap-chip,.entryfield-v .st-chip,.entryfield-v .pill{max-width:100%;white-space:nowrap;overflow:hidden;vertical-align:bottom;}
+  .entryfield-v .ap-chip .chip-t,.entryfield-v .st-chip .chip-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom;max-width:100%;}
   .entrycard-f{display:flex;gap:6px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:9px;}
   .obj-detail-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px 20px;}
   /* ===== Phase B: field pills ===== */
@@ -617,9 +631,9 @@
   .pill-add:hover{border-color:var(--primary);color:var(--primary);}
   .cond-row{margin-bottom:2px;}
   /* ===== Phase C: role gating ===== */
-  body:not(.role-hor) .hor-only,
-  body:not(.role-hor) .ic-only{display:none!important;}
-  body.role-hor .analyst-only{display:none!important;}
+  body:not(.role-ic) .hor-only{display:none!important;}
+  body:not(.role-ic) .ic-only{display:none!important;}
+  body.role-ic .analyst-only{display:none!important;}
   /* ===== Phase D: Board/Table toggle ===== */
   .viewtoggle{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:9px;padding:3px;gap:2px;margin:12px 0;}
   .viewtoggle button{border:none;background:none;padding:5.5px 15px;font-size:12px;font-weight:500;color:var(--ink-500);border-radius:7px;cursor:pointer;font-family:inherit;}
@@ -646,8 +660,12 @@
 <button class="nav-item" data-page="tasks" onclick="showPage(&#39;tasks&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M9 11l3 3 8-8"></path><path d="M20 12v7a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h9"></path></svg>Tasks</button>
 <button class="nav-item" data-page="targets" onclick="showPage(&#39;targets&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" fill="currentColor" r="0.6"></circle></svg>Targets</button>
 <button class="nav-item" data-page="analytics" onclick="showPage(&#39;analytics&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M4 19V9M10 19V5M16 19v-7M22 19H2"></path></svg>Analytics</button>
+<div class="nav-label">Leads</div>
+<button class="nav-item" data-page="leads" onclick="showPage(&#39;leads&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M12 21s-7-5.5-7-11a7 7 0 0114 0c0 5.5-7 11-7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>Leads</button>
 <div class="nav-label">LOS — Origination</div>
 <button class="nav-item active" data-page="los-pipeline" onclick="showPage(&#39;los-pipeline&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"></path></svg>Pipeline</button>
+<div class="nav-label">Portfolio</div>
+<button class="nav-item" data-page="portfolio" onclick="showPage(&#39;portfolio&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M3 3v18h18"></path><path d="M7 15l4-5 3 3 5-7"></path></svg>Portfolio</button>
 <div class="nav-label">Credit Quality</div>
 <button class="nav-item" data-page="overdues" onclick="showPage(&#39;overdues&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>Overdues Monitoring</button>
 <button class="nav-item" data-page="pva" onclick="showPage(&#39;pva&#39;,this)"><svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path d="M3 17l6-6 4 4 8-8"></path><path d="M14 7h7v7"></path></svg>PvA Monitoring</button>
@@ -676,7 +694,7 @@
 <div class="topbar">
 <div class="search search-wrap">⌕ &nbsp;<input autocomplete="off" id="globalSearch" placeholder="Search projects, KPs, contacts, pages…"><div class="search-results" id="searchResults"></div></div>
 <div class="top-right">
-<div id="roleField" style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-500)"><span>Role</span><span class="pillfield-inline" data-fp="single" data-fp-opts="Analyst||Finance||IC||Head of Risk" data-fp-val="Head of Risk" data-fpd="1" id="roleSwitch" title="Switch role"><span class="pill"><span class="pill-t">Head of Risk</span></span></span></div>
+<div id="roleField" style="display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--ink-500)"><span>Role</span><span class="pillfield-inline" data-fp="single" data-fp-opts="Investment Committee||Analyst" data-fp-val="Investment Committee" data-fpd="1" id="roleSwitch" title="Switch role — only this user's own roles are offered"><span class="pill"><span class="pill-t">Investment Committee</span></span></span></div>
 <div class="bell" id="topBell" onclick="wfBellMenu(event)" style="position:relative" title="Notifications">🔔<span id="bellBadge" style="display:none;position:absolute;top:-5px;right:-6px;min-width:15px;height:15px;padding:0 3px;border-radius:8px;background:var(--red-tx);color:#fff;font-size:9px;font-weight:700;line-height:15px;text-align:center"></span></div>
 <div class="user" id="topUser" onclick="userMenu(event)" style="cursor:pointer" title="Switch user"><div><div class="un" id="topUserName">Ben Elberger</div><div class="ur" id="topUserRole">Principal · IC Member</div></div><div class="avatar" id="topUserAv">B</div><span class="ptp-car" style="margin-left:3px">▾</span></div>
 </div>
@@ -1355,20 +1373,46 @@
 </div>
 </section>
 <!-- ============================================================ -->
+<!-- LEADS: Non-Lead / Early Lead / Funding Lead — pre-diligence prospecting, split out of Pipeline -->
+<section class="page" id="page-leads">
+<div class="page-head">
+<div><h1>Leads</h1><div class="page-sub">Prospecting before due diligence begins — Non-Leads, Early Leads, and Funding Leads. Once diligence starts, a lead graduates into the Pipeline.</div></div>
+<div class="head-actions"><button class="btn btn-primary" onclick="newSubmissionCreate()">＋ New Submission</button></div>
+</div>
+<div class="lp-viewsw" id="leadsViewSw" style="margin:0 0 12px"><button class="on" onclick="leadsSetView('table')">Table</button><button class="" onclick="leadsSetView('board')">Board</button><button class="" onclick="leadsSetView('analytics')">Analytics</button></div>
+<div class="toolbar">
+<div class="view-tabs" id="leadsTabs"></div>
+</div>
+<div id="leadsHost"></div>
+<div class="footnote">Amounts in native IDR to match the LOS source.</div>
+</section>
 <!-- LOS 1. PIPELINE / ALL SUBMISSIONS -->
 <!-- ============================================================ -->
 <section class="page visible" id="page-los-pipeline">
 <div class="page-head">
-<div><h1>LOS — Pipeline</h1><div class="page-sub">Your origination pipeline across stages. Defaults to your own items (Ben Elberger) — switch the analyst filter to see others.</div></div>
+<div><h1>LOS — Pipeline</h1><div class="page-sub">Deals actively in underwriting, from Due Diligence through Disbursement. Earlier prospecting lives in Leads. Shows every analyst's deals by default (so anyone can cover for a colleague) — narrow with the analyst filter if you want just your own.</div></div>
 <div class="head-actions"><button class="btn btn-primary" onclick="newSubmissionCreate()">＋ New Submission</button></div>
 </div>
 <div class="lp-viewsw" id="lpViewSw" style="margin:0 0 12px"><button class="" onclick="lpSetView(&#39;table&#39;)">Table</button><button class="" onclick="lpSetView(&#39;board&#39;)">Board</button><button class="on" onclick="lpSetView(&#39;analytics&#39;)">Analytics</button></div>
-<div class="lp-filterbar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-weight:600;font-size:12px;color:var(--ink-700)">Analyst Principal</span>&nbsp;<span class="ptp-chip" id="lpAnaChip" onclick="lpAnaMenu(event)" style="font-weight:600;font-size:12px;color:var(--ink-700);cursor:pointer">2 analysts <span class="ptp-car">▾</span></span></div>
+<div class="lp-filterbar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-weight:600;font-size:12px;color:var(--ink-700)">Analyst Principal</span>&nbsp;<span class="ptp-chip" id="lpAnaChip" onclick="lpAnaMenu(event)" style="font-weight:600;font-size:12px;color:var(--ink-700);cursor:pointer">All analysts <span class="ptp-car">▾</span></span></div>
 <div class="toolbar">
-<div class="view-tabs" id="lpTabs"><button class="view-tab" onclick="lpTab(&#39;nonlead&#39;)">Non-Leads <span class="cnt">3</span></button><button class="view-tab active" onclick="lpTab(&#39;early&#39;)">Early Leads <span class="cnt">7</span></button><button class="view-tab" onclick="lpTab(&#39;funding&#39;)">Funding Leads and DD <span class="cnt">8</span></button><button class="view-tab" onclick="lpTab(&#39;ic&#39;)">IC Review, Legal, and Disbursement <span class="cnt">7</span></button><button class="view-tab" onclick="lpTab(&#39;active&#39;)">Active <span class="cnt">8</span></button><button class="view-tab" onclick="lpTab(&#39;completed&#39;)">Completed <span class="cnt">2</span></button></div>
+<div class="view-tabs" id="lpTabs"><button class="view-tab active" onclick="lpTab(&#39;dd&#39;)">Due Diligence <span class="cnt">13</span></button><button class="view-tab" onclick="lpTab(&#39;ic&#39;)">IC Review <span class="cnt">12</span></button><button class="view-tab" onclick="lpTab(&#39;kpapproval&#39;)">KP Review <span class="cnt">7</span></button><button class="view-tab" onclick="lpTab(&#39;financesplit&#39;)">Finance Split <span class="cnt">6</span></button><button class="view-tab" onclick="lpTab(&#39;legal&#39;)">Legal <span class="cnt">7</span></button><button class="view-tab" onclick="lpTab(&#39;disbursement&#39;)">Disbursement <span class="cnt">7</span></button></div>
 </div>
-<div id="lpHost"><div class="lp-analytics"><div class="card card-pad"><div class="an-h">☷ Pipeline by Status</div><div class="an-bar"><div class="lbl">0. New Lead</div><div class="an-track"><i style="width:100%;background:#3b4ee8"></i></div><div class="val">5</div></div><div class="an-bar"><div class="lbl">1. We've Met</div><div class="an-track"><i style="width:40%;background:#16a34a"></i></div><div class="val">2</div></div></div><div class="card card-pad"><div class="an-h">⛂ Owner Workload</div><div class="an-bar"><div class="lbl">Ben Elberger</div><div class="an-track"><i style="width:100%;background:#3b4ee8"></i></div><div class="val">4</div></div><div class="an-bar"><div class="lbl">Priska Ponggawa</div><div class="an-track"><i style="width:75%;background:#16a34a"></i></div><div class="val">3</div></div></div><div class="card card-pad"><div class="an-h">○ Needs Attention</div><table class="an-tbl"><thead><tr><th>Name</th><th class="r">Days</th><th class="r">Owner</th><th class="r">Task</th></tr></thead><tbody><tr onclick="openProject(35)" style="cursor:pointer"><td>Geoff Max</td><td class="r"><span class="an-days">101d</span></td><td class="r">Priska Ponggawa</td><td class="r"><button class="btn btn-sm" onclick="event.stopPropagation();lpNewTask(35)">+ Task</button></td></tr><tr onclick="openProject(44)" style="cursor:pointer"><td>Kopitagram</td><td class="r"><span class="an-days">100d</span></td><td class="r">Priska Ponggawa</td><td class="r"><button class="btn btn-sm" onclick="event.stopPropagation();lpNewTask(44)">+ Task</button></td></tr><tr onclick="openProject(43)" style="cursor:pointer"><td>Kopikina</td><td class="r"><span class="an-days">74d</span></td><td class="r">Ben Elberger</td><td class="r"><button class="btn btn-sm" onclick="event.stopPropagation();lpNewTask(43)">+ Task</button></td></tr><tr onclick="openProject(25)" style="cursor:pointer"><td>Kaisar Factory</td><td class="r"><span class="an-days">49d</span></td><td class="r">Ben Elberger</td><td class="r"><button class="btn btn-sm" onclick="event.stopPropagation();lpNewTask(25)">+ Task</button></td></tr><tr onclick="openProject(0)" style="cursor:pointer"><td>Kaisar Factory</td><td class="r"><span class="an-days">14d</span></td><td class="r">Ben Elberger</td><td class="r"><button class="btn btn-sm" onclick="event.stopPropagation();lpNewTask(0)">+ Task</button></td></tr><tr onclick="openProject(26)" style="cursor:pointer"><td>Regen</td><td class="r"><span class="an-days">0d</span></td><td class="r">Priska Ponggawa</td><td class="r"><button class="btn btn-sm" onclick="event.stopPropagation();lpNewTask(26)">+ Task</button></td></tr><tr onclick="openProject(34)" style="cursor:pointer"><td>Fragrant</td><td class="r"><span class="an-days">0d</span></td><td class="r">Ben Elberger</td><td class="r"><button class="btn btn-sm" onclick="event.stopPropagation();lpNewTask(34)">+ Task</button></td></tr></tbody></table></div><div class="card card-pad"><div class="an-h">□ Recent Activity</div><table class="an-tbl"><thead><tr><th>Card</th><th class="r">Action</th><th class="r">When</th></tr></thead><tbody><tr onclick="openProject(26)" style="cursor:pointer"><td>Regen</td><td class="r muted">□ note</td><td class="r muted">0d</td></tr><tr onclick="openProject(34)" style="cursor:pointer"><td>Fragrant</td><td class="r muted">□ note</td><td class="r muted">0d</td></tr><tr onclick="openProject(0)" style="cursor:pointer"><td>Kaisar Factory</td><td class="r muted">□ note</td><td class="r muted">14d</td></tr><tr onclick="openProject(25)" style="cursor:pointer"><td>Kaisar Factory</td><td class="r muted">□ note</td><td class="r muted">49d</td></tr><tr onclick="openProject(43)" style="cursor:pointer"><td>Kopikina</td><td class="r muted">□ note</td><td class="r muted">74d</td></tr><tr onclick="openProject(44)" style="cursor:pointer"><td>Kopitagram</td><td class="r muted">□ note</td><td class="r muted">100d</td></tr><tr onclick="openProject(35)" style="cursor:pointer"><td>Geoff Max</td><td class="r muted">□ note</td><td class="r muted">101d</td></tr></tbody></table></div></div></div>
-<div class="footnote">Defaulted to the analyst viewing (Ben Elberger), mirroring Overdues Analyst View. Amounts in native IDR to match the LOS source.</div>
+<div id="lpHost"></div>
+<div class="footnote">Shows all analysts by default. Amounts in native IDR to match the LOS source.</div>
+</section>
+<!-- ============================================================ -->
+<!-- PORTFOLIO: Active / Restructured / Completed — post-disbursement, split out of Pipeline -->
+<section class="page" id="page-portfolio">
+<div class="page-head">
+<div><h1>Portfolio</h1><div class="page-sub">Deals past disbursement — being monitored, restructured, or fully closed out. Underwriting work lives in Pipeline.</div></div>
+</div>
+<div class="toolbar">
+<div class="view-tabs" id="portfolioTabs"></div>
+</div>
+<div id="portfolioKpis" class="kpis"></div>
+<div id="portfolioHost"></div>
+<div class="footnote">Amounts in native IDR to match the LOS source.</div>
 </section>
 <!-- ============================================================ -->
 <!-- LOS 4. NEW SUBMISSION FORM -->
@@ -1782,13 +1826,13 @@
 </section>
 <!-- ============ LOS PROJECT DETAIL (proj-cea-aztech) ============ -->
 <section class="page" id="page-los-project">
-<div style="margin:8px 0 2px"><button class="btn btn-sm ic-locked-field" onclick="backToPipeline()">← All submissions</button></div>
+<div style="margin:8px 0 2px"><button class="btn btn-sm nav-only" onclick="backToPipeline()">← All submissions</button></div>
 <div class="page-head">
 <div>
 <h1 id="pjTitle">Kaisar Factory - Project/PO/Invoice - Gemini has told us</h1>
 <div class="page-sub" id="pjSub">Kaisar Factory · Project/PO/Invoice</div>
 </div>
-<div class="head-actions"><button class="btn btn-sm ic-locked-field" onclick="collapseAllSections(true)">Collapse all</button><button class="btn btn-sm ic-locked-field" onclick="collapseAllSections(false)">Expand all</button><button class="btn btn-primary ic-locked-field" onclick="showPage(&#39;los-card&#39;)" style="display:none">Open IC field guide →</button></div>
+<div class="head-actions"><button class="btn btn-sm nav-only" onclick="collapseAllSections(true)">Collapse all</button><button class="btn btn-sm nav-only" onclick="collapseAllSections(false)">Expand all</button><button class="btn btn-primary nav-only" onclick="showPage(&#39;los-card&#39;)" style="display:none">Open IC field guide →</button></div>
 </div>
 <div class="card card-pad">
 <div class="los-sec-title proj-dep" id="pjDescTitle">KP &amp; Description</div>
@@ -1796,7 +1840,7 @@
 <div class="proj-dep" id="pjDescField"><textarea id="pjDescription" oninput="pjDescStore()" onkeydown="pjDescKey(event)" placeholder="Describe the project / PO / invoice being financed… (Enter to save, Shift+Enter for new line)" style="width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 12.5px; resize: vertical; margin-bottom: 14px; display: none;" class="ic-locked-field"></textarea><div class="ipm" id="pjDescView" ondblclick="pjDescEdit()" style="white-space: pre-wrap; cursor: pointer; margin-bottom: 14px; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas);" title="Double-click to edit">Gemini has told us</div></div>
 <div class="los-sec-title">PIC</div>
 <div class="ipm">Submitter: <b id="pjSubmitter">Ben Elberger</b> &nbsp;·&nbsp; Primary Analyst: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Ben Elberger||Hanny Aqmarina||Junaidi Junaidi||Priska Ponggawa||Wesly Simatupang||Nila Layla Melinda||Sharfina Nindita||Armeno Devan" data-fp-val="Ben Elberger" data-fpd="1" id="pjPrimary"><span class="pill"><span class="pill-t">Ben Elberger</span></span></span> &nbsp;·&nbsp; Secondary Analyst: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="— None —||Ben Elberger||Hanny Aqmarina||Junaidi Junaidi||Priska Ponggawa||Wesly Simatupang||Nila Layla Melinda||Sharfina Nindita||Armeno Devan" data-fp-val="Armeno Devan" data-fpd="1" id="pjSecondary"><span class="pill"><span class="pill-t">Armeno Devan</span></span></span></div>
-<div class="ipm">Status: <span class="st-chip" id="pjStatusChip" onclick="event.stopPropagation();pjStatusMenu(event)" style="cursor:pointer">IC Credit Review</span> <span class="tiny muted">(analyst may pick Non-Lead, Early Lead, or Funding Lead &amp; DD statuses)</span> <button class="btn btn-sm btn-red-solid ic-locked-field" id="pjPullBackBtn" onclick="pjPullBack()" title="Send this deal back to Due Diligence and re-run it through IC review" style="">⟲ Pull Back</button></div>
+<div class="ipm">Status: <span class="st-chip" id="pjStatusChip" onclick="event.stopPropagation();pjStatusMenu(event)" style="cursor:pointer">IC Credit Review</span></div>
 <div class="los-form-grid" style="margin-top:12px">
 <div class="field"><label>Referral Source <span class="tiny muted">(lookup to a contact)</span> <span class="finfo" data-tip="A Referral Source is attached to the KP. That referral source will populate on all future submissions for that KP.">i</span></label>
 <div id="pjRefList" style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch"><div class="refc" style="flex: 0 1 auto; max-width: 280px; position: relative; cursor: pointer; padding-right: 22px;" data-contact-id="seed-pjref"><div class="refc-name" id="pjRefName">MARIO PANJI PRASETYA</div><div class="refc-sub" id="pjRefSub">Karmapreneur - Kaisar Factory</div><button type="button" class="refc-x" title="Remove as referral source" style="position: absolute; top: 4px; right: 4px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; background: transparent; color: var(--ink-400); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px;">✕</button></div><button class="btn btn-sm ic-locked-field" id="pjRefAddBtn" onclick="addRefSource()" style="align-self:stretch;white-space:nowrap">＋ Add referral source</button></div>
@@ -1855,7 +1899,7 @@
 </tbody>
 </table></div>
 <div class="dl proj-dep" style="margin-top:8px"><div class="k">Calculator</div><div class="v"><span class="editable empty ic-locked-field" data-raw="" id="pjCalcLink" ondblclick="editCalcLink(this)">Double-click to paste a Google Sheets link…</span> <a class="tiny" href="file:///C:/Users/benja/AppData/Roaming/Claude/local-agent-mode-sessions/b99f2eb9-5526-457e-b1a7-91a9c1d20c6f/d14fc280-07a1-4922-b222-9fa0f38d6bdb/local_384ba7dd-bcf0-416a-ae7d-eff471d5856d/outputs/Karma%20Dashboard_v20.html#" id="pjCalcOpenBtn" rel="noopener noreferrer" style="display:none;margin-left:8px" target="_blank">Open ↗</a></div></div>
-<div class="proj-dep" id="pjCalcEmbedWrap" style="margin-top: 8px;"><iframe id="pjCalcEmbedFrame" loading="lazy" src="./Karma Dashboard_v20_Shared_files/saved_resource.html" style="width:100%;height:440px;border:1px solid var(--line);border-radius:8px;background:#fff" title="Calculator (Google Sheets)"></iframe></div>
+<div class="proj-dep" id="pjCalcEmbedWrap" style="margin-top: 8px;"><iframe id="pjCalcEmbedFrame" loading="lazy" src="./Karma Dashboard_v21_Shared_files/saved_resource.html" style="width:100%;height:440px;border:1px solid var(--line);border-radius:8px;background:#fff" title="Calculator (Google Sheets)"></iframe></div>
 <div class="los-sec-title">Karmapreneur Contacts <span class="chip c-red" style="font-size:10px">SLIK missing</span></div>
 <div style="align-items: stretch; gap: 8px;">
 <div class="tbl-scroll" style="flex:1;min-width:0"><table class="pterms-tbl" id="projContactsTbl" style="min-width:420px"><thead><tr id="projContactsHead">
@@ -2006,8 +2050,8 @@
 <div class="fg-flag warn" id="icLockHint" style="margin-top: 12px; display: block;">🔒 Acting as Head of Risk / IC Member — fields above Approval are locked. Switch Role to Analyst to edit them.</div>
 <div class="los-sec-title" id="condSec">Conditions Precedent &amp; Subsequent <span class="finfo" data-tip="Before this deal is submitted to IC, the primary analyst can add, edit, or remove conditions. Once submitted to IC Credit Review, only the Head of Risk (Principal) can edit them — analysts see a read-only view of what was submitted.">i</span></div>
 <div class="ipm" id="condHint" style="margin-bottom:8px;background:var(--canvas);border-radius:8px;padding:7px 10px">⚖️ This deal is with IC — as Head of Risk (Principal) you can add, edit, or remove conditions.</div>
-<div class="dl" style="margin-top:10px"><div class="k">Conditions Precedent</div><div class="v tiny"><div id="cpItems"><div class="cond-row"><span class="cond-text">• Signed term sheet on file before disbursement</span> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• SLIK &amp; SLIK-PT checks cleared</span> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icRemoveCond(this)">Remove</button></div><span id="cpAutoBank"></span><span id="cpAutoToken"></span></div><button class="link-btn cond-edit-btn cond-add-btn ic-locked-field" onclick="icAddCond(this,&#39;cpItems&#39;)">+ Add condition</button></div></div>
-<div class="dl" style="margin-top:10px"><div class="k">Conditions Subsequent</div><div class="v tiny"><div id="csItems"><div class="cond-row"><span class="cond-text">• Execute PO / underlying invoice documentation before first disbursement</span> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• Confirm plafond registry update in Coda after IC approval</span> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn ic-locked-field" onclick="icRemoveCond(this)">Remove</button></div></div><button class="link-btn cond-edit-btn cond-add-btn ic-locked-field" onclick="icAddCond(this,&#39;csItems&#39;)">+ Add condition</button></div></div>
+<div class="dl" style="margin-top:10px"><div class="k">Conditions Precedent</div><div class="v tiny"><div id="cpItems"><div class="cond-row"><span class="cond-text">• Signed term sheet on file before disbursement</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• SLIK &amp; SLIK-PT checks cleared</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><span id="cpAutoBank"></span><span id="cpAutoToken"></span></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;cpItems&#39;)">+ Add condition</button></div></div>
+<div class="dl" style="margin-top:10px"><div class="k">Conditions Subsequent</div><div class="v tiny"><div id="csItems"><div class="cond-row"><span class="cond-text">• Execute PO / underlying invoice documentation before first disbursement</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• Confirm plafond registry update in Coda after IC approval</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;csItems&#39;)">+ Add condition</button></div></div>
 <div id="apprWrap">
 <div class="los-sec-title" id="apprSec">Approval</div>
 <div class="fg-flag warn">⚠️ Combined IC: tranche IDR 6B (Daily Interest) + plafond line (naik ke IDR 15B PO sub-limit dari IDR 12B aktif). Outstanding KP IDR 6B — sisa headroom setelah approval tercermin di baris Proposed.</div>
@@ -2755,34 +2799,35 @@ function grpAll(btn,collapse){var card=btn.parentElement.nextElementSibling;whil
 
 ovRender('pa');ovRender('hor');pvaRender();
 /* ================= LOS Pipeline (tabs + default-to-viewer) ================= */
-var LP_TABS=[['nonlead','Non-Leads'],['early','Early Leads'],['funding','Funding Leads and DD'],['ic','IC Review, Legal, and Disbursement'],['active','Active'],['completed','Completed']];
-var lpState={tab:'early',analysts:['Ben Elberger'],view:'table'};
+var LP_TABS=[['dd','Due Diligence'],['ic','IC Review'],['kpapproval','KP Review'],['financesplit','Finance Split'],['legal','Legal'],['disbursement','Disbursement']];
+var PORTFOLIO_TABS=[['active','Active'],['restructured','Restructured'],['completed','Completed']];
+var lpState={tab:'dd',analysts:[],view:'table'};
 var STATUSES=[
- {code:'8.1',t:'8.1 Restructured',stage:'active'},
- {code:'8',t:'8. Finished with Entrepreneur',stage:'completed'},
- {code:'7.0',t:'7.0 All Tranches Disbursed/ New Plafond In Effect',stage:'active'},
- {code:'6.5',t:'6.5 Some Tranches Disbursed',stage:'ic'},
- {code:'6.3',t:'6.3 Raised-2nd+ Disbursement Being Transferred',stage:'ic'},
- {code:'6.2',t:'6.2 Legal Preparing for 2nd+ Disbursement',stage:'ic'},
- {code:'6.1',t:'6.1 Finance Preparing KF:KCF Split for 2nd+ Disbursement',stage:'ic'},
- {code:'5',t:'5. Raised-1st Disbursement Being Transferred',stage:'ic'},
- {code:'4.2',t:'4.2 Legal Preparing Contract for 1st Disbursement',stage:'ic'},
- {code:'4.1',t:'4.1 Finance Preparing for KF:KCF Split for 1st Disbursement',stage:'ic'},
+ {code:'8.1',t:'Restructured',stage:'restructured'},
+ {code:'8',t:'Finished with Entrepreneur',stage:'completed'},
+ {code:'7.0',t:'All Tranches Disbursed / New Plafond In Effect',stage:'active'},
+ {code:'6.5',t:'Partial Disbursed',stage:'disbursement'},
+ {code:'6.3',t:'Disbursed',stage:'disbursement'},
+ {code:'6.2',t:'Legal Draft',stage:'legal'},
+ {code:'6.1',t:'Finance Split',stage:'financesplit'},
+ {code:'5',t:'Waiting for Disburse',stage:'disbursement'},
+ {code:'4.2',t:'Legal Draft',stage:'legal'},
+ {code:'4.1',t:'Finance Split',stage:'financesplit'},
+ {code:'4.05',t:'KP Review',stage:'kpapproval'},
  {code:'IC',t:'IC Credit Review',stage:'ic'},
- {code:'3.9',t:'3.9 Discussing Return/Repayment Options',stage:'funding'},
- {code:'3',t:'3. Due Diligence',stage:'funding'},
- {code:'2',t:'2. Funding Lead',stage:'funding'},
- {code:'1',t:"1. We've Met",stage:'early'},
- {code:'0',t:'0. New Lead',stage:'early'},
- {code:'-1',t:"-1. They're Clearly Not Interested",stage:'nonlead'},
- {code:'-2',t:"-2. We're Not Interested",stage:'nonlead'},
- {code:'-3',t:'-3. Rejected in Due Diligence',stage:'nonlead'},
- {code:'-4',t:'-4. Entrepreneur decided not to continue after deal',stage:'nonlead'},
- {code:'-5',t:'-5. Entrepreneur rejected offer',stage:'nonlead'},
- {code:'-6',t:'-6. Entrepreneur rejected offer/funds (after fundraise)',stage:'nonlead'}
+ {code:'3',t:'Due Diligence',stage:'dd'},
+ {code:'2',t:'Funding Lead',stage:'funding'},
+ {code:'1',t:"We've Met",stage:'early'},
+ {code:'0',t:'New Lead',stage:'early'},
+ {code:'-1',t:"They're Clearly Not Interested",stage:'nonlead'},
+ {code:'-2',t:"We're Not Interested",stage:'nonlead'},
+ {code:'-3',t:'Rejected in Due Diligence',stage:'nonlead'},
+ {code:'-4',t:'Entrepreneur decided not to continue after deal',stage:'nonlead'},
+ {code:'-5',t:'Entrepreneur rejected offer',stage:'nonlead'},
+ {code:'-6',t:'Entrepreneur rejected offer/funds (after fundraise)',stage:'nonlead'}
 ];
 var STAT_BY={};STATUSES.forEach(function(s){STAT_BY[s.code]=s;});
-var STAGE_COLOR={nonlead:'#ef4444',early:'#94a3b8',funding:'#3b82f6',ic:'#8b5cf6',active:'#16a34a',completed:'#0f766e'};
+var STAGE_COLOR={nonlead:'#ef4444',early:'#94a3b8',funding:'#3b82f6',dd:'#f59e0b',ic:'#8b5cf6',kpapproval:'#db2777',financesplit:'#0d9488',legal:'#7e22ce',disbursement:'#0ea5e9',active:'#16a34a',restructured:'#ca8a04',completed:'#0f766e'};
 var LP_VIEWS={early:[['table','Table'],['board','Board'],['analytics','Analytics']],funding:[['table','Table'],['cards','Cards']],ic:[['table','Table'],['grouped','Grouped']],active:[['cards','Cards']]};
 var PHASE={'IC':'IC Review','4.1':'Finance Split','6.1':'Finance Split','4.2':'Legal','6.2':'Legal','5':'Finance Disbursement','6.3':'Finance Disbursement','6.5':'Finance Disbursement'};
 var PHASE_ORDER=['IC Review','Finance Split','Legal','Finance Disbursement'];
@@ -2807,6 +2852,9 @@ var LP_DATA=[
  {stage:'nonlead',kp:'Fragrant',project:'Fragrant — Reschedule',type:'Project',asset:'Asset A',amount:'IDR 500.000.000',analyst:'Ben Elberger',status:'Non-Lead · declined'},
  /* ===== Demo submissions — one per workflow phase & submission-type permutation (todo 10b) ===== */
  {stage:'ic',kp:'Twalen Spirits',project:'Twalen Spirits #1 — Working Capital · DEMO: awaiting Finance KF/KCF split',type:'Project',asset:'Asset A',amount:'IDR 900.000.000',analyst:'Ben Elberger',secondary:'Armeno Devan',status:'Finance Split · IC approved 15 Jul 2026',statusCode:'4.1',subTypes:['project']},
+ {stage:'ic',kp:'Kirei',project:'Kirei #3 — Central Kitchen · DEMO: awaiting KP decision on term sheet (stale, 45 days)',type:'Project',asset:'Asset A',amount:'IDR 1.900.000.000',analyst:'Armeno Devan',secondary:'Sharfina Nindita',status:'KP Review · IC approved 2 Jun 2026',statusCode:'4.05',subTypes:['project'],icDecidedWhen:'2 Jun 2026',kpApprovalEnteredAt:'2026-06-02',termSheetVersions:[{v:1,amount:'IDR 1.900.000.000',note:'Initial terms',submittedDate:'2 Jun 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'ic',kp:'Sirtanio',project:'Sirtanio #2 — Working Capital · DEMO: freshly IC-approved, awaiting KP (not stale)',type:'Project',asset:'Asset A',amount:'IDR 910.000.000',analyst:'Juang Angger Pamungkas',secondary:'Sharfina Nindita',status:'KP Review · IC approved 12 Jul 2026',statusCode:'4.05',subTypes:['project'],icDecidedWhen:'12 Jul 2026',kpApprovalEnteredAt:'2026-07-12',termSheetVersions:[{v:1,amount:'IDR 910.000.000',note:'Initial terms',submittedDate:'12 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'ic',kp:'Anomali',project:'Anomali #2 — Renovation · DEMO: resubmitted after KP counter (v2 pending, v1 countered)',type:'Project',asset:'Asset A',amount:'IDR 620.000.000',analyst:'Sharfina Nindita',secondary:'Wesly Simatupang',status:'KP Review · IC re-approved 14 Jul 2026',statusCode:'4.05',subTypes:['project'],icDecidedWhen:'14 Jul 2026',kpApprovalEnteredAt:'2026-07-14',termSheetVersions:[{v:1,amount:'IDR 490.000.000',note:'Initial terms',submittedDate:'1 Jul 2026',decision:'Countered',decidedDate:'6 Jul 2026',reason:'KP wants 8% rev share instead of 5%, and a 4-year term instead of 5'},{v:2,amount:'IDR 620.000.000',note:'KP wants 8% rev share instead of 5%, and a 4-year term instead of 5',submittedDate:'14 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
  {stage:'ic',kp:'Regen',project:'Regen — Cold Brew Line · DEMO: contracts signed, awaiting Finance disbursement',type:'Project',asset:'Asset A',amount:'IDR 1.750.000.000',analyst:'Ben Elberger',status:'Disbursement · contracts signed 14 Jul 2026',statusCode:'5',subTypes:['project'],kf:1050000000,kcf:700000000,signed:true},
  {stage:'ic',kp:'Cipta Usaha Media',project:'Cipta Usaha Media (#31) — Invoice Financing · DEMO: with Legal to sign contracts',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 420.000.000',analyst:'Nila Layla Melinda',status:'Legal · contract prep 16 Jul 2026',statusCode:'4.2',subTypes:['project'],kf:250000000,kcf:170000000},
  {stage:'ic',kp:'Scuto',project:'Scuto #7 — Ciputat · DEMO: Plafond-only submission (skips Finance/Legal after IC)',type:'Plafond',asset:'Asset A',amount:'IDR 3.000.000.000',analyst:'Wesly Simatupang',status:'IC Review · plafond-only',statusCode:'IC',subTypes:['plafond']},
@@ -2864,8 +2912,8 @@ var LP_DATA=[
  {stage:'funding',kp:'Laundry Kilat Bersih',project:'Laundry Kilat Bersih #1 — Equipment',type:'Project',asset:'Asset A',amount:'IDR 2.420.000.000',analyst:'Ben Elberger',secondary:'Priska Ponggawa',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Fixed Return'},
  {stage:'funding',kp:'Optik Cemerlang',project:'Optik Cemerlang #1 — Export Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 740.000.000',analyst:'Priska Ponggawa',secondary:'Wesly Simatupang',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Daily Interest'},
  {stage:'funding',kp:'Bakmi Naga Mas',project:'Bakmi Naga Mas #1 — Central Kitchen',type:'Project+Plafond',asset:'Asset A',amount:'IDR 890.000.000',analyst:'Nila Layla Melinda',secondary:'Hanny Aqmarina',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Seafood Bahari Jaya',project:'Seafood Bahari Jaya #1 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.150.000.000',analyst:'Wesly Simatupang',secondary:'Hanny Aqmarina',status:'Discussing return/repayment options',statusCode:'3.9',subTypes:['project'],finType:'Daily Interest'},
- {stage:'funding',kp:'Percetakan Grafika Jaya',project:'Percetakan Grafika Jaya #1 — Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 3.330.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Discussing return/repayment options',statusCode:'3.9',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'funding',kp:'Seafood Bahari Jaya',project:'Seafood Bahari Jaya #1 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.150.000.000',analyst:'Wesly Simatupang',secondary:'Hanny Aqmarina',status:'Due Diligence',statusCode:'3',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'funding',kp:'Percetakan Grafika Jaya',project:'Percetakan Grafika Jaya #1 — Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 3.330.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Due Diligence',statusCode:'3',subTypes:['project'],finType:'Daily Interest'},
  {stage:'ic',kp:'Kaisar Factory',project:'Kaisar Factory #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 3.390.000.000',analyst:'Ben Elberger',secondary:'Armeno Devan',status:'IC Review · Submitted 6 Mar 2026',statusCode:'IC',subTypes:['project'],finType:'Fixed Return'},
  {stage:'ic',kp:'Regen',project:'Regen #2 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 2.560.000.000',analyst:'Priska Ponggawa',secondary:'Armeno Devan',status:'IC Review · Submitted 18 May 2026',statusCode:'IC',subTypes:['project'],finType:'Revenue Share'},
  {stage:'ic',kp:'Twalen Spirits',project:'Twalen Spirits #2 — Central Kitchen',type:'Project',asset:'Asset A',amount:'IDR 2.210.000.000',analyst:'Nila Layla Melinda',secondary:'Wesly Simatupang',status:'IC Review · Submitted 17 Mar 2026',statusCode:'IC',subTypes:['project'],finType:'Fixed Return'},
@@ -2910,7 +2958,25 @@ var LP_DATA=[
  {stage:'nonlead',kp:'Toko Emas Mulia',project:'Toko Emas Mulia #2 — Working Capital',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.850.000.000',analyst:'Junaidi Junaidi',secondary:'Priska Ponggawa',status:'Non-Lead · they\'re not interested',statusCode:'-1',subTypes:['plafond','project'],finType:'Revenue Share'},
  {stage:'nonlead',kp:'Ayam Geprek Juara',project:'Ayam Geprek Juara #2 — Branch Expansion',type:'Project',asset:'Asset A',amount:'IDR 810.000.000',analyst:'Sharfina Nindita',secondary:'Juang Angger Pamungkas',status:'Non-Lead · rejected in DD',statusCode:'-3',subTypes:['project'],finType:'Fixed Return'},
  {stage:'nonlead',kp:'Es Teler Pelangi',project:'Es Teler Pelangi #2 — Central Kitchen',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.790.000.000',analyst:'Juang Angger Pamungkas',secondary:'Armeno Devan',status:'Non-Lead · entrepreneur rejected offer',statusCode:'-5',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'nonlead',kp:'Furnitur Jati Makmur',project:'Furnitur Jati Makmur #2 — Capex — New Machinery',type:'Project',asset:'Asset D',amount:'IDR 2.670.000.000',analyst:'Armeno Devan',secondary:'— None —',status:'Non-Lead · rejected funds after fundraise',statusCode:'-6',subTypes:['project'],finType:'Fixed Return + Revenue Share'}
+ {stage:'nonlead',kp:'Furnitur Jati Makmur',project:'Furnitur Jati Makmur #2 — Capex — New Machinery',type:'Project',asset:'Asset D',amount:'IDR 2.670.000.000',analyst:'Armeno Devan',secondary:'— None —',status:'Non-Lead · rejected funds after fundraise',statusCode:'-6',subTypes:['project'],finType:'Fixed Return + Revenue Share'},
+ /* ===== Asset-class coverage across pipeline stages — one example each of Asset A (Project),
+    Asset B - PO (PO Financing), Asset B - I (Invoice Financing), Asset D (Working Capital), and a
+    Plafond-combo (Project+Plafond) at every stage that was missing one, so engineers can see how
+    validation/warnings differ by asset class at each step. ===== */
+ {stage:'ic',kp:'Percetakan Grafika Jaya',project:'Percetakan Grafika Jaya #2 — Domestic Invoice Financing · DEMO: Asset B-I coverage at IC Review',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.450.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'IC Review · Submitted 10 Jul 2026',statusCode:'IC',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'ic',kp:'Konsersium',project:'Konsersium #3 — Domestic PO Financing · DEMO: Asset B-PO coverage at KP Approval',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.780.000.000',analyst:'Sharfina Nindita',secondary:'Nila Layla Melinda',status:'KP Review · IC approved 13 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Daily Interest',icDecidedWhen:'13 Jul 2026',kpApprovalEnteredAt:'2026-07-13',termSheetVersions:[{v:1,amount:'IDR 1.780.000.000',note:'Initial terms',submittedDate:'13 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'ic',kp:'Optik Cemerlang',project:'Optik Cemerlang #2 — Export Invoice Financing · DEMO: Asset B-I coverage at KP Approval',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 890.000.000',analyst:'Priska Ponggawa',secondary:'Wesly Simatupang',status:'KP Review · IC approved 11 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Daily Interest',icDecidedWhen:'11 Jul 2026',kpApprovalEnteredAt:'2026-07-11',termSheetVersions:[{v:1,amount:'IDR 890.000.000',note:'Initial terms',submittedDate:'11 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'ic',kp:'Halmampol',project:'Halmampol #3 — Factory Equipment · DEMO: Asset D coverage at KP Approval',type:'Project',asset:'Asset D',amount:'IDR 1.240.000.000',analyst:'Junaidi Junaidi',secondary:'— None —',status:'KP Review · IC approved 10 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Fixed Return',icDecidedWhen:'10 Jul 2026',kpApprovalEnteredAt:'2026-07-10',termSheetVersions:[{v:1,amount:'IDR 1.240.000.000',note:'Initial terms',submittedDate:'10 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'ic',kp:'Sunyi Coffee',project:'Sunyi Coffee #3 — Renovation · DEMO: Project+Plafond coverage at KP Approval',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.560.000.000',analyst:'Ben Elberger',secondary:'Hanny Aqmarina',status:'KP Review · IC approved 9 Jul 2026',statusCode:'4.05',subTypes:['plafond','project'],finType:'Revenue Share',icDecidedWhen:'9 Jul 2026',kpApprovalEnteredAt:'2026-07-09',termSheetVersions:[{v:1,amount:'IDR 1.560.000.000',note:'Initial terms',submittedDate:'9 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'ic',kp:'Sanobar',project:'Sanobar #3 — Export PO Financing · DEMO: Asset B-PO coverage at Finance Split',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.100.000.000',analyst:'Hanny Aqmarina',secondary:'Wesly Simatupang',status:'Finance Split · IC approved 8 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'ic',kp:'PT Investo Medika Asia',project:'PT Investo Medika Asia #3 — Export Invoice Financing · DEMO: Asset B-I coverage at Finance Split',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.330.000.000',analyst:'Wesly Simatupang',secondary:'— None —',status:'Finance Split · IC approved 7 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'ic',kp:'Ayam Geprek Juara',project:'Ayam Geprek Juara #3 — New Outlet · DEMO: Project+Plafond coverage at Finance Split',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.480.000.000',analyst:'Sharfina Nindita',secondary:'Armeno Devan',status:'Finance Split · IC approved 6 Jul 2026',statusCode:'4.1',subTypes:['plafond','project'],finType:'Revenue Share'},
+ {stage:'ic',kp:'Teh Poci Sejahtera',project:'Teh Poci Sejahtera #3 — Export PO Financing · DEMO: Asset B-PO coverage at Legal',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.890.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Legal · contract prep 5 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'ic',kp:'Bengkel Auto Prima',project:'Bengkel Auto Prima #3 — Working Capital · DEMO: Asset D coverage at Legal',type:'Project',asset:'Asset D',amount:'IDR 760.000.000',analyst:'Wesly Simatupang',secondary:'Junaidi Junaidi',status:'Legal · contract prep 4 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Fixed Return'},
+ {stage:'ic',kp:'Karya Logistik Prima',project:'Karya Logistik Prima #3 — PO Financing · DEMO: Asset B-PO coverage at Disbursement',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.450.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Disbursement · contracts signed 3 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Daily Interest',kf:1470000000,kcf:980000000,signed:true},
+ {stage:'ic',kp:'PT. Semesta Energi Services',project:'PT. Semesta Energi Services #3 — Domestic PO Financing · DEMO: Asset B-I coverage at Disbursement',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.680.000.000',analyst:'Hanny Aqmarina',secondary:'Sharfina Nindita',status:'Disbursement · contracts signed 2 Jul 2026',statusCode:'6.3',subTypes:['project'],finType:'Daily Interest',kf:1008000000,kcf:672000000,signed:true},
+ {stage:'ic',kp:'Maju Manufaktur Indonesia',project:'Maju Manufaktur Indonesia #3 — Moveable Asset Financing · DEMO: Asset D coverage at Disbursement',type:'Project',asset:'Asset D',amount:'IDR 1.920.000.000',analyst:'Sharfina Nindita',secondary:'Hanny Aqmarina',status:'Disbursement · contracts signed 1 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Fixed Return + Revenue Share',kf:1152000000,kcf:768000000,signed:true},
+ {stage:'ic',kp:'Geoff Max',project:'Geoff Max #3 — Inventory Financing · DEMO: Project+Plafond coverage at Disbursement',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.230.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Disbursement · contracts signed 30 Jun 2026',statusCode:'5',subTypes:['plafond','project'],finType:'Fixed Return',kf:1338000000,kcf:892000000,signed:true}
 ];
 var LP_STATUS=['0','0','1','3','2','IC','IC','IC','IC','4.2','4.2','7.0','7.0','7.0','-3','-2'];
 LP_DATA.forEach(function(x,i){x._id=i;if(!x.statusCode)x.statusCode=LP_STATUS[i]||'0';x.stage=statusStage(x.statusCode);if(x.secondary===undefined)x.secondary='— None —';});
@@ -3050,6 +3116,21 @@ function msToggle(el){el.classList.toggle('sel');if(typeof updatePjTitleSub==='f
 function syncPlafProposed(){var mp=document.getElementById('msPlafond');var on=mp&&mp.classList.contains('sel');document.querySelectorAll('#page-los-project tr.plaf-proposed').forEach(function(x){x.style.display=on?'':'none';});}
 function apParseRp(s){if(!s)return 0;var n=Number((''+s).replace(/[^0-9]/g,''));return isNaN(n)?0:n;}
 function plfCalc(){var inp=document.getElementById('plfTotal'),rec=document.getElementById('plfRec');if(!inp||!rec)return;var curEl=document.querySelector('#page-los-project .plafond-tbl tbody tr:not(.plaf-proposed):not(.sup) td:nth-child(2) .lim');var cur=curEl?apParseRp(curEl.textContent):0;if(!inp.value.trim()){rec.className='chip c-gray';rec.textContent='—';updateApprovalRule();return;}var val=apParseRp(inp.value);if(val>cur){rec.className='chip c-green';rec.textContent='Increase';}else if(val<cur){rec.className='chip c-red';rec.textContent='Decrease';}else{rec.className='chip c-gray';rec.textContent='Maintain';}updateApprovalRule();}
+/* Due Diligence input form: before IC Review (stage funding/dd), the analyst is still doing the
+   financial review, so the Proposed Plafond fields should be blank for them to fill in rather than
+   showing pre-filled review numbers. Once a deal reaches IC Review or later, restore whatever was
+   there (the completed review). Originals are captured once, on first use, from the static markup. */
+var DD_PLF_ORIG=null;
+function clearDDReviewFields(r){
+  if(!DD_PLF_ORIG){
+    DD_PLF_ORIG={};
+    ['plfTotal','plfPO','plfWC'].forEach(function(id){var el=document.getElementById(id);DD_PLF_ORIG[id]=el?el.value:'';});
+    ['plfTotalD','plfPOD','plfWCD','plfTotalMeta','plfPOMeta','plfWCMeta'].forEach(function(id){var el=document.getElementById(id);DD_PLF_ORIG[id]=el?el.innerHTML:'';});
+  }
+  var isDD=!!(r&&(r.stage==='funding'||r.stage==='dd'));
+  ['plfTotal','plfPO','plfWC'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=isDD?'':DD_PLF_ORIG[id];});
+  ['plfTotalD','plfPOD','plfWCD','plfTotalMeta','plfPOMeta','plfWCMeta'].forEach(function(id){var el=document.getElementById(id);if(el)el.innerHTML=isDD?'':DD_PLF_ORIG[id];});
+}
 function updateApprovalRule(){var el=document.getElementById('apRule');if(!el)return;var pa=document.getElementById('pjReqAmount');var projAmt=(typeof pjReqIDR!=='undefined')?pjReqIDR:apParseRp(pa&&pa.textContent);var plafTotal=0;var mp=document.getElementById('msPlafond');if(mp&&mp.classList.contains('sel')){var pt=document.getElementById('plfTotal');if(pt)plafTotal=apParseRp(pt.value);}var big=projAmt>6000000000||plafTotal>6000000000;var aldi=document.getElementById('apVoteAldi'),jun=document.getElementById('apVoteJunaidi');if(big){el.innerHTML='<b>Rule:</b> &gt; IDR 6B — all 3 IC votes required, including Principal · <span class="chip c-gray">1/3 required votes</span>';if(aldi)aldi.style.display='';if(jun)jun.style.display='';}else{el.innerHTML='<b>Rule:</b> ≤ IDR 6B — only Principal (Ben) vote required · <span class="chip c-green">1/1 required votes</span>';if(aldi)aldi.style.display='none';if(jun)jun.style.display='none';}}
 document.addEventListener('blur',function(){updateApprovalRule();},true);
 setTimeout(updateApprovalRule,0);
@@ -3102,10 +3183,10 @@ function pjReqCalc(){var cur=document.getElementById('pjReqCur'),amt=document.ge
 function pjReqFmt(el){var d=(el.value||'').replace(/[^0-9]/g,'');el.value=d?Number(d).toLocaleString('en-US'):'';pjReqCalc();}
 function pjCurToggle(){var el=document.getElementById('pjReqCur');if(!el)return;var c=el.getAttribute('data-cur')==='IDR'?'USD':'IDR';el.setAttribute('data-cur',c);el.textContent=c;el.classList.toggle('usd',c==='USD');pjReqCalc();}
 function statusRank(code){if(code==='IC')return 4;var n=parseFloat(code);return isNaN(n)?0:n;}
-window.PJ_STATUS=window.PJ_STATUS||'IC';window.PJ_ROLE=window.PJ_ROLE||'Analyst';
+window.PJ_STATUS=window.PJ_STATUS||'IC';
 function updateProjectGates(){
   /* Legacy gate: role-based enable/disable of .ic-only and Approval-body visibility are now owned by
-     the CSS role-gating (body.role-hor .ic-only) and renderApprovalState()/dealPhase() — this function
+     the CSS role-gating (body.role-ic .ic-only) and renderApprovalState()/dealPhase() — this function
      only keeps the whole Approval section's visibility in sync (hidden entirely pre-IC Review; no more
      "locked" placeholder message) so it doesn't fight those. */
   var wrap=document.getElementById('apprWrap'),body=document.getElementById('icApprovalBody');
@@ -3193,7 +3274,7 @@ function renderProject(id){var r=LP_DATA[id];if(!r)return;window.__curProjRow=r;
  _s('pjProjNum','Project for '+r.kp+' ('+r.status.split('·')[0].trim()+')');
  var plaf=r.type.indexOf('Plafond')>=0;var mp=document.getElementById('msPlafond');if(mp)mp.classList.toggle('sel',plaf);var mj=document.getElementById('msProj');if(mj)mj.classList.add('sel');
  var buf=r.type.indexOf('Buffer')>=0;var mb=document.getElementById('msBuffer');if(mb)mb.classList.toggle('sel',buf);if(typeof bufferGate==='function')bufferGate();
- syncPlafProposed();updateApprovalRule();window.PJ_STATUS=r.statusCode||'IC';updateProjectGates();if(typeof pjStatusSync==='function')pjStatusSync();
+ syncPlafProposed();if(typeof clearDDReviewFields==='function')clearDDReviewFields(r);updateApprovalRule();window.PJ_STATUS=r.statusCode||'IC';updateProjectGates();if(typeof pjStatusSync==='function')pjStatusSync();
  var note=document.getElementById('pjTplNote');if(note)note.style.display=(r.kp==='Cahaya Energi Asia')?'none':'block';
  updatePjTitleSub();
  if(typeof applyICLock==='function')applyICLock();
@@ -3206,27 +3287,41 @@ function lpRows(){return LP_DATA.filter(lpMatch);}
 function lpEmpty(){return lpState.analysts.length===0?'any analyst':esc(lpAnaLabel());}
 var TYPE_OPTS=['Project','PO/Invoice','PO/Invoice+Plafond','Project+Plafond','Plafond','Buffer'];
 var ASSET_OPTS=['Asset A','Asset B - I','Asset B - PO','Asset D'];
-function lpFieldMenu(e,id,field,opts){e.stopPropagation();closePtpMenu();var m=document.createElement('div');m.className='ptp-menu';m.id='ptpMenu';opts.forEach(function(a){var it=document.createElement('div');it.className='ptp-opt';it.textContent=a;it.addEventListener('click',function(ev){ev.stopPropagation();if(LP_DATA[id])LP_DATA[id][field]=a;closePtpMenu();lpRender();});m.appendChild(it);});document.body.appendChild(m);var t=(e.target.closest&&e.target.closest('.ap-chip'))||e.target;var r=t.getBoundingClientRect();m.style.left=(r.left+window.scrollX)+'px';m.style.top=(r.bottom+window.scrollY+4)+'px';setTimeout(function(){document.addEventListener('click',closePtpMenu,{once:true});},0);}
+function lpFieldMenu(e,id,field,opts){e.stopPropagation();closePtpMenu();if(window.PJ_ROLE&&window.PJ_ROLE!=='Analyst'){if(typeof wfToast==='function')wfToast('Not permitted','Only the Analyst role can change this before IC Review. Switch role to Analyst.');return;}var m=document.createElement('div');m.className='ptp-menu';m.id='ptpMenu';opts.forEach(function(a){var it=document.createElement('div');it.className='ptp-opt';it.textContent=a;it.addEventListener('click',function(ev){ev.stopPropagation();if(LP_DATA[id])LP_DATA[id][field]=a;closePtpMenu();lpRender();});m.appendChild(it);});document.body.appendChild(m);var t=(e.target.closest&&e.target.closest('.ap-chip'))||e.target;var r=t.getBoundingClientRect();m.style.left=(r.left+window.scrollX)+'px';m.style.top=(r.bottom+window.scrollY+4)+'px';setTimeout(function(){document.addEventListener('click',closePtpMenu,{once:true});},0);}
 window.lpFieldMenu=lpFieldMenu;
-function typeChip(r){return '<span class="ap-chip" onclick="event.stopPropagation();lpFieldMenu(event,'+r._id+',\'type\',TYPE_OPTS)">'+esc(r.type)+' <span class="ptp-car">▾</span></span>';}
-function assetChip(r){return '<span class="ap-chip" onclick="event.stopPropagation();lpFieldMenu(event,'+r._id+',\'asset\',ASSET_OPTS)">'+esc(r.asset)+' <span class="ptp-car">▾</span></span>';}
-function anaPS(r){var pa='<span class="ap-chip" onclick="event.stopPropagation();analystMenu(event,'+r._id+',\'analyst\')">'+esc(r.analyst)+' <span class="ptp-car">▾</span></span>';var sa='<span class="ap-chip" onclick="event.stopPropagation();analystMenu(event,'+r._id+',\'secondary\')">'+esc(r.secondary||'— None —')+' <span class="ptp-car">▾</span></span>';return [pa,sa];}
-function stChip(r){var st=STAT_BY[r.statusCode]||{t:r.statusCode,stage:r.stage};var c=STAGE_COLOR[st.stage]||'#94a3b8';return '<span class="st-chip" onclick="event.stopPropagation();statusMenu(event,'+r._id+')"><span class="st-dot" style="background:'+c+'"></span>'+esc(st.t)+' <span class="ptp-car">▾</span></span>';}
-/* Item 20a/20b: in the "IC Review, Legal, and Disbursement" (tab==='ic') table, every existing
-   field (Status/Type/Asset/Primary/Secondary/Amount) is locked read-only for everyone, and two new
+function typeChip(r){return '<span class="ap-chip noedit" title="Open the deal to change its type">'+esc(r.type)+'</span>';}
+function assetChip(r){return '<span class="ap-chip noedit" title="Open the deal to change its asset class">'+esc(r.asset)+'</span>';}
+/* Primary Analyst is frozen everywhere (table + inside the deal, see applyICLock's pjPrimary
+   override) once a deal has been submitted to IC Review — reassigning the deal owner isn't
+   something that should still be doable from the Pipeline table after that. Pre-submission
+   (Non-Lead/Early Lead/Funding Lead/Due Diligence) it's still a live, clickable chip here. */
+/* The Pipeline/Leads/Portfolio tables are read-only information views — every field here,
+   at every stage including Due Diligence, only changes "inside the form" (open the deal).
+   Primary/Secondary Analyst used to be live clickable chips (analystMenu) regardless of
+   stage; now they render the same inert, informational style as Status/Type/Asset (stChip
+   etc. below), matching what the rest of the table already does. */
+function anaPS(r){
+  var pa='<span class="ap-chip noedit" title="Open the deal to change the analyst">'+esc(r.analyst)+'</span>';
+  var sa='<span class="ap-chip noedit" title="Open the deal to change the analyst">'+esc(r.secondary||'— None —')+'</span>';
+  return [pa,sa];
+}
+function stChip(r){var st=STAT_BY[r.statusCode]||{t:r.statusCode,stage:r.stage};var c=STAGE_COLOR[st.stage]||'#94a3b8';return '<span class="st-chip noedit" title="Open the deal to change its status"><span class="st-dot" style="background:'+c+'"></span><span class="chip-t">'+esc(st.t)+'</span></span>';}
+/* Item 20a/20b: in the post-IC tables (tab==='ic'|'legal'|'disbursement' — split out of the old
+   combined "IC Review, Legal, and Disbursement" tab), every existing field
+   (Status/Type/Asset/Primary/Secondary/Amount) is locked read-only for everyone, and two new
    columns — KF Amount / KCF Amount (backed by the existing r.kf / r.kcf fields already used by the
-   Finance Split step of the Deal Workflow) — are only editable when the current Role (top-bar Role
-   switcher, window.CUR_ROLE) is "Finance". */
+   Finance Split step of the Deal Workflow) — are only editable when the current active role
+   (window.PJ_ROLE, the currently selected user's active role) is "Finance". */
 function lpAmtDisp(v){return (v===null||v===undefined||v==='')?'—':idr(v);}
 function lpAmtCell(r,field){
- var can=window.CUR_ROLE==='Finance';
+ var can=window.PJ_ROLE==='Finance';
  var disp=lpAmtDisp(r[field]);
  if(can)return '<td class="editable num" data-raw="'+(r[field]==null?'':r[field])+'" onclick="event.stopPropagation()" ondblclick="event.stopPropagation();lpAmtEdit(this,'+r._id+',\''+field+'\')">'+disp+'</td>';
  return '<td class="noedit num">'+disp+'</td>';
 }
 window.lpAmtCell=lpAmtCell;
 window.lpAmtEdit=function(el,id,field){
- if(window.CUR_ROLE!=='Finance')return;
+ if(window.PJ_ROLE!=='Finance')return;
  if(el.querySelector('input'))return;
  var r=LP_DATA[id];if(!r)return;
  var old=r[field];
@@ -3290,60 +3385,46 @@ function lpLimitShortfallHTML(){
   +'<div class="card"><div class="tbl-scroll"><table class="tbl-co" id="losLimitShortfallTbl" style="min-width:1260px">'+head+body+'</table></div></div>';
 }
 window.lpLimitShortfallHTML=lpLimitShortfallHTML;
-function rowICLocked(r){
- return '<tr class="rowlink" onclick="openProject('+r._id+')">'
-  +'<td class="proj noedit">'+esc(r.kp)+'</td>'
-  +'<td class="noedit">'+esc(r.project)+'</td>'
-  +'<td class="noedit">'+esc((STAT_BY[r.statusCode]||{}).t||r.statusCode)+'</td>'
-  +'<td class="noedit">'+esc(r.type)+'</td>'
-  +'<td class="noedit" style="white-space:nowrap">'+esc(r.asset)+'</td>'
-  +'<td class="num noedit" style="white-space:nowrap">'+esc(r.amount)+'</td>'
-  +'<td class="noedit">'+esc(r.analyst)+'</td>'
-  +'<td class="noedit">'+esc(r.secondary||'— None —')+'</td>'
-  +lpAmtCell(r,'kf')+lpAmtCell(r,'kcf')
-  +'<td onclick="event.stopPropagation()"><button class="btn btn-sm btn-red" onclick="lpPullBack('+r._id+')" title="Send this deal back to Due Diligence and re-run it through IC review">⟲ Pull Back</button></td>'
-  +'</tr>';
+/* Row rendering is now the same across every Pipeline stage — Secondary Analyst and the KF/KCF
+   split (both "inside the deal" only, not front-table concerns) used to be the only things that
+   made the IC Review/Finance Split/Legal/Disbursement row different from Due Diligence's; with
+   both dropped there's nothing left to make them different. KP Review is the one stage that
+   still gets its own trailing column — how long a deal's been waiting on the KP. */
+function kpWaitCellHTML(r){
+ var d=(typeof kpApprovalDaysStale==='function')?kpApprovalDaysStale(r):null;
+ if(d==null||!r.kpApprovalEnteredAt)return '<td class="tiny muted">—</td>';
+ var stale=d>=30;
+ return '<td'+(stale?' style="color:var(--red-tx);font-weight:600"':'')+'>'+d+'d'+(stale?' ⚠':'')+'</td>';
 }
-/* Item 25: Pull Back button in the IC Review/Legal/Disbursement pipeline table — same effect as the
-   per-submission Pull Back button (window.pjPullBack) next to Secondary Analyst on the submission
-   detail page, but operating directly on the clicked row's record (rather than window.__wfCurId,
-   which only tracks whichever project is currently open on the detail page) so it works from the
-   pipeline list where no project may be open. Available to every role that can see this table,
-   including Analyst — not gated like the Finance-only KF/KCF Amount edit above. */
-window.lpPullBack=function(id){
- var r=(typeof LP_DATA!=='undefined')?LP_DATA[id]:null;
- if(!r){if(typeof wfToast==='function')wfToast('No project found','Could not find that submission.');return;}
- if(!confirm('Pull back "'+r.kp+'" to 3. Due Diligence?\n\nThis clears the IC decision, KF/KCF split, and signed-contract flags — the deal will need to be re-submitted to IC.'))return;
- var d=new Date(2026,6,17);
- var dTxt=d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getFullYear();
- r.statusCode='3';
- r.stage=(typeof statusStage==='function')?statusStage('3'):r.stage;
- r.status='3. Due Diligence · pulled back '+dTxt;
- r.icDecidedWhen=null;
- r.kf=null;
- r.kcf=null;
- r.signed=false;
- if(typeof lpRender==='function')lpRender();
- if(typeof wfToast==='function')wfToast('Pulled back','<b>'+esc(r.kp)+'</b> was pulled back to <b>3. Due Diligence</b>. It will need to go through IC review again.');
-};
-function lpTableHTML(rows,grouped){var funding=lpState.tab==='funding';var icTab=lpState.tab==='ic';var ncol=funding?9:(icTab?11:8);
- var head='<thead><tr><th>KP / Brand</th><th>Project</th><th>Status</th><th>Type</th><th>Asset</th><th class="num">Amount</th><th>Primary Analyst</th><th>Secondary Analyst</th>'+(icTab?'<th class="num">KF Amount</th><th class="num">KCF Amount</th><th></th>':'')+(funding?'<th></th>':'')+'</tr></thead>';
- var row=function(r){var ps=anaPS(r);var sub=funding?'<td><button class="btn btn-sm btn-primary" onclick="event.stopPropagation();lpSubmitIC('+r._id+')">Submit to IC →</button></td>':'';return '<tr class="rowlink" onclick="openProject('+r._id+')"><td class="proj">'+esc(r.kp)+'</td><td>'+esc(r.project)+'</td><td>'+stChip(r)+'</td><td>'+typeChip(r)+'</td><td style="white-space:nowrap">'+assetChip(r)+'</td><td class="num" style="white-space:nowrap">'+esc(r.amount)+'</td><td>'+ps[0]+'</td><td>'+ps[1]+'</td>'+sub+'</tr>';};
+function lpTableHTML(rows){var kpTab=(lpState.tab==='kpapproval');var ncol=kpTab?8:7;
+ /* Project needs real room to read — long project names were getting squeezed by the old
+    action-button column (Submit to IC / Pull Back), which is now "inside the deal" only, same
+    as Status/Type/Asset already are — so it's dropped from the table entirely. */
+ var head='<thead><tr><th>KP / Brand</th><th style="min-width:280px">Project</th><th>Status</th><th>Type</th><th>Asset</th><th class="num">Amount</th><th>Primary Analyst</th>'+(kpTab?'<th>Days Waiting</th>':'')+'</tr></thead>';
+ var row=function(r){var ps=anaPS(r);return '<tr class="rowlink" onclick="openProject('+r._id+')"><td class="proj">'+esc(r.kp)+'</td><td>'+esc(r.project)+'</td><td>'+stChip(r)+'</td><td>'+typeChip(r)+'</td><td style="white-space:nowrap">'+assetChip(r)+'</td><td class="num" style="white-space:nowrap">'+esc(r.amount)+'</td><td>'+ps[0]+'</td>'+(kpTab?kpWaitCellHTML(r):'')+'</tr>';};
  var body='<tbody>';
  if(!rows.length){body+='<tr><td colspan="'+ncol+'" class="muted" style="padding:14px">No items here for '+lpEmpty()+'.</td></tr>';}
- else if(icTab){
-   var byCode={};rows.forEach(function(r){(byCode[r.statusCode]=byCode[r.statusCode]||[]).push(r);});
-   var codes=Object.keys(byCode).sort(function(a,b){return statusRank(a)-statusRank(b);});
-   codes.forEach(function(code){var pr=byCode[code];var lbl=(STAT_BY[code]||{}).t||code;body+='<tr class="grp-row"><td colspan="'+ncol+'">'+esc(lbl)+' <span class="cnt">'+pr.length+'</span></td></tr>';pr.forEach(function(r){body+=rowICLocked(r);});});
- }
- else if(grouped){PHASE_ORDER.forEach(function(ph){var pr=rows.filter(function(r){return PHASE[r.statusCode]===ph;});body+='<tr class="grp-row"><td colspan="'+ncol+'">'+esc(ph)+' <span class="cnt">'+pr.length+'</span></td></tr>';if(!pr.length)body+='<tr><td colspan="'+ncol+'" class="muted" style="padding:7px 14px">—</td></tr>';pr.forEach(function(r){body+=row(r);});});}
  else{rows.forEach(function(r){body+=row(r);});}
  body+='</tbody>';
- return '<div class="card"><div class="tbl-scroll"><table id="losPipeTable" style="min-width:'+(funding?1160:icTab?1360:1040)+'px">'+head+body+'</table></div>'+(icTab?lpLimitShortfallHTML():'')+'</div>';}
-function lpBoardHTML(rows){var cols=STATUSES.filter(function(s){return s.stage===lpState.tab;}).slice().sort(function(a,b){return (parseFloat(a.code)||0)-(parseFloat(b.code)||0);});
- var h='<div class="lp-board">';
- cols.forEach(function(s){var cr=rows.filter(function(r){return r.statusCode===s.code;});var c=STAGE_COLOR[s.stage];h+='<div class="lp-bcol"><h4><span class="st-dot" style="background:'+c+'"></span>'+esc(s.t)+' <span class="cnt">'+cr.length+'</span></h4>';cr.forEach(function(r){h+='<div class="lp-bcard" onclick="openProject('+r._id+')"><div class="proj" style="font-weight:600;font-size:12.5px">'+esc(r.kp)+'</div><div class="tiny muted">'+esc(r.project)+'</div><div class="tiny" style="margin-top:4px;color:var(--ink-600)">'+esc(r.amount)+' · '+esc(r.analyst)+'</div></div>';});if(!cr.length)h+='<div class="tiny muted" style="padding:6px 4px">No deals</div>';h+='</div>';});
- h+='</div>';return h;}
+ return '<div class="card"><div class="tbl-scroll"><table id="losPipeTable" style="min-width:1180px">'+head+body+'</table></div></div>';}
+/* Board used to split into one column per exact status code — now that every Pipeline tab is
+   already its own single stage, that extra split was redundant. Each deal's still-distinct status
+   (e.g. "6.3 Raised-2nd+..." vs "5. Raised-1st...") shows on its own card via the status chip
+   instead, laid out 4-per-row so it reads as one clear stage, not a sub-divided board. */
+function lpBoardHTML(rows){
+ if(!rows.length)return '<div class="card card-pad muted">No items here for '+lpEmpty()+'.</div>';
+ var h='<div class="lp-cardgrid">';
+ rows.forEach(function(r){
+   h+='<div class="lp-bcard" onclick="openProject('+r._id+')">'
+     +'<div class="proj" style="font-weight:600;font-size:12.5px">'+esc(r.kp)+'</div>'
+     +'<div class="tiny muted" style="margin-top:2px">'+esc(r.project)+'</div>'
+     +'<div style="margin-top:8px">'+stChip(r)+'</div>'
+     +'<div class="tiny" style="margin-top:8px;color:var(--ink-600)">'+esc(r.amount)+' · '+esc(r.analyst)+'</div>'
+     +'</div>';
+ });
+ h+='</div>';
+ return h;
+}
 function lpCardsHTML(rows){if(!rows.length)return '<div class="card card-pad muted">No items here for '+lpEmpty()+'.</div>';
  var h='<div class="lp-cards">';
  rows.forEach(function(r){h+='<div class="lp-card"><div style="display:flex;justify-content:space-between;gap:8px;align-items:flex-start"><div><div style="font-weight:700;font-size:13px" class="proj">'+esc(r.kp)+'</div><div class="tiny muted">'+esc(r.project)+'</div></div>'+stChip(r)+'</div><div class="tiny" style="display:flex;gap:7px;flex-wrap:wrap;color:var(--ink-600)"><span>'+esc(r.type)+'</span><span>·</span><span>'+esc(r.asset)+'</span></div><div style="font-weight:600">'+esc(r.amount)+'</div><div class="tiny muted">Analyst: '+esc(r.analyst)+'</div><div class="cta"><button class="btn btn-sm btn-primary" style="flex:1" onclick="lpSubmitIC('+r._id+')">Submit to IC →</button><button class="btn btn-sm" onclick="openProject('+r._id+')">Open</button></div></div>';});
@@ -3374,17 +3455,146 @@ function lpRenderTabs(){var tb=document.getElementById('lpTabs');if(tb){var th='
  var sw=document.getElementById('lpViewSw');if(sw){var vs=lpViewsFor(lpState.tab);if(vs.length<2)sw.innerHTML='';else{var s='';vs.forEach(function(v){s+='<button class="'+(lpState.view===v[0]?'on':'')+'" onclick="lpSetView(\''+v[0]+'\')">'+v[1]+'</button>';});sw.innerHTML=s;}}}
 function lpRender(){lpRenderTabs();var host=document.getElementById('lpHost');if(!host)return;var rows=lpRows();var v=lpState.view;
  if(v==='board')host.innerHTML=lpBoardHTML(rows);else if(v==='cards')host.innerHTML=(lpState.tab==='active'?lpActiveCardsHTML():lpCardsHTML(rows));else if(v==='analytics')host.innerHTML=lpAnalyticsHTML(rows);else host.innerHTML=lpTableHTML(rows,v==='grouped');}
+/* ===== Leads page: Non-Lead / Early Lead / Funding Lead, split out of Pipeline ===== */
+var LEADS_TABS=[['nonlead','Non-Leads'],['early','Early Leads'],['funding','Funding Lead']];
+var leadsState={tab:'early',analysts:[],view:'table'};
+function leadsAnaOk(a){return leadsState.analysts.length===0||leadsState.analysts.indexOf(a)>=0;}
+function leadsMatch(x){return x.stage===leadsState.tab&&leadsAnaOk(x.analyst);}
+function leadsRows(){return LP_DATA.filter(leadsMatch);}
+function leadsCount(tab){return LP_DATA.filter(function(x){return x.stage===tab&&leadsAnaOk(x.analyst);}).length;}
+function leadsEmpty(){return leadsState.analysts.length===0?'any analyst':leadsState.analysts.join(', ');}
+function leadsTab(s){leadsState.tab=s;leadsRender();}
+function leadsSetView(v){leadsState.view=v;var sw=document.getElementById('leadsViewSw');if(sw){[].slice.call(sw.children).forEach(function(b){b.classList.remove('on');});var idx={table:0,board:1,analytics:2}[v];if(sw.children[idx])sw.children[idx].classList.add('on');}leadsRender();}
+function leadsRow(r){var ps=anaPS(r);return '<tr class="rowlink" onclick="openProject('+r._id+')"><td class="proj">'+esc(r.kp)+'</td><td>'+esc(r.project)+'</td><td>'+stChip(r)+'</td><td>'+typeChip(r)+'</td><td style="white-space:nowrap">'+assetChip(r)+'</td><td class="num" style="white-space:nowrap">'+esc(r.amount)+'</td><td>'+ps[0]+'</td><td>'+ps[1]+'</td></tr>';}
+function leadsTableHTML(rows){var head='<thead><tr><th>KP / Brand</th><th>Project</th><th>Status</th><th>Type</th><th>Asset</th><th class="num">Amount</th><th>Primary Analyst</th><th>Secondary Analyst</th></tr></thead>';
+ var body='<tbody>';
+ if(!rows.length){body+='<tr><td colspan="8" class="muted" style="padding:14px">No items here for '+leadsEmpty()+'.</td></tr>';}
+ else{rows.forEach(function(r){body+=leadsRow(r);});}
+ body+='</tbody>';
+ return '<div class="card"><div class="tbl-scroll"><table style="min-width:1040px">'+head+body+'</table></div></div>';}
+function leadsBoardHTML(rows){var cols=STATUSES.filter(function(s){return s.stage===leadsState.tab;}).slice().sort(function(a,b){return (parseFloat(a.code)||0)-(parseFloat(b.code)||0);});
+ var h='<div class="lp-board">';
+ cols.forEach(function(s){var cr=rows.filter(function(r){return r.statusCode===s.code;});var c=STAGE_COLOR[s.stage];h+='<div class="lp-bcol"><h4><span class="st-dot" style="background:'+c+'"></span>'+esc(s.t)+' <span class="cnt">'+cr.length+'</span></h4>';cr.forEach(function(r){h+='<div class="lp-bcard" onclick="openProject('+r._id+')"><div class="proj" style="font-weight:600;font-size:12.5px">'+esc(r.kp)+'</div><div class="tiny muted">'+esc(r.project)+'</div><div class="tiny" style="margin-top:4px;color:var(--ink-600)">'+esc(r.amount)+' · '+esc(r.analyst)+'</div></div>';});if(!cr.length)h+='<div class="tiny muted" style="padding:6px 4px">No deals</div>';h+='</div>';});
+ h+='</div>';return h;}
+function leadsAnalyticsHTML(rows){var PAL=['#3b4ee8','#16a34a','#f59e0b','#8b5cf6','#ef4444','#0ea5e9'];
+ var sts=STATUSES.filter(function(s){return s.stage===leadsState.tab;}).slice().sort(function(a,b){return (parseFloat(a.code)||0)-(parseFloat(b.code)||0);});
+ var stC=sts.map(function(s){return {t:s.t,n:rows.filter(function(r){return r.statusCode===s.code;}).length};});
+ var maxS=1;stC.forEach(function(c){if(c.n>maxS)maxS=c.n;});
+ var pipe='';stC.forEach(function(c,i){pipe+=lpBarRow(c.t,c.n,maxS,PAL[i%PAL.length]);});if(!stC.length)pipe='<div class="tiny muted">No statuses.</div>';
+ var own={};rows.forEach(function(r){var k=r.analyst||'Unassigned';own[k]=(own[k]||0)+1;});
+ var oL=Object.keys(own).map(function(k){return {k:k,n:own[k]};}).sort(function(a,b){return b.n-a.n;});
+ var maxO=1;oL.forEach(function(o){if(o.n>maxO)maxO=o.n;});
+ var work='';oL.forEach(function(o,i){work+=lpBarRow(o.k,o.n,maxO,PAL[i%PAL.length]);});if(!oL.length)work='<div class="tiny muted">No owners.</div>';
+ return '<div class="lp-analytics">'+
+  '<div class="card card-pad"><div class="an-h">☷ Leads by Status</div>'+pipe+'</div>'+
+  '<div class="card card-pad"><div class="an-h">⛂ Owner Workload</div>'+work+'</div>'+
+  '</div>';}
+function leadsRenderTabs(){var tb=document.getElementById('leadsTabs');if(tb){var th='';LEADS_TABS.forEach(function(t){th+='<button class="view-tab'+(leadsState.tab===t[0]?' active':'')+'" onclick="leadsTab(\''+t[0]+'\')">'+t[1]+' <span class="cnt">'+leadsCount(t[0])+'</span></button>';});tb.innerHTML=th;}}
+function leadsRender(){leadsRenderTabs();var host=document.getElementById('leadsHost');if(!host)return;var rows=leadsRows();var v=leadsState.view;
+ if(v==='board')host.innerHTML=leadsBoardHTML(rows);else if(v==='analytics')host.innerHTML=leadsAnalyticsHTML(rows);else host.innerHTML=leadsTableHTML(rows);}
+/* ===== Portfolio page: Active / Restructured / Completed, split out of Pipeline ===== */
+var portfolioState={tab:'active',q:'',asset:''};
+function rpBn(n){return 'Rp '+(n/1e9).toFixed(1)+' bn';}
+function portfolioCount(tab){return LP_DATA.filter(function(r){return r.stage===tab;}).length;}
+function portfolioAmountSum(tab){return LP_DATA.filter(function(r){return r.stage===tab;}).reduce(function(s,r){return s+apParseRp(r.amount);},0);}
+function portfolioMatch(x){
+ if(x.stage!==portfolioState.tab)return false;
+ if(portfolioState.asset&&x.asset!==portfolioState.asset)return false;
+ if(portfolioState.q){var q=portfolioState.q.toLowerCase();if((x.kp+' '+x.project).toLowerCase().indexOf(q)<0)return false;}
+ return true;
+}
+function portfolioRows(){return LP_DATA.filter(portfolioMatch);}
+function portfolioTab(s){portfolioState.tab=s;portfolioRender();}
+function portfolioSetQuery(v){portfolioState.q=v;portfolioRenderTable();}
+function portfolioSetAsset(v){portfolioState.asset=v;portfolioRenderTable();}
+function portfolioRenderTabs(){var tb=document.getElementById('portfolioTabs');if(tb){var th='';PORTFOLIO_TABS.forEach(function(t){th+='<button class="view-tab'+(portfolioState.tab===t[0]?' active':'')+'" onclick="portfolioTab(\''+t[0]+'\')">'+t[1]+' <span class="cnt">'+portfolioCount(t[0])+'</span></button>';});tb.innerHTML=th;}}
+function portfolioRenderKPIs(){
+ var host=document.getElementById('portfolioKpis');if(!host)return;
+ var tabLabel={active:'Active',restructured:'Restructured',completed:'Completed'}[portfolioState.tab];
+ var sumLabel=portfolioState.tab==='completed'?'Total Disbursed (Completed)':'Outstanding ('+tabLabel+')';
+ host.innerHTML=
+  '<div class="kpi"><div class="kl">'+sumLabel+'</div><div class="kv">'+rpBn(portfolioAmountSum(portfolioState.tab))+'</div></div>'+
+  '<div class="kpi"><div class="kl"># Active</div><div class="kv">'+portfolioCount('active')+'</div></div>'+
+  '<div class="kpi"><div class="kl"># Restructured</div><div class="kv">'+portfolioCount('restructured')+'</div></div>'+
+  '<div class="kpi"><div class="kl"># Completed</div><div class="kv">'+portfolioCount('completed')+'</div></div>';
+}
+function portfolioFilterBarHTML(){
+ return '<div class="lp-filterbar" style="display:flex;align-items:center;gap:8px;margin-bottom:10px">'+
+  '<input type="text" placeholder="Search KP or project…" value="'+esc(portfolioState.q)+'" oninput="portfolioSetQuery(this.value)" style="border:1px solid var(--line);border-radius:8px;padding:5px 9px;font:inherit;font-size:12px;min-width:220px">'+
+  '<select onchange="portfolioSetAsset(this.value)" style="border:1px solid var(--line);border-radius:8px;padding:5px 9px;font:inherit;font-size:12px">'+
+   '<option value="">All assets</option>'+ASSET_OPTS.map(function(a){return '<option value="'+esc(a)+'"'+(portfolioState.asset===a?' selected':'')+'>'+esc(a)+'</option>';}).join('')+
+  '</select>'+
+  '</div>';
+}
+function portfolioRow(r){var ps=anaPS(r);return '<tr class="rowlink" onclick="openProject('+r._id+')"><td class="proj">'+esc(r.kp)+'</td><td>'+esc(r.project)+'</td><td>'+stChip(r)+'</td><td>'+typeChip(r)+'</td><td style="white-space:nowrap">'+assetChip(r)+'</td><td class="num" style="white-space:nowrap">'+esc(r.amount)+'</td><td>'+ps[0]+'</td><td>'+ps[1]+'</td></tr>';}
+function portfolioTableOnlyHTML(rows){
+ var head='<thead><tr><th>KP / Brand</th><th>Project</th><th>Status</th><th>Type</th><th>Asset</th><th class="num">Amount</th><th>Primary Analyst</th><th>Secondary Analyst</th></tr></thead>';
+ var body='<tbody>';
+ if(!rows.length){body+='<tr><td colspan="8" class="muted" style="padding:14px">No deals match this filter.</td></tr>';}
+ else{rows.forEach(function(r){body+=portfolioRow(r);});}
+ body+='</tbody>';
+ return '<div class="card"><div class="tbl-scroll"><table style="min-width:1040px">'+head+body+'</table></div></div>';
+}
+function portfolioRenderTable(){var host=document.getElementById('portfolioTableWrap');if(!host)return;host.innerHTML=portfolioTableOnlyHTML(portfolioRows());}
+function portfolioRender(){
+ portfolioRenderTabs();portfolioRenderKPIs();
+ var host=document.getElementById('portfolioHost');if(!host)return;
+ host.innerHTML=portfolioFilterBarHTML()+'<div id="portfolioTableWrap"></div>';
+ portfolioRenderTable();
+}
 function statusMenu(e,id){e.stopPropagation();closePtpMenu();var m=document.createElement('div');m.className='ptp-menu';m.id='ptpMenu';m.style.minWidth='320px';m.style.maxHeight='360px';m.style.overflowY='auto';
  var by={};LP_TABS.forEach(function(t){by[t[0]]=[];});STATUSES.forEach(function(s){if(by[s.stage])by[s.stage].push(s);});
  LP_TABS.forEach(function(t){var arr=by[t[0]];if(!arr||!arr.length)return;var hh=document.createElement('div');hh.className='stg-h';hh.textContent=t[1];m.appendChild(hh);arr.forEach(function(s){var it=document.createElement('div');it.className='ptp-opt';it.style.display='flex';it.style.alignItems='center';it.style.gap='7px';var cur=LP_DATA[id]&&LP_DATA[id].statusCode===s.code;it.innerHTML='<span class="st-dot" style="background:'+(STAGE_COLOR[s.stage]||'#94a3b8')+'"></span>'+esc(s.t)+(cur?' <b>✓</b>':'');it.addEventListener('click',function(ev){ev.stopPropagation();lpSetStatus(id,s.code);closePtpMenu();});m.appendChild(it);});});
  document.body.appendChild(m);var tg=(e.target.closest&&e.target.closest('.st-chip'))||e.target;var r=tg.getBoundingClientRect();var left=Math.min(r.left+window.scrollX,window.scrollX+window.innerWidth-340);m.style.left=Math.max(8,left)+'px';m.style.top=(r.bottom+window.scrollY+4)+'px';
  setTimeout(function(){document.addEventListener('click',closePtpMenu,{once:true});},0);}
 function lpSetStatus(id,code){if(!LP_DATA[id])return;LP_DATA[id].statusCode=code;LP_DATA[id].stage=statusStage(code);lpRender();}
-function lpSubmitIC(id){if(!LP_DATA[id])return;if(!confirm('Submit "'+LP_DATA[id].kp+'" to IC Credit Review?'))return;lpSetStatus(id,'IC');}
-var USERS=[{n:'Ben Elberger',r:'Analyst',a:'B',roleLinked:true},{n:'Suci Handini',r:'Finance',a:'S'},{n:'Ageng Aji',r:'Legal',a:'A'}];
-function setUser(u){var n=document.getElementById('topUserName');if(n)n.textContent=u.n;var r=document.getElementById('topUserRole');if(r)r.textContent=(u.roleLinked&&window.CUR_ROLE==='Head of Risk')?'Principal · IC Member':u.r;var a=document.getElementById('topUserAv');if(a)a.textContent=u.a;window.CUR_USER_OBJ=u;window.PJ_ROLE=u.r;window.CUR_USER=u.n;var rf=document.getElementById('roleField');if(rf)rf.style.display=u.roleLinked?'flex':'none';if(typeof updateProjectGates==='function')updateProjectGates();if(typeof lpRender==='function')lpRender();if(typeof tRender==='function')tRender();if(typeof paState!=='undefined'){paState.analyst=u.n;if(typeof ovRender==='function')ovRender('pa');}if(window.__analystFilterState){window.__analystFilterState['page-branch']=[u.n];window.__analystFilterState['page-kpbinding']=[u.n];}if(typeof applyDefaultAnalystFilters==='function')applyDefaultAnalystFilters();}
-function userMenu(e){e.stopPropagation();closePtpMenu();var m=document.createElement('div');m.className='ptp-menu';m.id='ptpMenu';m.style.minWidth='215px';USERS.forEach(function(u){var it=document.createElement('div');it.className='ptp-opt';it.innerHTML='<div style="font-weight:600;font-size:12.5px">'+esc(u.n)+'</div><div class="tiny muted">'+esc(u.r)+'</div>';it.addEventListener('click',function(ev){ev.stopPropagation();setUser(u);closePtpMenu();});m.appendChild(it);});var el=document.getElementById('topUser');var r=el.getBoundingClientRect();document.body.appendChild(m);m.style.left=Math.max(8,r.right+window.scrollX-215)+'px';m.style.top=(r.bottom+window.scrollY+6)+'px';setTimeout(function(){document.addEventListener('click',closePtpMenu,{once:true});},0);}
+function lpSubmitIC(id){if(!LP_DATA[id])return;if(typeof effRole==='function'&&effRole()!=='Analyst'){if(typeof wfToast==='function')wfToast('Not permitted','Only the primary analyst can submit a deal to IC.');return;}if(!confirm('Submit "'+LP_DATA[id].kp+'" to IC Credit Review?'))return;lpSetStatus(id,'IC');}
+/* Users can hold more than one role/capability (e.g. Ben is both an Analyst and on the
+   Investment Committee). "roles[0]" is the default active role on switching to that user;
+   the top-bar role pill only appears (and only offers) a user's own roles when they have
+   more than one. icTitle overrides the displayed role label while acting as that role
+   (used for Ben's "Principal · IC Member" standing on the Investment Committee). */
+var USERS=[
+  {n:'Ben Elberger',a:'B',roles:['Investment Committee','Analyst'],icTitle:'Principal · IC Member'},
+  {n:'Junaidi Junaidi',a:'J',roles:['Analyst','Investment Committee'],icTitle:'IC Member'},
+  {n:'Priska Ponggawa',a:'P',roles:['Analyst']},
+  {n:'Nila Layla Melinda',a:'N',roles:['Analyst']},
+  {n:'Wesly Simatupang',a:'W',roles:['Analyst']},
+  {n:'Hanny Aqmarina',a:'H',roles:['Analyst']},
+  {n:'Sharfina Nindita',a:'S',roles:['Analyst']},
+  {n:'Juang Angger Pamungkas',a:'J',roles:['Analyst']},
+  {n:'Armeno Devan',a:'A',roles:['Analyst']},
+  {n:'Aldi Haryopratomo',a:'H',roles:['Investment Committee'],icTitle:'IC Member'},
+  {n:'Suci Handini',a:'S',roles:['Finance']},
+  {n:'Ageng Aji',a:'G',roles:['Legal']}
+];
+/* A user's "active role" is whichever of their own roles[] they're currently acting as — the
+   role pill only ever offers that user's own roles (hidden entirely if they only have one),
+   replacing the old separate/independent Role switcher that let you pick any role regardless
+   of who was selected. */
+function roleLabelFor(u,role){return (u&&u.icTitle&&role==='Investment Committee')?u.icTitle:role;}
+function roleClassSync(role){document.body.classList.toggle('role-ic',role==='Investment Committee');document.body.classList.toggle('role-finance',role==='Finance');document.body.classList.toggle('role-analyst',role!=='Investment Committee');document.dispatchEvent(new CustomEvent('role:change',{detail:{role:role}}));}
+function paintRolePill(u,active){var rf=document.getElementById('roleField'),rs=document.getElementById('roleSwitch');if(!rf||!rs)return;if(!u.roles||u.roles.length<2){rf.style.display='none';return;}rf.style.display='flex';rs.setAttribute('data-fp-opts',u.roles.join('||'));rs.setAttribute('data-fp-val',active);rs.innerHTML='<span class="pill"><span class="pill-t">'+esc(active)+'</span></span>';}
+function setActiveRole(role){var u=window.CUR_USER_OBJ;if(!u||!u.roles||u.roles.indexOf(role)<0)return;window.PJ_ROLE=role;var r=document.getElementById('topUserRole');if(r)r.textContent=roleLabelFor(u,role);paintRolePill(u,role);roleClassSync(role);if(typeof updateProjectGates==='function')updateProjectGates();if(typeof lpRender==='function')lpRender();}
+function setUser(u){
+  var n=document.getElementById('topUserName');if(n)n.textContent=u.n;
+  var a=document.getElementById('topUserAv');if(a)a.textContent=u.a;
+  window.CUR_USER_OBJ=u;window.CUR_USER=u.n;
+  var active=(u.roles&&u.roles[0])||'Analyst';
+  window.PJ_ROLE=active;
+  var r=document.getElementById('topUserRole');if(r)r.textContent=roleLabelFor(u,active);
+  paintRolePill(u,active);
+  roleClassSync(active);
+  if(typeof updateProjectGates==='function')updateProjectGates();
+  if(typeof lpRender==='function')lpRender();
+  if(typeof tRender==='function')tRender();
+  if(typeof paState!=='undefined'){paState.analyst=u.n;if(typeof ovRender==='function')ovRender('pa');}
+  if(typeof applyDefaultAnalystFilters==='function')applyDefaultAnalystFilters();
+}
+function userMenu(e){e.stopPropagation();closePtpMenu();var m=document.createElement('div');m.className='ptp-menu';m.id='ptpMenu';m.style.minWidth='215px';USERS.forEach(function(u){var it=document.createElement('div');it.className='ptp-opt';it.innerHTML='<div style="font-weight:600;font-size:12.5px">'+esc(u.n)+'</div><div class="tiny muted">'+esc((u.roles||[]).join(' + '))+'</div>';it.addEventListener('click',function(ev){ev.stopPropagation();setUser(u);closePtpMenu();});m.appendChild(it);});var el=document.getElementById('topUser');var r=el.getBoundingClientRect();document.body.appendChild(m);m.style.left=Math.max(8,r.right+window.scrollX-215)+'px';m.style.top=(r.bottom+window.scrollY+6)+'px';setTimeout(function(){document.addEventListener('click',closePtpMenu,{once:true});},0);}
 lpRender();
+if(typeof leadsRender==='function')leadsRender();
+if(typeof portfolioRender==='function')portfolioRender();
 /* larger, scrollable editor for long/multiline fields */
 function inlineEditEl(el){if(el.querySelector('input,select,textarea'))return;var old=el.getAttribute('data-raw');if(old==null)old=el.textContent.trim();var memo=!!(el.closest&&el.closest('.kpmemo-tbl'));var multi=memo||el.classList.contains('block')||el.classList.contains('tagval')&&old.length>40||old.length>55;var inp=document.createElement(multi?'textarea':'input');if(!multi)inp.type='text';inp.value=old;inp.className='td-edit'+(multi?' td-edit-area':'');if(multi)inp.rows=memo?Math.min(14,Math.max(6,Math.ceil((old.length||120)/38))):Math.min(12,Math.max(4,Math.ceil((old.length||40)/38)));if(memo)inp.style.minHeight='120px';el.setAttribute('data-raw',old);el.innerHTML='';el.appendChild(inp);inp.focus();try{inp.select();}catch(e){}var done=false;function commit(){if(done)return;done=true;el.textContent=inp.value;el.setAttribute('data-raw',inp.value);el.classList.toggle('muted',!inp.value.trim());if(memo&&typeof window.__syncKpMemoCell==='function'){var tr=el.closest('tr'),tbl=el.closest('table');if(tr&&tbl&&tr.parentNode){var idx=[].indexOf.call(tr.parentNode.children,tr);window.__syncKpMemoCell(tbl,idx,inp.value);}}if(typeof window.__syncProjContactCellEdit==='function')window.__syncProjContactCellEdit(el,inp.value);}inp.addEventListener('blur',commit);inp.addEventListener('keydown',function(e){if(e.key==='Enter'&&!multi){e.preventDefault();inp.blur();}else if(e.key==='Escape'){done=true;el.textContent=old;}});}
 /* Contacts add-row with Key Person checkbox */
@@ -3797,7 +4007,7 @@ poRender();
   }
 
   /* ---------- cards ---------- */
-  var SKIP_PAGES={'page-los-project':1,'page-los-kp':1,'page-los-new':1,'page-targets':1,'page-los-pipeline':1,'page-branch':1,'page-visits':1,'page-actions':1,'page-revshare':1,'page-kpbinding':1,'page-onboarding':1,'page-support':1,'page-obj-projects':1,'page-obj-payors':1,'page-obj-pts':1,'page-obj-invoices':1};
+  var SKIP_PAGES={'page-los-project':1,'page-los-kp':1,'page-los-new':1,'page-targets':1,'page-los-pipeline':1,'page-portfolio':1,'page-branch':1,'page-visits':1,'page-actions':1,'page-revshare':1,'page-kpbinding':1,'page-onboarding':1,'page-support':1,'page-obj-projects':1,'page-obj-payors':1,'page-obj-pts':1,'page-obj-invoices':1};
   function pageId(el){var p=el.closest('.page');return p?p.id:'';}
   function bodyRows(t){
     var rows=[].slice.call(t.querySelectorAll('tbody>tr'));
@@ -4032,13 +4242,11 @@ poRender();
     if(typeof window.icCondSyncGate==='function')window.icCondSyncGate();
   };
   /* role switch */
-  window.CUR_ROLE=window.CUR_ROLE||'Analyst';window.CUR_USER_OBJ=window.CUR_USER_OBJ||(typeof USERS!=='undefined'?USERS[0]:null);
-  function setRole(r){window.CUR_ROLE=r;document.body.classList.toggle('role-hor',r==='Head of Risk');document.body.classList.toggle('role-analyst',r!=='Head of Risk');
-    document.body.classList.toggle('role-finance',r==='Finance');document.body.classList.toggle('role-ic',r==='IC');
-    var ru=window.CUR_USER_OBJ;if(ru&&ru.roleLinked){var rl=document.getElementById('topUserRole');if(rl)rl.textContent=(r==='Head of Risk')?'Principal \u00b7 IC Member':ru.r;}
-    try{if(typeof coRender==='function')coRender();}catch(e){}
-    try{if(typeof lpRender==='function')lpRender();}catch(e){}
-    document.dispatchEvent(new CustomEvent('role:change',{detail:{role:r}}));}
+  window.CUR_USER_OBJ=window.CUR_USER_OBJ||(typeof USERS!=='undefined'?USERS[0]:null);
+  window.PJ_ROLE=window.PJ_ROLE||((window.CUR_USER_OBJ&&window.CUR_USER_OBJ.roles)?window.CUR_USER_OBJ.roles[0]:'Analyst');
+  /* setRole kept as a thin alias to setActiveRole (defined earlier, near setUser) so any other
+     call sites in this file that still say setRole keep working. */
+  function setRole(r){if(typeof setActiveRole==='function')setActiveRole(r);try{if(typeof coRender==='function')coRender();}catch(e){}}
   window.setAppRole=setRole;
 
   /* Add Task */
@@ -4070,7 +4278,7 @@ poRender();
       });
     });
   }
-  function init(){enhanceFP();var rs=document.getElementById('roleSwitch');if(rs&&!rs.__rb){rs.__rb=1;rs.addEventListener('fp:change',function(ev){setRole(ev.detail.value);});}setRole(window.CUR_ROLE);initPrimSecGuard();}
+  function init(){enhanceFP();var rs=document.getElementById('roleSwitch');if(rs&&!rs.__rb){rs.__rb=1;rs.addEventListener('fp:change',function(ev){setActiveRole(ev.detail.value);});}var ru=window.CUR_USER_OBJ;if(ru&&typeof paintRolePill==='function')paintRolePill(ru,window.PJ_ROLE);if(typeof roleClassSync==='function')roleClassSync(window.PJ_ROLE);initPrimSecGuard();}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
   var tm;new MutationObserver(function(){clearTimeout(tm);tm=setTimeout(function(){enhanceFP();initPrimSecGuard();},80);}).observe(document.body,{childList:true,subtree:true});
 })();
@@ -4082,7 +4290,7 @@ poRender();
   function bump(view,status,delta){var card=view.querySelector('.card');if(!card)return;var heads=card.querySelectorAll('.group-head');for(var i=0;i<heads.length;i++){if(heads[i].textContent.indexOf(status)>=0){var c=heads[i].querySelector('.cnt');if(c){var n=parseInt(c.textContent,10)||0;c.textContent=(n+delta);}return;}}}
   function mirror(kp,decision,reason){var view=document.getElementById('act-aco');if(!view)return;var cand=null;view.querySelectorAll('.card tbody tr').forEach(function(r){if(cand)return;var p=r.querySelector('.proj');if(p&&p.textContent.trim()===kp.trim()&&/Retract/.test(r.textContent))cand=r;});if(!cand)return;var cells=cand.children;if(cells[4])cells[4].innerHTML='<span class="tiny">'+(decision==='Approved'?'Synced to BigQuery':'Rejected by Head of Risk')+'</span>';var tb=groupTbody(view,decision);if(tb)tb.appendChild(cand);bump(view,'Submitted',-1);bump(view,decision,1);}
   window.horDecide=function(btn,decision){
-    if(window.CUR_ROLE!=='Head of Risk'){alert('Only the Head of Risk can approve or reject. Switch role in the top bar.');return;}
+    if(window.PJ_ROLE!=='Investment Committee'){alert('Only the Investment Committee (Head of Risk) can approve or reject. Switch to a user/role on the IC in the top bar.');return;}
     var reason=prompt((decision==='Approved'?'Approval':'Rejection')+' reason (Head of Risk):');
     if(reason===null)return;
     var row=btn.closest('tr');var view=document.getElementById('act-ahor');
@@ -4101,7 +4309,11 @@ poRender();
 /* ===== Phase D: Board/Table view toggle ===== */
 (function(){
   var TARGET={
-    'page-los-pipeline':{modal:'ptpModal',note:true},
+    /* page-los-pipeline intentionally excluded: it's owned by LP_TABS/lpTableHTML now, which
+       already has its own Notes Feed inside each deal — this generic column was leftover from
+       before that restructure, and being a one-time DOMContentLoaded pass, it only ever
+       decorated the very first table render and never survived a tab switch (lpRender()
+       replaces the table node), which is exactly the "note appears, then disappears" bug. */
     'page-branch':{modal:'monModal',note:true},
     'page-visits':{modal:'monModal',note:true},
     'page-revshare':{modal:'ptpModal',note:true},
@@ -4360,7 +4572,7 @@ poRender();
 })();
 /* ===== LOS Submission: Status field (analyst-editable, Non-Lead/Early Lead/Funding Lead &amp; DD only) ===== */
 (function(){
-  var ALLOWED=['nonlead','early','funding'];
+  var ALLOWED=['nonlead','early','funding','dd'];
   function syncChip(){var c=document.getElementById('pjStatusChip');var s=STAT_BY[window.PJ_STATUS];if(c)c.textContent=s?s.t:(window.PJ_STATUS||'—');var pn=document.getElementById('pjProjNum');if(pn){var r=window.__curProjRow;var kp=(r&&r.kp)?r.kp:'this KP';var label=s?s.t:(window.PJ_STATUS||'—');pn.textContent='Project for '+kp+' ('+label+')';}var pb=document.getElementById('pjPullBackBtn');if(pb)pb.style.display=(window.PJ_STATUS==='IC')?'':'none';}
   window.pjStatusMenu=function(e){
     e.stopPropagation();closePtpMenu();
@@ -4385,16 +4597,40 @@ poRender();
   window.applyICLock=function(){
     var page=document.getElementById('page-los-project');if(!page)return;
     var appr=document.getElementById('apprSec');if(!appr)return;
-    var locked=(window.CUR_ROLE==='Head of Risk');
+    /* Only lock once the deal has actually reached IC review or later — a brand-new submission
+       (or any deal still at Non-Lead/Early Lead/Funding Lead/Due Diligence) has nothing "submitted"
+       yet to protect, so it must stay editable even if the current active role is Investment
+       Committee (e.g. right after clicking + New Submission while acting as IC). */
+    var curRow=window.__curProjRow||((window.__wfCurId!=null&&typeof LP_DATA!=='undefined')?LP_DATA[window.__wfCurId]:null);
+    var pastIC=curRow&&['ic','kpapproval','financesplit','legal','disbursement','active','restructured','completed'].indexOf(curRow.stage)>=0;
+    var locked=(window.PJ_ROLE==='Investment Committee')&&pastIC;
     var hint=document.getElementById('icLockHint');
     if(hint)hint.style.display=locked?'block':'none';
     var candidates=page.querySelectorAll('input,textarea,select,button,[data-fp],.editable,.tagval,.pillfield');
     candidates.forEach(function(el){
       if(el.closest('#apprSec'))return;
+      /* Page-chrome/navigation controls (back to list, collapse/expand all) aren't submission
+         data — they should never be lockable, in any role, at any stage. */
+      if(el.classList.contains('nav-only')||el.closest('.nav-only'))return;
+      /* Conditions Precedent/Subsequent controls have their own dedicated gate
+         (icCondSyncGate: analyst edits pre-submission, IC edits once submitted) —
+         applyICLock must not also lock them, or it fights that gate in the opposite
+         direction (it would grey them out for IC, who is supposed to be able to edit
+         them once the deal reaches IC Review). */
+      if(el.classList.contains('cond-edit-btn'))return;
       if(!isBeforeAppr(el,appr))return;
       if(locked){el.classList.add('ic-locked-field');}
       else{el.classList.remove('ic-locked-field');}
     });
+    /* Primary Analyst is frozen for everyone — not just IC — once the deal has been submitted
+       to IC Review. Reassigning the deal owner isn't an IC-vs-Analyst permission question, it's
+       a "can this still change at all past submission" question, so it doesn't follow the
+       role-based lock above; it locks purely off pastIC regardless of PJ_ROLE. */
+    var primaryEl=document.getElementById('pjPrimary');
+    if(primaryEl){
+      if(pastIC){primaryEl.classList.add('ic-locked-field');}
+      else{primaryEl.classList.remove('ic-locked-field');}
+    }
   };
   document.addEventListener('role:change',function(){if(typeof applyICLock==='function')applyICLock();});
   function init(){applyICLock();}
@@ -4976,7 +5212,7 @@ poRender();
 <script>
 /* ===== Deal Workflow engine: Analyst → IC → Finance(KF/KCF) → Legal → Finance(disburse) → Active ===== */
 (function(){
-  function effRole(){ var u=window.CUR_USER_OBJ; if(u&&u.roleLinked&&(window.CUR_ROLE==='Head of Risk'||window.CUR_ROLE==='IC'))return 'IC'; return window.PJ_ROLE||'Analyst'; }
+  function effRole(){ return window.PJ_ROLE==='Investment Committee'?'IC':(window.PJ_ROLE||'Analyst'); }
   window.wfEffRole=effRole;
   function dealSubTypes(r){
     if(r.subTypes&&r.subTypes.length)return r.subTypes;
@@ -4994,18 +5230,17 @@ poRender();
   function fmtNum(n){return (n===null||n===undefined||isNaN(n))?'':Number(n).toLocaleString('de-DE');}
   function parseNum(s){var n=Number((''+(s||'')).replace(/[^0-9]/g,''));return isNaN(n)?null:n;}
 
-  var ORDER=['draft','ic_review','finance_split','legal_sign','finance_disburse','active'];
+  var ORDER=['draft','ic_review','kp_approval','finance_split','legal_sign','finance_disburse','active'];
   function dealPhase(r){
     var c=r.statusCode,st=statusStage(c);
     if(st==='nonlead')return 'rejected';
     if(st==='completed')return 'completed';
-    if(st==='active')return 'active';
-    if(st==='ic'){
-      if(c==='4.1'||c==='6.1')return 'finance_split';
-      if(c==='4.2'||c==='6.2')return 'legal_sign';
-      if(c==='5'||c==='6.3'||c==='6.5')return 'finance_disburse';
-      return 'ic_review';
-    }
+    if(st==='active'||st==='restructured')return 'active';
+    if(c==='4.1'||c==='6.1')return 'finance_split';
+    if(c==='4.2'||c==='6.2')return 'legal_sign';
+    if(c==='5'||c==='6.3'||c==='6.5')return 'finance_disburse';
+    if(c==='4.05')return 'kp_approval';
+    if(st==='ic')return 'ic_review';
     return 'draft';
   }
   window.wfDealPhase=dealPhase;
@@ -5088,42 +5323,142 @@ poRender();
   window.wfSubmitIC=function(id){var r=LP_DATA[id];if(!r)return;
     if(effRole()!=='Analyst'){wfToast('Not permitted','Only the primary analyst can submit a deal to IC.');return;}
     if(!confirm('Submit "'+r.kp+'" to IC Credit Review?'))return;
+    markPushBackResubmitted(r);
     setStatus(id,'IC','IC Review · submitted '+today());refresh(id);
     wfToast('Submitted to IC','<b>'+esc(r.kp)+'</b> is now at IC Credit Review. The Head of Risk has been notified to vote.');
     notify('IC','New deal for IC review','<b>'+esc(r.kp)+'</b> submitted to IC Credit Review — awaiting your decision.');
   };
+  var DEMO_TODAY=new Date(2026,6,17);
+  /* ===== Term Sheet versioning: one version per IC-approval round that goes to the KP. A new
+     version is created each time IC approves (fresh submission, or a resubmission after the KP
+     countered). "Countered" pulls the deal back to Due Diligence to renegotiate (loops through IC
+     again); "Rejected" (KP rejected outright or ghosted) is terminal, -3. ===== */
+  function newTermSheetVersion(r){
+    if(!r.termSheetVersions)r.termSheetVersions=[];
+    var v=r.termSheetVersions.length+1;
+    var ver={v:v,amount:r.amount,note:r.termSheetNote||(v===1?'Initial terms':''),submittedDate:today(),decision:'Pending',decidedDate:null,reason:null};
+    r.termSheetVersions.push(ver);
+    r.kpApprovalEnteredAt=DEMO_TODAY.toISOString().slice(0,10);
+    r.termSheetNote=null;
+    return ver;
+  }
+  function curTermSheetVersion(r){var v=r.termSheetVersions;return (v&&v.length)?v[v.length-1]:null;}
+  window.kpApprovalDaysStale=function(r){
+    if(!r.kpApprovalEnteredAt)return 0;
+    return Math.floor((DEMO_TODAY.getTime()-new Date(r.kpApprovalEnteredAt).getTime())/86400000);
+  };
+  window.termSheetVersionsHTML=function(r){
+    var vers=r.termSheetVersions||[];
+    if(!vers.length)return '';
+    var decClass={Accepted:'chip c-green',Countered:'chip c-yellow',Rejected:'chip c-red',Pending:'chip c-gray'};
+    var rows='';
+    vers.forEach(function(ver,i){
+      var prev=vers[i-1];var amtChanged=prev&&prev.amount!==ver.amount;
+      rows+='<tr>'+
+        '<td>v'+ver.v+'</td>'+
+        '<td class="num"'+(amtChanged?' style="background:var(--yellow-bg);font-weight:600"':'')+'>'+esc(ver.amount)+'</td>'+
+        '<td>'+esc(ver.submittedDate)+'</td>'+
+        '<td><span class="'+(decClass[ver.decision]||'chip c-gray')+'">'+esc(ver.decision)+'</span></td>'+
+        '<td>'+(ver.decidedDate?esc(ver.decidedDate):'—')+'</td>'+
+        '<td>'+(ver.reason?esc(ver.reason):(ver.note?esc(ver.note):'—'))+'</td>'+
+        '</tr>';
+    });
+    return '<div style="margin-top:10px"><div class="tiny muted" style="font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Term Sheet History</div>'+
+      '<div class="tbl-scroll"><table style="min-width:520px"><thead><tr><th>Ver</th><th class="num">Amount</th><th>Submitted</th><th>Decision</th><th>Decided</th><th>Notes</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  };
+  /* ===== Push Back versioning: mirrors Term Sheet versioning — one entry each time IC pushes a
+     deal back to Due Diligence, recording why, and when (if ever) it was resubmitted to IC. ===== */
+  function newPushBackVersion(r,reason){
+    if(!r.pushBackHistory)r.pushBackHistory=[];
+    var v=r.pushBackHistory.length+1;
+    var ver={v:v,pushedBackDate:today(),reason:reason,resubmittedDate:null};
+    r.pushBackHistory.push(ver);
+    return ver;
+  }
+  function markPushBackResubmitted(r){
+    var h=r.pushBackHistory;if(!h||!h.length)return;
+    var last=h[h.length-1];if(!last.resubmittedDate)last.resubmittedDate=today();
+  }
+  window.pushBackHistoryHTML=function(r){
+    var h=r.pushBackHistory||[];
+    if(!h.length)return '';
+    var rows='';
+    h.forEach(function(x){
+      rows+='<tr><td>v'+x.v+'</td><td>'+esc(x.pushedBackDate)+'</td><td>'+esc(x.reason||'—')+'</td><td>'+(x.resubmittedDate?esc(x.resubmittedDate):'<span class="tiny muted">Not yet resubmitted</span>')+'</td></tr>';
+    });
+    return '<div style="margin-top:10px"><div class="tiny muted" style="font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px">Push Back History</div>'+
+      '<div class="tbl-scroll"><table style="min-width:420px"><thead><tr><th>Ver</th><th>Pushed Back</th><th>Reason</th><th>Resubmitted</th></tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  };
   window.wfApprove=function(id){var r=LP_DATA[id];if(!r)return;
-    if(effRole()!=='IC'){wfToast('Not permitted','Only the Head of Risk (Principal) can approve at IC. Switch role to Head of Risk.');return;}
+    if(effRole()!=='IC'){wfToast('Not permitted','Only Investment Committee members (or the Head of Risk Principal) can approve at IC. Switch role to Investment Committee.');return;}
     r.icDecidedWhen=today();
     if(isProjecty(r)){
-      setStatus(id,'4.1','Finance Split · IC approved '+today());refresh(id);
-      wfToast('→ Finance','IC approved <b>'+esc(r.kp)+'</b>. Sent to Finance to split the amount across KF and KCF.');
-      notify('Finance','Approved — needs KF/KCF split','<b>'+esc(r.kp)+'</b> was IC-approved. Split '+idr(dealAmt(r))+' across KF and KCF, then send to Legal.');
+      newTermSheetVersion(r);
+      setStatus(id,'4.05','KP Review · IC approved '+today());refresh(id);
+      wfToast('→ KP','IC approved <b>'+esc(r.kp)+'</b>. Share the terms with the KP, then record their decision here once they respond.');
+      notify('Analyst','Approved — share terms with KP','<b>'+esc(r.kp)+'</b> was IC-approved. Share the term sheet with the KP and record Accepted / Countered / Rejected once they respond.');
     } else {
       setStatus(id,'7.0','Active · plafond/buffer in effect '+today());refresh(id);
       wfToast('→ Active','IC approved <b>'+esc(r.kp)+'</b> (plafond/buffer only — no disbursement). It is now Active, skipping Finance & Legal.');
     }
   };
+  window.wfKPAccept=function(id){var r=LP_DATA[id];if(!r)return;
+    if(effRole()!=='Analyst'){wfToast('Not permitted','Only the primary analyst records the KP\'s decision.');return;}
+    if(!confirm('Confirm the KP accepted the term sheet for "'+r.kp+'"?'))return;
+    var ver=curTermSheetVersion(r);if(ver){ver.decision='Accepted';ver.decidedDate=today();}
+    setStatus(id,'4.1','Finance Split · KP accepted term sheet '+today());refresh(id);
+    wfToast('→ Finance','<b>'+esc(r.kp)+'</b> accepted the term sheet. Sent to Finance to split the amount across KF and KCF.');
+    notify('Finance','Approved — needs KF/KCF split','<b>'+esc(r.kp)+'</b> — KP accepted. Split '+idr(dealAmt(r))+' across KF and KCF, then send to Legal.');
+  };
+  window.wfKPCounter=function(id){var r=LP_DATA[id];if(!r)return;
+    if(effRole()!=='Analyst'){wfToast('Not permitted','Only the primary analyst records the KP\'s decision.');return;}
+    var note=prompt('What is the KP countering with? (required — IC will see this when the deal is resubmitted)');
+    if(note===null)return; note=note.trim();
+    if(!note){wfToast('Details required','Describe what the KP is countering with before pulling back.');return;}
+    var ver=curTermSheetVersion(r);if(ver){ver.decision='Countered';ver.decidedDate=today();ver.reason=note;}
+    r.termSheetNote=note;
+    setStatus(id,'3','Due Diligence · KP countered, renegotiating '+today());
+    r.icDecidedWhen=null;r.kf=null;r.kcf=null;r.signed=false;r.kpApprovalEnteredAt=null;
+    refresh(id);
+    wfToast('Pulled back','<b>'+esc(r.kp)+'</b> pulled back to Due Diligence to renegotiate. Resubmit to IC once new terms are agreed.');
+  };
+  window.wfKPReject=function(id){var r=LP_DATA[id];if(!r)return;
+    if(effRole()!=='Analyst'){wfToast('Not permitted','Only the primary analyst records the KP\'s decision.');return;}
+    var reason=prompt('Why is this closing out? (required — e.g. "KP rejected outright" or "No response in 30 days")');
+    if(reason===null)return; reason=reason.trim();
+    if(!reason){wfToast('Reason required','Record why this is being closed out before rejecting.');return;}
+    if(!confirm('Reject "'+r.kp+'" — this sets status to Rejected in Due Diligence and is final.'))return;
+    var ver=curTermSheetVersion(r);if(ver){ver.decision='Rejected';ver.decidedDate=today();ver.reason=reason;}
+    r.icDecidedWhen=null;
+    setStatus(id,'-3','Rejected — KP rejected/ghosted at term sheet stage '+today());refresh(id);
+    wfToast('Rejected','<b>'+esc(r.kp)+'</b> — KP rejected or went unresponsive. Status set to Rejected in Due Diligence.');
+  };
   window.wfReject=function(id){var r=LP_DATA[id];if(!r)return;
-    if(effRole()!=='IC'){wfToast('Not permitted','Only the Head of Risk can reject at IC.');return;}
-    if(!confirm('Reject \''+r.kp+'\' outright?\n\nThis sets status to -3. Rejected in Due Diligence. This is final and more terminal than Push Back — use Push Back instead if the deal just needs more diligence work.'))return;
+    if(effRole()!=='IC'){wfToast('Not permitted','Only Investment Committee members (or the Head of Risk) can reject at IC.');return;}
+    if(!confirm('Reject \''+r.kp+'\' outright?\n\nThis sets status to Rejected in Due Diligence. This is final and more terminal than Push Back — use Push Back instead if the deal just needs more diligence work.'))return;
     r.icDecidedWhen=null;
     setStatus(id,'-3','Rejected at IC Credit Review '+today());refresh(id);
-    wfToast('Rejected','<b>'+esc(r.kp)+'</b> was rejected at IC Credit Review \u2014 status set to <b>-3. Rejected in Due Diligence</b>.');
+    wfToast('Rejected','<b>'+esc(r.kp)+'</b> was rejected at IC Credit Review \u2014 status set to <b>Rejected in Due Diligence</b>.');
   };
-  /* ===== Item 22: Push Back — like Pull Back, but invoked by IC/Head of Risk directly from the
-     IC Review decision box. Sends the deal back to "3. Due Diligence" (not terminal) for further
-     diligence work, clearing the same IC-decision flags Pull Back clears, so it can be resubmitted
-     to IC through the normal Submit-to-IC flow. ===== */
+  /* ===== Item 22: Push Back \u2014 invoked by IC/Head of Risk directly from the IC Review decision
+     box. Sends the deal back to Due Diligence (not terminal) for further diligence work, clearing
+     the IC-decision flags, so it can be resubmitted to IC through the normal Submit-to-IC flow.
+     Only usable IC Review \u2192 Due Diligence \u2014 it only ever renders inside the ic_review phase box.
+     Each push-back is versioned (newPushBackVersion/pushBackHistoryHTML above) so the analyst and
+     IC can see why a deal bounced back and whether/when it was resubmitted. ===== */
   window.wfPushBack=function(id){var r=LP_DATA[id];if(!r)return;
-    if(effRole()!=='IC'){wfToast('Not permitted','Only the Head of Risk (Principal) can push back a deal at IC.');return;}
-    if(!confirm('Push back \''+r.kp+'\' to 3. Due Diligence?\n\nThis clears the IC decision, KF/KCF split, and signed-contract flags \u2014 the deal will need to be re-submitted to IC.'))return;
-    setStatus(id,'3','3. Due Diligence \u00b7 pushed back from IC '+today());
+    if(effRole()!=='IC'){wfToast('Not permitted','Only Investment Committee members (or the Head of Risk Principal) can push back a deal at IC.');return;}
+    var reason=prompt('Why is this going back to Due Diligence? (required \u2014 the analyst will see this)');
+    if(reason===null)return; reason=reason.trim();
+    if(!reason){wfToast('Reason required','Describe why this deal needs more diligence work before pushing back.');return;}
+    if(!confirm('Push back \''+r.kp+'\' to Due Diligence?\n\nThis clears the IC decision, KF/KCF split, and signed-contract flags \u2014 the deal will need to be re-submitted to IC.'))return;
+    newPushBackVersion(r,reason);
+    setStatus(id,'3','Due Diligence \u00b7 pushed back from IC '+today());
     r.icDecidedWhen=null;r.kf=null;r.kcf=null;r.signed=false;
     refresh(id);
     var sum=document.getElementById('icApprovalSummary');if(sum)sum.style.display='none';
     var body=document.getElementById('icApprovalBody');if(body)body.style.display='';
-    wfToast('Pushed back','<b>'+esc(r.kp)+'</b> was pushed back to <b>3. Due Diligence</b> for further diligence work before re-submission to IC.');
+    wfToast('Pushed back','<b>'+esc(r.kp)+'</b> was pushed back to <b>Due Diligence</b> \u2014 '+esc(reason)+'.');
   };
   window.wfSplitCalc=function(id){var r=LP_DATA[id];if(!r)return;
     var kfEl=document.getElementById('wfKf'),kcfEl=document.getElementById('wfKcf'),sumEl=document.getElementById('wfSplitSum'),btn=document.getElementById('wfSendLegalBtn');
@@ -5164,8 +5499,9 @@ poRender();
     try{renderApprovalState(id);}catch(e){}
     try{icCondSyncGate();}catch(e){}
     try{if(typeof updateTokenConditionPrecedent==='function')updateTokenConditionPrecedent();}catch(e){}
+    try{syncStatusChip(r);}catch(e){}
     var phase=dealPhase(r),role=effRole(),projecty=isProjecty(r);
-    var steps=projecty?[['draft','1. Submit Prep'],['ic_review','IC Review'],['finance_split','Finance Split'],['legal_sign','Legal'],['finance_disburse','Disbursement'],['active','Active']]
+    var steps=projecty?[['draft','1. Submit Prep'],['ic_review','IC Review'],['kp_approval','KP Review'],['finance_split','Finance Split'],['legal_sign','Legal'],['finance_disburse','Disbursement'],['active','Active']]
                       :[['draft','1. Submit Prep'],['ic_review','IC Review'],['active','Active']];
     var curIdx=ORDER.indexOf(phase);
     var h='<div class="wf-steps">';
@@ -5176,12 +5512,18 @@ poRender();
     var typeNote='<span class="tiny muted">('+dealSubTypes(r).join(' + ')+')</span>';
     if(phase==='draft'){
       h+= role==='Analyst'
-        ? box('wf-you','📤 Ready to submit '+typeNote,'As the analyst you can submit this deal to IC Credit Review once diligence is complete.','<button class="btn btn-primary" onclick="wfSubmitIC('+id+')">Submit to IC →</button>')
-        : box('','Awaiting analyst submission '+typeNote,'The primary analyst is still preparing this deal for IC.','');
+        ? box('wf-you','📤 Ready to submit '+typeNote,'As the analyst you can submit this deal to IC Credit Review once diligence is complete.','<button class="btn btn-primary" onclick="wfSubmitIC('+id+')">Submit to IC →</button>'+pushBackHistoryHTML(r))
+        : box('','Awaiting analyst submission '+typeNote,'The primary analyst is still preparing this deal for IC.',pushBackHistoryHTML(r));
     } else if(phase==='ic_review'){
       h+= role==='IC'
-        ? box('wf-you','⚖ Your IC decision','Approve to '+(projecty?'send to Finance for the KF/KCF split':'activate this plafond/buffer directly (no disbursement)')+', push back to Due Diligence for more work, or reject outright.','<div class="detail-actions"><button class="btn btn-green" onclick="wfApprove('+id+')">Approve</button> <button class="btn btn-amber" onclick="wfPushBack('+id+')">Push Back</button> <button class="btn btn-red" onclick="wfReject('+id+')">Reject</button></div>')
-        : box('','With IC — awaiting decision','Only the Head of Risk (Principal) can approve, push back, or reject at IC. Switch role to IC or Head of Risk to act.','');
+        ? box('wf-you','⚖ Your IC decision','Approve to '+(projecty?'send to Finance for the KF/KCF split':'activate this plafond/buffer directly (no disbursement)')+', push back to Due Diligence for more work, or reject outright.','<div class="detail-actions"><button class="btn btn-green" onclick="wfApprove('+id+')">Approve</button> <button class="btn btn-amber" onclick="wfPushBack('+id+')">Push Back</button> <button class="btn btn-red" onclick="wfReject('+id+')">Reject</button></div>'+pushBackHistoryHTML(r))
+        : box('','With IC — awaiting decision','Only the Head of Risk (Principal) can approve, push back, or reject at IC. Switch role to IC or Head of Risk to act.',pushBackHistoryHTML(r));
+    } else if(phase==='kp_approval'){
+      var staleD=kpApprovalDaysStale(r);
+      var staleWarn=staleD>=30?'<div class="wf-warn" style="margin-top:6px;color:var(--red-tx);font-weight:600">⚠ '+staleD+' days awaiting KP — past the 30-day limit, follow up or close this out.</div>':(staleD>=20?'<div class="tiny" style="margin-top:6px;color:var(--yellow-tx)">'+staleD+' days awaiting KP (30-day limit).</div>':'');
+      h+= role==='Analyst'
+        ? box('wf-you','🤝 Awaiting KP decision','IC approved these terms — share them with the KP, then record what they said.'+staleWarn,'<div class="detail-actions"><button class="btn btn-green" onclick="wfKPAccept('+id+')">KP Accepted →</button> <button class="btn btn-amber" onclick="wfKPCounter('+id+')">KP Countered</button> <button class="btn btn-red" onclick="wfKPReject('+id+')">KP Rejected / Ghosted</button></div>'+termSheetVersionsHTML(r))
+        : box('','With Analyst — awaiting KP'+staleWarn,'The primary analyst is sharing the IC-approved terms with the KP and will record Accepted / Countered / Rejected.',termSheetVersionsHTML(r));
     } else if(phase==='finance_split'){
       if(role==='Finance'){
         var inner='<div class="wf-split"><div class="wf-f"><label>KF amount</label><input id="wfKf" value="'+fmtNum(r.kf)+'" oninput="wfSplitCalc('+id+')" placeholder="Rp …"></div><div class="wf-f"><label>KCF amount</label><input id="wfKcf" value="'+fmtNum(r.kcf)+'" oninput="wfSplitCalc('+id+')" placeholder="Rp …"></div><div class="wf-sum" id="wfSplitSum"></div></div>';
@@ -5209,7 +5551,7 @@ poRender();
   window.renderApprovalState=function(id){
     var r=LP_DATA[id];var sum=document.getElementById('icApprovalSummary'),body=document.getElementById('icApprovalBody');if(!r||!sum||!body)return;
     var phase=dealPhase(r);
-    var approved=['finance_split','legal_sign','finance_disburse','active','completed'].indexOf(phase)>=0;
+    var approved=['kp_approval','finance_split','legal_sign','finance_disburse','active','completed'].indexOf(phase)>=0;
     if(!approved){sum.style.display='none';return;}
     var amt=dealAmt(r),big=amt>6000000000;
     var IC=[['Ben Elberger','Principal · IC Member'],['Aldi Haryopratomo','IC Member'],['Junaidi','IC Member']];
@@ -5227,24 +5569,10 @@ poRender();
   };
   window.backToPipeline=function(){try{if(typeof lpRender==='function')lpRender();}catch(e){}if(typeof showPage==='function')showPage('los-pipeline');var nb=document.querySelector('.nav-item[data-page="los-pipeline"]');if(nb){document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});nb.classList.add('active');}window.scrollTo(0,0);};
 
-  /* ===== Item 19: Pull Back — send the deal back to "3. Due Diligence" and reset any IC-review
-     flags (decision timestamp, KF/KCF split, signed-contracts flag) so it must go through the normal
-     Submit-to-IC → IC Review flow again. Destructive, so guarded by a confirm(). ===== */
-  window.pjPullBack=function(){
-    var id=window.__wfCurId;
-    var r=(id!=null&&typeof LP_DATA!=='undefined')?LP_DATA[id]:null;
-    if(!r){if(typeof wfToast==='function')wfToast('No project open','Open a project before pulling it back.');return;}
-    if(!confirm('Pull back "'+r.kp+'" to 3. Due Diligence?\n\nThis clears the IC decision, KF/KCF split, and signed-contract flags — the deal will need to be re-submitted to IC.'))return;
-    setStatus(id,'3','3. Due Diligence · pulled back '+today());
-    r.icDecidedWhen=null;
-    r.kf=null;
-    r.kcf=null;
-    r.signed=false;
-    refresh(id);
-    var sum=document.getElementById('icApprovalSummary');if(sum)sum.style.display='none';
-    var body=document.getElementById('icApprovalBody');if(body)body.style.display='';
-    wfToast('Pulled back','<b>'+esc(r.kp)+'</b> was pulled back to <b>3. Due Diligence</b>. It will need to go through IC review again.');
-  };
+  /* Note: the standalone "Pull Back" header button/pjPullBack() was removed — it duplicated
+     wfPushBack() below but without stage-scoping (it showed on every deal at every stage) or
+     proper role gating. wfPushBack() is the single, correctly-scoped mechanism: it only renders
+     inside the IC Review decision box, i.e. only usable IC Review → Due Diligence. */
 
   /* re-render workflow when role or user changes */
   document.addEventListener('role:change',function(){updateBell();if(window.__wfCurId!=null&&document.getElementById('page-los-project').classList.contains('visible'))renderWorkflow(window.__wfCurId);});
@@ -5262,7 +5590,15 @@ poRender();
   hook();
 
   /* ===== Todo 7: lock free status changes once a deal reaches IC / Finance / Legal / Active ===== */
-  function locked(r){return r&&['ic','active','completed'].indexOf(statusStage(r.statusCode))>=0;}
+  function locked(r){return r&&['ic','kpapproval','financesplit','legal','disbursement','active','restructured','completed'].indexOf(statusStage(r.statusCode))>=0;}
+  /* Keeps the Status chip's pointer cursor in sync with whether it's actually usable right
+     now — free status-picking only ever works while PJ_ROLE is Analyst and the deal hasn't
+     reached IC yet (see locked() + pjStatusMenu above/below). */
+  function syncStatusChip(r){
+    var chip=document.getElementById('pjStatusChip');
+    var canFreely=!!(r&&!locked(r)&&window.PJ_ROLE==='Analyst');
+    if(chip)chip.style.cursor=canFreely?'pointer':'default';
+  }
   if(typeof statusMenu==='function'){
     var _sm=statusMenu;
     window.statusMenu=statusMenu=function(e,id){var r=LP_DATA[id];
@@ -5273,6 +5609,7 @@ poRender();
     var _pm=window.pjStatusMenu;
     window.pjStatusMenu=function(e){var r=LP_DATA[window.__wfCurId];
       if(locked(r)){if(e&&e.stopPropagation)e.stopPropagation();wfToast('Status locked','This deal is in '+PLABEL[dealPhase(r)]+'. Analysts can\'t change status once it reaches IC — use the Deal Workflow actions below.');return;}
+      if(window.PJ_ROLE!=='Analyst'){if(e&&e.stopPropagation)e.stopPropagation();wfToast('Not permitted','Only the Analyst role can change status before IC Review. Switch role to Analyst.');return;}
       return _pm(e);};
   }
 
@@ -5931,7 +6268,7 @@ poRender();
     var me=(window.CUR_USER_OBJ&&window.CUR_USER_OBJ.n)||window.CUR_USER||'Ben Elberger';
     var rec={
       stage:'early', kp:'', project:'', type:'Project', asset:'Asset A', amount:'',
-      analyst:me, secondary:'— None —', status:'0. New Lead', statusCode:'0',
+      analyst:me, secondary:'— None —', status:'New Lead', statusCode:'0',
       sector:'', subSector:''
     };
     LP_DATA.push(rec);
