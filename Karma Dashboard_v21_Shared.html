@@ -1423,7 +1423,7 @@
 <!-- ============================================================ -->
 <section class="page visible" id="page-los-pipeline">
 <div class="page-head">
-<div><h1>LOS — Pipeline</h1><div class="page-sub">Deals actively in underwriting, from Due Diligence through Disbursement. Earlier prospecting lives in Leads. Shows every analyst's deals by default (so anyone can cover for a colleague) — narrow with the analyst filter if you want just your own.</div></div>
+<div><h1>LOS — Pipeline</h1></div>
 <div class="head-actions"><button class="btn btn-primary" onclick="newSubmissionCreate()">＋ New Submission</button></div>
 </div>
 <div class="lp-viewsw" id="lpViewSw" style="margin:0 0 12px"><button class="" onclick="lpSetView(&#39;table&#39;)">Table</button><button class="" onclick="lpSetView(&#39;board&#39;)">Board</button><button class="on" onclick="lpSetView(&#39;analytics&#39;)">Analytics</button></div>
@@ -1888,7 +1888,7 @@
 <div class="pd-card">
 <div class="los-sec-title pd-card-title">Karmapreneur Details</div>
 <div class="pd-kv">
-<div class="pd-kv-row"><div class="k">Project #</div><div class="v"><div id="pjProjNum">Project for Kaisar Factory (IC Credit Review)</div><div class="tiny">1 active</div><div class="tiny">0 completed</div><div class="tiny">0 before IC</div><div class="tiny">0 pending disbursement</div></div></div>
+<div class="pd-kv-row"><div class="k">Project #</div><div class="v"><div id="pjProjNum">Project for Kaisar Factory (IC Credit Review)</div><div class="tiny" id="pjStatActive">1 active</div><div class="tiny" id="pjStatCompleted">0 completed</div><div class="tiny" id="pjStatBeforeIC">0 before IC</div><div class="tiny" id="pjStatPending">0 pending disbursement</div></div></div>
 <div class="pd-kv-row"><div class="k">Referral Source <span class="finfo" data-tip="A Referral Source is attached to the KP. That referral source will populate on all future submissions for that KP.">i</span></div><div class="v"><div id="pjRefList" style="display:flex;flex-wrap:wrap;gap:8px;align-items:stretch"><div class="refc" style="flex: 0 1 auto; max-width: 280px; position: relative; cursor: pointer; padding-right: 22px;" data-contact-id="seed-pjref"><div class="refc-name" id="pjRefName">MARIO PANJI PRASETYA</div><div class="refc-sub" id="pjRefSub">Karmapreneur - Kaisar Factory</div><button type="button" class="refc-x" title="Remove as referral source" style="position: absolute; top: 4px; right: 4px; border-width: medium; border-style: none; border-color: currentcolor; border-image: none; background: transparent; color: var(--ink-400); cursor: pointer; font-size: 13px; line-height: 1; padding: 2px;">✕</button></div><button class="btn btn-sm ic-locked-field" id="pjRefAddBtn" onclick="addRefSource()" style="align-self:stretch;white-space:nowrap">＋ Add referral source</button></div></div></div>
 </div>
 </div>
@@ -1897,9 +1897,8 @@
 <div class="los-sec-title pd-card-title">Project Details</div>
 <div class="pd-rows">
 <div class="pd-row"><div class="k">Submission Type</div><div class="v"><div class="ms" id="subTypeMS"><span class="ms-opt sel" id="msProj" onclick="msToggle(this)">Project</span><span class="ms-opt" id="msPlafond" onclick="msToggle(this)">Plafond</span></div></div></div>
-<div class="proj-dep">
 <div class="pd-row"><div class="k">Sector / Sub-Sector</div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="ap-chip" id="pjSectorChip" onclick="event.stopPropagation();pjSectorMenu(event)"><span class="muted" id="pjSector">Select sector…</span> <span class="ptp-car">▾</span></span><span class="ap-chip" id="pjSubSectorChip" onclick="event.stopPropagation();pjSubSectorMenu(event)"><span class="muted" id="pjSubSector">Select sector first…</span> <span class="ptp-car">▾</span></span></div></div>
-<div class="pd-row"><div class="k">Asset Class / Syariah <span class="finfo" title="Asset Class sets the deal structure (A/D = branch or working-capital financing, B-I/B-PO = invoice/PO financing, C/E = equity-adjacent — hides most fields below). Syariah flags Sharia-compliant structuring (late fees route through ASN).">i</span></div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Asset Class A||Asset Class B - I||Asset Class B - PO||Asset Class C||Asset Class D||Asset Class E" data-fp-val="Asset Class A" data-fpd="1" id="pjAssetFp"><span class="pill"><span class="pill-t">Asset Class A</span></span></span><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Not Syariah||Syariah" data-fp-val="Not Syariah" data-fpd="1" id="syariahFp"><span class="pill"><span class="pill-t">Not Syariah</span></span></span></div></div>
+<div class="pd-row"><div class="k">Asset Class / Syariah <span class="finfo" title="Asset Class sets the deal structure (A/D = branch or working-capital financing, B-I/B-PO = invoice/PO financing, C/E = equity-adjacent — hides most fields below). Syariah flags Sharia-compliant structuring (late fees route through ASN).">i</span></div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Asset Class A||Asset Class B - I||Asset Class B - PO||Asset Class D" data-fp-val="Asset Class A" data-fpd="1" id="pjAssetFp"><span class="pill"><span class="pill-t">Asset Class A</span></span></span><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Not Syariah||Syariah" data-fp-val="Not Syariah" data-fpd="1" id="syariahFp"><span class="pill"><span class="pill-t">Not Syariah</span></span></span></div></div>
 <div class="pd-row" id="syariahNotesRow" style="display:none"><div class="k">Syariah Notes</div><div class="v"><textarea id="syariahNotes" maxlength="255" oninput="syariahCount()" placeholder="Syariah structure notes (max 255 characters)" style="width:100%;min-height:60px;border:1px solid var(--line);border-radius:8px;padding:7px 9px;font-family:inherit;font-size:12.5px;resize:vertical" class="ic-locked-field"></textarea><div class="tiny muted" id="syariahCountLbl" style="margin-top:2px">0 / 255</div></div></div>
 <div class="pd-row"><div class="k">Financing Type <span class="finfo" data-tip="How investors are repaid — options depend on Asset Class:
 • Daily Interest — Asset Class B-I / B-PO (PO/Invoice financing), accrues daily on the outstanding balance
@@ -1908,7 +1907,8 @@
 • Fixed Return + Revenue Share — blended structure (Asset Class A/D)
 • Profit Share — Asset Class C/E (equity-adjacent) only">i</span></div><div class="v" style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Revenue Share||Fixed Return||Fixed Return + Revenue Share||Daily Interest||Profit Share" data-fp-val="Revenue Share" data-fpd="1" id="pjFinType"><span class="pill"><span class="pill-t">Revenue Share</span></span></span><span class="finfo" id="warnFinTypeIcon" style="display:none;color:#b45309;border-color:#f59e0b;background:#fffbeb">⚠</span></div><div class="fg-flag warn tiny" id="warnFinType" style="display: none; margin-top: 6px; padding: 5px 8px;"></div></div>
 <div class="pd-row"><div class="k">Financing Use</div><div class="v"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="Branch Opening/Expansion||Branch Renovation||Rent-Only Financing||Factory Expansion||Moveable Asset Financing||Export Invoice Financing||Export PO Financing||Domestic Invoice Financing||Domestic PO Financing||Temp Financing||Previous Investor Buyout||Working Capital Financing||Movie/Concert||Agri Plot Growing||General Equity" data-fp-val="Branch Opening/Expansion" data-fpd="1" id="pjFinUse"><span class="pill"><span class="pill-t">Branch Opening/Expansion</span></span></span></div></div>
-<div class="pd-row"><div class="k">Requested Amount</div><div class="v" style="display:flex;align-items:center;gap:8px"><span class="cur-pill ic-locked-field" id="pjDetailsCur" onclick="pjDetailsCurToggle()">IDR</span><input id="pjDetailsAmt" oninput="pjDetailsAmtFmt(this)" placeholder="0" style="font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;width:200px" class="ic-locked-field"></div></div>
+<div class="proj-dep">
+<div class="pd-row"><div class="k">Requested Amount</div><div class="v" style="display:flex;align-items:center;gap:8px"><span class="pillfield-inline pd-fp-dd ic-locked-field" data-fp="single" data-fp-opts="IDR||USD" data-fp-val="IDR" data-fpd="1" id="pjDetailsCur"><span class="pill"><span class="pill-t">IDR</span></span></span><input id="pjDetailsAmt" oninput="pjDetailsAmtFmt(this)" placeholder="0" style="font:inherit;font-size:13px;border:1px solid var(--line);border-radius:8px;padding:6px 10px;width:200px" class="ic-locked-field"></div></div>
 </div>
 </div>
 </div>
@@ -1940,16 +1940,16 @@
 
 <td><span class="pillfield-inline ic-locked-field" data-fp="multi" data-fp-opts="P&amp;L||Balance Sheet||Cash flow projections" data-fp-val="" data-fpd="1"><span class="pill pill-add">＋</span></span></td><td><input class="plf-in ic-locked-field" id="plfPeriod" onchange="plfPeriodCalc()" type="month"></td><td><input class="plf-in ic-locked-field" id="plfMaxRev" readonly="" type="date"></td><td><textarea class="plf-in ic-locked-field" placeholder="Notes…" style="min-height:60px;width:100%;resize:vertical"></textarea></td>
 </tr>
-<tr>
-<td><div class="lstat">Current<span class="st-tag" style="color:var(--blue-tx)">Active</span></div><div class="sub">1 Apr 2024 – 1 Apr 2027 (260 days from today)</div></td>
-<td><span class="lim">Rp 12.000.000.000</span><div class="sub">Outstanding: Rp 6.000.000.000</div><div class="sub">Remaining: Rp 9.000.000.000</div></td>
-<td><span class="lim">Rp 12.000.000.000</span><div class="sub">Remaining: Rp 9.000.000.000</div></td>
-<td><span class="lim">Rp 0</span><div class="sub">Remaining: Rp 0</div></td>
-<td>—</td><td>—</td><td>31 Mar 2026</td><td>—</td>
+<tr id="plfCurRow">
+<td><div class="lstat">Current<span class="st-tag" style="color:var(--blue-tx)" id="plfCurStatusTag">Active</span></div><div class="sub" id="plfCurPeriod">1 Apr 2024 – 1 Apr 2027 (260 days from today)</div></td>
+<td><span class="lim" id="plfCurTotal">Rp 12.000.000.000</span><div class="sub" id="plfCurTotalOut">Outstanding: Rp 6.000.000.000</div><div class="sub" id="plfCurTotalRem">Remaining: Rp 9.000.000.000</div></td>
+<td><span class="lim" id="plfCurPO">Rp 12.000.000.000</span><div class="sub" id="plfCurPORem">Remaining: Rp 9.000.000.000</div></td>
+<td><span class="lim" id="plfCurWC">Rp 0</span><div class="sub" id="plfCurWCRem">Remaining: Rp 0</div></td>
+<td>—</td><td>—</td><td id="plfCurMaxReview">31 Mar 2026</td><td>—</td>
 </tr>
-<tr class="sup">
-<td><div class="lstat">Superseded</div><div class="sub">1 Jan 2022 – 31 Mar 2024</div></td>
-<td><span class="lim">Rp 10.000.000.000</span></td><td><span class="lim">Rp 10.000.000.000</span></td><td><span class="lim">Rp 0</span></td>
+<tr class="sup" id="plfSupRow">
+<td><div class="lstat">Superseded</div><div class="sub" id="plfSupPeriod">1 Jan 2022 – 31 Mar 2024</div></td>
+<td><span class="lim" id="plfSupTotal">Rp 10.000.000.000</span></td><td><span class="lim" id="plfSupPO">Rp 10.000.000.000</span></td><td><span class="lim" id="plfSupWC">Rp 0</span></td>
 <td>—</td><td>—</td><td>—</td><td>—</td>
 </tr>
 </tbody>
@@ -1969,9 +1969,9 @@
 <tr data-cf="slik"><td class="fld">SLIK File</td><td class="noedit" data-raw="Missing ⚠️">Missing ⚠️</td></tr>
 <tr data-cf="reqslik"><td class="fld">Request SLIK Check</td><td><button class="btn btn-sm ic-locked-field" onclick="reqSlikContact(this)">Request SLIK Check</button></td></tr>
 <tr data-cf="lastslik"><td class="fld">Last SLIK Check</td><td class="editable muted ic-locked-field" data-raw="">—</td></tr>
-<tr data-cf="ubo"><td class="fld">UBO Exposure <span class="tiny muted">(connected KPs)</span></td><td class="noedit" id="uboExposureCell"><div><span class="kp-link" data-open="los-kp" style="cursor:pointer;color:var(--primary);text-decoration:underline">Cahaya Energi Asia</span> — Rp 6,000 mn</div><div><span class="kp-link" data-open="los-kp" style="cursor:pointer;color:var(--primary);text-decoration:underline">PT Semesta Energi Services</span> — Rp 6,846.2 mn</div><div class="tiny muted" style="margin-top:4px">Total outstanding: <b>Rp 12,846.2 mn</b></div></td></tr>
+<tr data-cf="ubo"><td class="fld">UBO Exposure <span class="tiny muted">(connected KPs)</span></td><td class="noedit" id="uboExposureCell"><div><span class="kp-link" data-open="los-kp" style="cursor:pointer;color:var(--primary);text-decoration:underline">Cahaya Energi Asia</span> — Rp 6,000 mn</div><div class="tiny muted" style="margin-top:4px">Total outstanding: <b>Rp 6,000 mn</b></div></td></tr>
 <tr data-cf="wa"><td class="fld">WA #</td><td class="editable ic-locked-field" data-raw="+62 812-3456-7890">+62 812-3456-7890</td></tr>
-<tr data-cf="email"><td class="fld">Email</td><td class="editable ic-locked-field" data-raw="finance@cahayaenergi.co.id">finance@cahayaenergi.co.id</td></tr>
+<tr data-cf="email"><td class="fld">Email</td><td class="editable ic-locked-field" id="pjContactEmail" data-raw="finance@cahayaenergi.co.id">finance@cahayaenergi.co.id</td></tr>
 </tbody></table></div>
 <button class="btn ic-locked-field" onclick="addProjContact()" style="width:44px;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;line-height:1" title="Add contact">＋</button>
 </div>
@@ -1980,47 +1980,53 @@
 <div class="tbl-scroll"><table class="recap-tbl" style="min-width:600px">
 <thead><tr>
 <th class="fld">FIELD</th>
-<th>Cahaya Energi Asia - Aztech #1<div><span class="chip c-blue">Proposed</span></div></th>
+<th><span id="recapProjHeader">Cahaya Energi Asia - Aztech #1</span><div><span class="chip c-blue">Proposed</span></div></th>
+<th id="recapPastHeaderTh"><span id="recapPastHeader">—</span><div><span class="chip c-gray" id="recapPastBadge">N/A</span></div></th>
 </tr></thead>
 <tbody>
-<tr class="sec"><td colspan="2">A — Identity &amp; Structure</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Financing type</td><td><span class="chip c-orange" id="recapFinTypeChip">Fixed Return</span></td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">PT (legal entity)<div class="sub">Same PT = shared liability exposure</div></td><td>PT Cahaya Energi Asia</td></tr>
-<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Financing Use <span class="finfo" title="What the financing is for. Options are filtered by the selected Asset Class (e.g. Asset A offers Branch Opening/Expansion; Asset B offers Domestic/Export Invoice or PO Financing).">i</span></td><td><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Branch Opening/Expansion||Branch Renovation||Rent-Only Financing||Factory Expansion||Moveable Asset Financing||Temp Financing||Previous Investor Buyout||Agri Plot Growing||General Equity" data-fp-val="Domestic PO Financing" data-fpd="1" id="pjFinUseFp"><span class="pill"><span class="pill-t">Domestic PO Financing</span></span></span></td></tr>
-<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Requested Project Amount <span class="finfo" title="Amount being financed for this project. Converts to IDR at a fixed illustrative JISDOR rate when entered in USD. Drives Bank Account Controls tier and other amount-based conditions.">i</span></td><td><span class="cur-pill pillfield-inline ic-locked-field" data-cur="IDR" data-fp="single" data-fp-opts="IDR||USD" data-fp-val="IDR" data-fpd="1" id="pjReqCur">IDR</span> <input id="pjReqAmt" oninput="pjReqFmt(this)" placeholder="Amount" style="font:inherit;border:1px solid var(--line);border-radius:6px;padding:3px 7px;width:170px" value="6,000,000,000" class="ic-locked-field"><span class="tiny muted" id="pjReqConv"></span></td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Principal outstanding<div class="sub">N/A if not disbursed or fully repaid</div></td><td class="muted">N/A — not yet disbursed</td></tr>
-<tr class="sec"><td colspan="2">B — Return Structure</td></tr><tr data-rtypes="rev" style=""><td class="fld">Revenue Share<div class="sub">Pre-BEP / Post-BEP %</div></td><td class="muted">N/A <span class="sub">(not a revenue-share deal)</span></td></tr><tr data-rtypes="rev" style=""><td class="fld">Cap<div class="sub">Return / time cap</div></td><td class="muted">N/A</td></tr>
-<tr data-rtypes="fixed" style="display: none;"><td class="fld">Fixed amount / repayment<div class="sub">Fixed Return = full schedule · Daily Interest = interest accrual</div></td><td class="muted">— <span class="sub">(daily interest, not a fixed schedule)</span></td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Target carry<div class="sub">Rate + type</div></td><td>0.6% per 30 days<div class="sub">service fee</div></td></tr>
-<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Karma Carry / Monitoring Fee <span class="finfo" title="Karma&#39;s carry, as ROIC target — converted to revenue share, or fixed as % of disbursed and repaid for Invoice/PO/Working Capital financing. Minimum negotiable rate depends on amount raised and whether this is a 1st or 2nd+ project for the Karmapreneur&#39;s Brand.">i</span></td><td><span id="pjCarry">6.5%</span> <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="1st Project||2nd+ Project" data-fp-val="1st Project" data-fpd="1" id="pjProjOrderFp"><span class="pill"><span class="pill-t">1st Project</span></span></span><div class="fg-flag warn tiny" id="warnCarry" style="display:none;margin-top:6px;padding:5px 8px"></div></td></tr>
-<tr data-rtypes="fixed daily" style="display: none;"><td class="fld">Fixed payment investor ROIC<div class="sub">⚠️ Unit differs by type — Daily Interest shown per 30 days</div></td><td>1.6% per 30 days<div class="sub">to investors</div></td></tr>
-<tr data-rtypes="fixed daily" style="display: none;"><td class="fld">Fixed payment total implied ROIC<div class="sub">Investor rate + carry · same unit caveat</div></td><td>2.2% per 30 days<div class="sub">investor + service fee</div></td></tr>
-<tr class="sec"><td colspan="2">C — Timeline &amp; Operations</td></tr><tr data-rtypes="rev fixed" style=""><td class="fld">Branch Opening<div class="sub">Scheduled / actual vs disbursement</div></td><td class="muted">N/A <span class="sub">(no branch component)</span></td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Term<div class="sub">Months for Rev Share / Fixed · Days for Daily Interest</div></td><td id="pjTerm">90 days<div class="fg-flag warn tiny" id="warnTenor" style="display: block; margin-top: 6px; padding: 5px 8px;">⚠️ target Tenor is 3–5 years (current: undefined).</div></td></tr>
+<tr class="sec"><td colspan="3">A — Identity &amp; Structure</td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">Financing type</td><td><span class="chip c-orange" id="recapFinTypeChip">Fixed Return</span></td><td><span class="chip c-gray" id="recapPastFinTypeChip">—</span></td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">PT (legal entity)<div class="sub">Same PT = shared liability exposure</div></td><td id="recapPtName">PT Cahaya Energi Asia</td><td><span class="chip c-gray" id="recapPastPtName">—</span></td></tr>
+<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Financing Use <span class="finfo" title="Mirrors the Financing Use selected in Project Details above — not independently editable here.">i</span></td><td><span class="chip c-orange" id="recapFinUseChip">Domestic PO Financing</span></td><td><span class="chip c-gray" id="recapPastFinUseChip">—</span></td></tr>
+<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Requested Project Amount <span class="finfo" title="Mirrors the Requested Amount selected in Project Details above — not independently editable here.">i</span></td><td><span class="chip c-orange" id="recapReqAmtChip">IDR 6,000,000,000</span></td><td><span class="chip c-gray" id="recapPastReqAmtChip">—</span></td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">Principal outstanding<div class="sub">N/A if not disbursed or fully repaid</div></td><td class="muted">N/A — not yet disbursed</td><td class="muted" id="recapPastPrincipal">—</td></tr>
+<tr class="sec"><td colspan="3">B — Return Structure</td></tr><tr data-rtypes="rev" style=""><td class="fld">Revenue Share<div class="sub">Pre-BEP / Post-BEP %</div></td><td class="muted">N/A <span class="sub">(not a revenue-share deal)</span></td><td class="muted">—</td></tr><tr data-rtypes="rev" style=""><td class="fld">Cap<div class="sub">Return / time cap</div></td><td class="muted">N/A</td><td class="muted">—</td></tr>
+<tr data-rtypes="fixed" style="display: none;"><td class="fld">Fixed amount / repayment<div class="sub">Fixed Return = full schedule · Daily Interest = interest accrual</div></td><td class="muted">— <span class="sub">(daily interest, not a fixed schedule)</span></td><td class="muted">—</td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">Target carry<div class="sub">Rate + type</div></td><td>0.6% per 30 days<div class="sub">service fee</div></td><td class="muted">—</td></tr>
+<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Karma Carry / Monitoring Fee <span class="finfo" title="Karma&#39;s carry, as ROIC target — converted to revenue share, or fixed as % of disbursed and repaid for Invoice/PO/Working Capital financing. Minimum negotiable rate depends on amount raised and whether this is a 1st or 2nd+ project for the Karmapreneur&#39;s Brand.">i</span></td><td><span id="pjCarry">6.5%</span> <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="1st Project||2nd+ Project" data-fp-val="1st Project" data-fpd="1" id="pjProjOrderFp"><span class="pill"><span class="pill-t">1st Project</span></span></span><div class="fg-flag warn tiny" id="warnCarry" style="display:none;margin-top:6px;padding:5px 8px"></div></td><td class="muted">—</td></tr>
+<tr data-rtypes="fixed daily" style="display: none;"><td class="fld">Fixed payment investor ROIC<div class="sub">⚠️ Unit differs by type — Daily Interest shown per 30 days</div></td><td>1.6% per 30 days<div class="sub">to investors</div></td><td class="muted">—</td></tr>
+<tr data-rtypes="fixed daily" style="display: none;"><td class="fld">Fixed payment total implied ROIC<div class="sub">Investor rate + carry · same unit caveat</div></td><td>2.2% per 30 days<div class="sub">investor + service fee</div></td><td class="muted">—</td></tr>
+<tr class="sec"><td colspan="3">C — Timeline &amp; Operations</td></tr><tr data-rtypes="rev fixed" style=""><td class="fld">Branch Opening<div class="sub">Scheduled / actual vs disbursement</div></td><td class="muted">N/A <span class="sub">(no branch component)</span></td><td class="muted">—</td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">Term<div class="sub">Months for Rev Share / Fixed · Days for Daily Interest</div></td><td id="pjTerm">90 days<div class="fg-flag warn tiny" id="warnTenor" style="display: block; margin-top: 6px; padding: 5px 8px;">⚠️ target Tenor is 3–5 years (current: undefined).</div></td><td class="muted">—</td></tr>
 
-<tr data-rtypes="daily" style="display: none;"><td class="fld">Minimum payment period<div class="sub">Shown if any project in this set is Daily Interest</div></td><td>45 days</td></tr>
-<tr class="sec"><td colspan="2">D — Performance Metrics</td></tr><tr data-rtypes="rev fixed" style=""><td class="fld">PvA<div class="sub">Projected vs actual revenue</div></td><td class="muted">N/A — not yet started</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">IRR<div class="sub">OTF and original projected</div></td><td class="muted" id="pjIRR">OTF N/A — not yet started<div class="pos">18.5% projected</div><div class="fg-flag warn tiny" id="warnIRR" style="display:none;margin-top:6px;padding:5px 8px"></div></td></tr>
+<tr data-rtypes="daily" style="display: none;"><td class="fld">Minimum payment period<div class="sub">Shown if any project in this set is Daily Interest</div></td><td>45 days</td><td class="muted">—</td></tr>
+<tr class="sec"><td colspan="3">D — Performance Metrics</td></tr><tr data-rtypes="rev fixed" style=""><td class="fld">PvA<div class="sub">Projected vs actual revenue</div></td><td class="muted">N/A — not yet started</td><td class="muted">—</td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">IRR<div class="sub">OTF and original projected</div></td><td class="muted" id="pjIRR">OTF N/A — not yet started<div class="pos">18.5% projected</div><div class="fg-flag warn tiny" id="warnIRR" style="display:none;margin-top:6px;padding:5px 8px"></div></td><td class="muted">—</td></tr>
 
-<tr data-rtypes="rev fixed daily"><td class="fld">MOIC<div class="sub">OTF and original projected · OTF not available from LMS</div></td><td class="muted">OTF N/A<div>1.05x projected</div></td></tr>
-<tr data-rtypes="rev fixed" style=""><td class="fld">BEP<div class="sub">N/A for Daily Interest instruments</div></td><td id="pjBEPDisplay">Month 2 projected<div class="fg-flag warn tiny" id="warnBEP" style="display:none;margin-top:6px;padding:5px 8px"></div></td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">MOIC<div class="sub">OTF and original projected · OTF not available from LMS</div></td><td class="muted">OTF N/A<div>1.05x projected</div></td><td class="muted">—</td></tr>
+<tr data-rtypes="rev fixed" style=""><td class="fld">BEP<div class="sub">N/A for Daily Interest instruments</div></td><td id="pjBEPDisplay">Month 2 projected<div class="fg-flag warn tiny" id="warnBEP" style="display:none;margin-top:6px;padding:5px 8px"></div></td><td class="muted">—</td></tr>
 
-<tr data-rtypes="rev fixed daily"><td class="fld">DPD<div class="sub">Max days ever past due + incident history</div></td><td class="muted">N/A — not yet disbursed</td></tr>
-<tr class="sec"><td colspan="2">F — Payment Mechanics</td></tr><tr data-rtypes="rev" style=""><td class="fld">Revenue Projections<div class="sub">Avg / peak / floor per month</div></td><td class="muted">N/A</td></tr><tr data-rtypes="rev" style=""><td class="fld">Source of Revenue Accrued</td><td class="muted">N/A</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Payment frequency<div class="sub">Rev Share: 3 sub-lines · Fixed: monthly only</div></td><td>At maturity (bullet repayment)</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Late fee<div class="sub">⚠️ Basis · Grace · Rate to investor / ASN</div></td><td>Basis: Overdue Amount <span class="sub" style="color:var(--yellow-tx)">(⚠ differs from default Outstanding Principal)</span><div class="sub" style="color:var(--yellow-tx)">Grace: 5 days (⚠ default 0 for this type)</div><div class="sub">To investors 0.1%/day · To ASN 0.0%/day</div></td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">DPD<div class="sub">Max days ever past due + incident history</div></td><td class="muted">N/A — not yet disbursed</td><td class="muted">—</td></tr>
+<tr class="sec"><td colspan="3">F — Payment Mechanics</td></tr><tr data-rtypes="rev" style=""><td class="fld">Revenue Projections<div class="sub">Avg / peak / floor per month</div></td><td class="muted">N/A</td><td class="muted">—</td></tr><tr data-rtypes="rev" style=""><td class="fld">Source of Revenue Accrued</td><td class="muted">N/A</td><td class="muted">—</td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">Payment frequency<div class="sub">Rev Share: 3 sub-lines · Fixed: monthly only</div></td><td>At maturity (bullet repayment)</td><td class="muted">—</td></tr>
+<tr data-rtypes="rev fixed daily"><td class="fld">Late fee<div class="sub">⚠️ Basis · Grace · Rate to investor / ASN</div></td><td>Basis: Overdue Amount <span class="sub" style="color:var(--yellow-tx)">(⚠ differs from default Outstanding Principal)</span><div class="sub" style="color:var(--yellow-tx)">Grace: 5 days (⚠ default 0 for this type)</div><div class="sub">To investors 0.1%/day · To ASN 0.0%/day</div></td><td class="muted">—</td></tr>
 </tbody>
 </table></div>
 <div class="kvgrid" style="grid-template-columns:repeat(4,1fr);margin-top:12px">
-<div class="kv-box"><div class="k">Total Amount</div><div class="v">Rp 0</div><div class="s">Rp 6.000.000.000 <span style="font-size:0.85em">(including proposed)</span></div></div>
-<div class="kv-box"><div class="k">Outstanding</div><div class="v">Rp 0</div><div class="s">Rp 6.000.000.000 <span style="font-size:0.85em">(including proposed)</span></div></div>
-<div class="kv-box"><div class="k">Avg OTF IRR (Completed)</div><div class="v muted">—</div><div class="s">0 projects with OTF IRR</div></div>
-<div class="kv-box"><div class="k">Project Mix</div><div class="v" style="font-size:12.5px">1× Proposed<br>1× B-PO</div></div>
+<div class="kv-box"><div class="k">Total Amount</div><div class="v" id="recapTotalAmt">Rp 0</div><div class="s" id="recapTotalAmtSub"></div></div>
+<div class="kv-box"><div class="k">Outstanding</div><div class="v" id="recapOutstanding">Rp 0</div><div class="s" id="recapOutstandingSub"></div></div>
+<div class="kv-box"><div class="k">Avg OTF IRR (Completed)</div><div class="v muted" id="recapAvgIRR">—</div><div class="s" id="recapAvgIRRSub">0 projects with OTF IRR</div></div>
+<div class="kv-box"><div class="k">Project Mix</div><div class="v" id="recapProjectMix" style="font-size:12.5px">—</div></div>
 </div>
-<div class="footnote">⚠️ OTF MOIC and PvA are not currently available from the LMS Reporting Layer. Rows sorted: Proposed first, then by IC approval date (newest first). This is Project #1 for the KP — no past projects yet.</div>
-<div id="poSection" style="display: none;">
+<div class="card" id="recapAllWrap" style="margin-top:10px">
+<div style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;color:var(--ink-700)" onclick="recapToggleAll()"><span class="ptp-car" id="recapAllCaret">▾</span><span id="recapAllToggleLabel">View all projects</span></div>
+<div id="recapAllBody" style="display:none;border-top:1px solid var(--line);padding:2px 14px 10px">
+<div id="recapAllRows"></div>
+<div id="recapLoadMoreWrap" style="text-align:center;margin-top:6px;display:none"><button class="btn btn-sm" id="recapLoadMoreBtn" onclick="recapLoadMore()">Load more</button></div>
 </div>
-<div class="pd-card"><div class="los-sec-title pd-card-title">Payor / PO / Invoice Financing <span class="tiny muted">(Asset B only)</span></div>
+</div>
+<div class="footnote">⚠️ OTF MOIC and PvA are not currently available from the LMS Reporting Layer. Rows sorted: Proposed first, then by IC approval date (newest first). <span id="recapProjNumNote">This is Project #1 for the KP — no past projects yet.</span></div>
+<div class="pd-card" id="poSection" style="display: none;"><div class="los-sec-title pd-card-title">Payor / PO / Invoice Financing <span class="tiny muted">(Asset B only)</span></div>
 <div id="poInvoiceWrap"><div class="tbl-scroll"><table class="po-tbl" style="min-width:460px"><thead><tr><th class="fld">FIELD</th><th>PO 1</th></tr></thead><tbody><tr><td class="fld">PO Number <span class="finfo" data-tip="Reference number of the po being financed, from the underlying document.">i</span></td><td><input value="PO-AZTECH-DOM-2025-8841" onchange="poSet(0,&#39;num&#39;,this.value)"></td></tr><tr><td class="fld">PO Issue Date <span class="finfo" data-tip="Date the po was issued — start of the cashflow gap used in pricing.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;issue&quot;)">2025-10-15 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Expected Delivery Date <span class="finfo" data-tip="Expected delivery date of goods/services under the PO.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;delivery&quot;)">2026-01-20 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Expected Payment Date <span class="finfo" data-tip="Date the payer is expected to pay. Repayment due date defaults to this + 15 days.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;payment&quot;)">2026-02-12 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">PO Amount <span class="finfo" data-tip="Face value of the po. Karma finances up to the advance rate of this amount, capped by the Payer Limit.">i</span></td><td><span class="cur-pill" onclick="poCcyMenu(event,0)">IDR <span class="ptp-car">▾</span></span> <input value="6.000.000.000" onchange="poSet(0,&#39;amount&#39;,this.value)"></td></tr><tr><td class="fld">Payer (lookup — search or create) <span class="finfo" data-tip="The obligor who ultimately pays. Type a new name to add a payer to the lookup.">i</span></td><td><span class="ap-chip po-payer-chip" onclick="poPayerMenu(event,0)">Aztech Industries Berhad <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Payer Notes <span class="finfo" data-tip="Diligence notes on the payer — anchor relationship, documentation location, etc.">i</span></td><td><input value="Corporate PO anchor; diligence pack in GDrive." onchange="poSet(0,&#39;payerNotes&#39;,this.value)"></td></tr><tr><td class="fld">Payer Type <span class="finfo" data-tip="Payer category drives risk scoring. Tier-2 payers and regional governments add a pricing premium.">i</span></td><td><select onchange="poSet(0,&#39;payerType&#39;,this.value)"><option></option><option>Tier 1 BUMN</option><option selected="">Tier 1 Conglomerate/Private Company</option><option>National Government</option><option>Regional Government</option><option>Tier 2 BUMN</option><option>Tier 2 Conglomerate/Private Company</option><option>KP SME</option><option>Other SME</option><option>Tier 1 Foreign Government/Multi-Laterals</option><option>Tier 2 Foreign Government/Multi-Laterals</option></select></td></tr><tr><td class="fld">Strength of Payor <span class="finfo" data-tip="Auto-derived from Payer Type — Strength of Payor tiering used in pricing.">i</span></td><td><span class="ro">5: Tier 1 Payer</span></td></tr><tr><td class="fld">Payer's Payee Projects <span class="finfo" data-tip="Read-only — projects of the borrower (payee) this payer is linked to.">i</span></td><td><span class="ro po-payee-projects"><span class="tiny">Cahaya Energi Asia — Aztech #1 <span class="muted">(no linked submission on file)</span></span></span></td></tr><tr><td class="fld">History of Payer Paying On Time <span class="finfo" data-tip="Track record of this payer paying Karmapreneurs on time. Recurring on-time history lowers the rate; no history raises it.">i</span></td><td><span class="ap-chip po-hist-chip" onclick="poHistMenu(event,0)">1: No prior payment history from payer to Karmapreneur <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Payer Limit<div class="sub">uneditable — set in Payer Limit box below</div></td><td class="ro">Rp 20.000.000.000</td></tr><tr><td class="fld">PO Already Used<div class="sub">calculated</div></td><td class="calc">Rp 0</td></tr><tr><td class="fld">Remaining PO Financing Available<div class="sub">calculated</div></td><td class="avail-bad">Rp 4.800.000.000<div class="sub" style="color:var(--red-tx)">requested Rp 6.000.000.000 exceeds available</div></td></tr><tr><td class="fld">Repayment Due Date<div class="sub">default = expected payment/last payment + 15 days; editable</div></td><td><input type="date" value="2026-02-27" onchange="poSet(0,&#39;repayDue&#39;,this.value)" style=""></td></tr></tbody></table></div><button class="btn btn-sm po-add" onclick="poAddLine()">＋ Add PO (new column)</button><div class="po-limits"><div class="lrow">Payer Limit: <input value="Rp 20.000.000.000" onchange="poSetG(&#39;payerLimit&#39;,this.value)"> <span>(Rp 0 already used)</span><span>(Rp 20.000.000.000 remaining)</span> <span class="muted">{ total exposure to this payer across all projects: <b>Rp 0</b> }</span></div><div class="lrow">PO Limit: <input value="80" onchange="poSetG(&#39;advanceRate&#39;,this.value)" style="width:60px">% advance rate <span>(Rp 0 already used)</span><span>(Rp 4.800.000.000 remaining)</span> <span class="tiny muted">(PO limit: Rp 4.800.000.000)</span></div></div><div class="po-price"><b>Suggested investor pricing</b> <span class="tiny muted">per 30 days of principal outstanding, pro-rated daily</span><div class="adj">Standard starting rate (PO)<span class="d">1.70% /30d</span></div><label class="adj"><input type="checkbox" onchange="poAdj(&quot;karmaserve&quot;,this.checked)" title="Manually toggle"> KarmaServe + CFO-as-a-service<span class="d">-0.10% /30d</span></label><label class="adj"><input type="checkbox" disabled="" title="Auto-computed — locked"> Strength of Payer = 5: Tier 1 Payer <span class="tiny muted">— auto</span><span class="d">+0.10% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled="" title="Auto-computed — locked"> Expected cashflow gaps until due = Standard 2 <span class="tiny muted">— auto</span><span class="d">+0.15% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled="" title="Auto-computed — locked"> No prior payment history (Standard 1) <span class="tiny muted">— auto</span><span class="d">+0.10% /30d</span></label><label class="adj"><input type="checkbox" disabled="" title="Auto-computed — locked"> Recurring monthly, 3+ on-time (Standard 5) <span class="tiny muted">— auto</span><span class="d">-0.10% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled=""> Large PO Risk (≥ Rp 5 bn) — auto<span class="d">+0.15% /30d or kicker</span></label><div class="rate">≈ 2.10% per 30 days <span class="tiny muted">(min 1.7%)</span></div></div><div class="fg-flag warn">Large-ticket po (&gt; Rp 1 bn): enhanced payer diligence required before approval.</div><div class="fg-flag warn"><b>Large PO Risk</b> — this po is ≥ Rp 5 bn (applies even if Karma funds less). Payers apply extra scrutiny / audits on large pos, raising delay/default risk. Apply the risk premium via a higher rate (+0.15%/30d) <b>or</b> warrants/equity kicker — if a kicker, it is paid to ASN, not investors.</div><div class="footnote">1 repayment date is set · partial payment allowed before/on/after · interest charged only on the outstanding amount. Due date = expected last payment date on the po + 15 days. Partial payment is required earlier if any part of the po is paid earlier than due (see Denda).</div></div>
 </div>
 <div class="pd-card" id="scoringSec" style="display:none"><div class="los-sec-title pd-card-title">Diligence Scoring <span class="tiny muted">(shared — one set of scores for the whole submission, not per PO/Invoice)</span></div>
@@ -2084,11 +2090,11 @@
 <th>PT 2</th>
 <th class="pt-addcol" style="width:46px;text-align:center"><button class="btn btn-sm ic-locked-field" onclick="addPtCol()" title="Add column">＋</button></th>
 </tr></thead><tbody id="ptDetails">
-<tr><td class="fld">Name</td><td class="editable ic-locked-field" data-raw="PT Cahaya Energi Asia">PT Cahaya Energi Asia</td><td class="editable ic-locked-field" data-raw="PT Cahaya Energi Prima">PT Cahaya Energi Prima</td><td></td></tr>
-<tr><td class="fld">Projects</td><td><span class="pillfield-inline ic-locked-field" data-fp="lookup" data-fp-page="los-project" data-fp-val="Cahaya Energi Asia — Aztech #1" data-fpd="1"><span class="pill pill-lookup"><span class="pill-t">Cahaya Energi Asia — Aztech #1</span></span></span></td><td><span class="pillfield-inline ic-locked-field" data-fp="lookup" data-fp-page="los-project" data-fp-val="Cahaya Energi Asia — Aztech #1" data-fpd="1"><span class="pill pill-lookup"><span class="pill-t">Cahaya Energi Asia — Aztech #1</span></span></span></td><td></td></tr>
-<tr><td class="fld">Bank</td><td class="editable ic-locked-field" data-raw="Mandiri">Mandiri</td><td class="editable ic-locked-field" data-raw="BRI">BRI</td><td></td></tr>
-<tr><td class="fld">Account Number</td><td class="editable ic-locked-field" data-raw="1260011422085">1260011422085<span class="pt-flag-ic finfo" data-tip="Account Number differs from a prior project for this PT." style="margin-left: 6px; color: rgb(180, 83, 9); border-color: rgb(245, 158, 11); background: rgb(255, 251, 235);">⚠</span></td><td class="editable ic-locked-field" data-raw="9988001122334">9988001122334<span class="pt-flag-ic finfo" data-tip="Account Number differs from a prior project for this PT." style="margin-left: 6px; color: rgb(180, 83, 9); border-color: rgb(245, 158, 11); background: rgb(255, 251, 235);">⚠</span></td><td></td></tr>
-<tr><td class="fld">Accountholder Name</td><td class="editable ic-locked-field" data-raw="PT Cahaya Energi Asia">PT Cahaya Energi Asia</td><td class="editable ic-locked-field" data-raw="Ir. Bambang Hanifa">Ir. Bambang Hanifa<span class="pt-flag-ic finfo" data-tip="Accountholder Name ≠ PT Name" style="margin-left: 6px; color: rgb(180, 83, 9); border-color: rgb(245, 158, 11); background: rgb(255, 251, 235);">⚠</span></td><td></td></tr>
+<tr><td class="fld">Name</td><td class="editable ic-locked-field" id="ptName1" data-raw="PT Cahaya Energi Asia">PT Cahaya Energi Asia</td><td class="editable ic-locked-field" data-raw="PT Cahaya Energi Prima">PT Cahaya Energi Prima</td><td></td></tr>
+<tr><td class="fld">Projects</td><td><span class="pillfield-inline ic-locked-field" data-fp="lookup" data-fp-page="los-project" data-fp-val="Cahaya Energi Asia — Aztech #1" data-fpd="1" id="ptProj1"><span class="pill pill-lookup"><span class="pill-t">Cahaya Energi Asia — Aztech #1</span></span></span></td><td><span class="pillfield-inline ic-locked-field" data-fp="lookup" data-fp-page="los-project" data-fp-val="Cahaya Energi Asia — Aztech #1" data-fpd="1"><span class="pill pill-lookup"><span class="pill-t">Cahaya Energi Asia — Aztech #1</span></span></span></td><td></td></tr>
+<tr><td class="fld">Bank</td><td class="editable ic-locked-field" id="ptBank1" data-raw="Mandiri">Mandiri</td><td class="editable ic-locked-field" data-raw="BRI">BRI</td><td></td></tr>
+<tr><td class="fld">Account Number</td><td class="editable ic-locked-field" id="ptAccount1" data-raw="1260011422085">1260011422085</td><td class="editable ic-locked-field" data-raw="9988001122334">9988001122334<span class="pt-flag-ic finfo" data-tip="Account Number differs from a prior project for this PT." style="margin-left: 6px; color: rgb(180, 83, 9); border-color: rgb(245, 158, 11); background: rgb(255, 251, 235);">⚠</span></td><td></td></tr>
+<tr><td class="fld">Accountholder Name</td><td class="editable ic-locked-field" id="ptHolder1" data-raw="PT Cahaya Energi Asia">PT Cahaya Energi Asia</td><td class="editable ic-locked-field" data-raw="Ir. Bambang Hanifa">Ir. Bambang Hanifa<span class="pt-flag-ic finfo" data-tip="Accountholder Name ≠ PT Name" style="margin-left: 6px; color: rgb(180, 83, 9); border-color: rgb(245, 158, 11); background: rgb(255, 251, 235);">⚠</span></td><td></td></tr>
 <tr><td class="fld">Request for SLIK-PT Check</td><td><button class="btn btn-sm ic-locked-field" onclick="reqSlikPt(this)">Request SLIK-PT Check</button><div class="tiny muted" style="margin-top:4px">Not yet requested</div></td><td><button class="btn btn-sm ic-locked-field" onclick="reqSlikPt(this)">Request SLIK-PT Check</button><div class="tiny muted" style="margin-top:4px">Not yet requested</div></td><td></td></tr>
 <tr><td class="fld">SLIK-PT File URL</td><td><span class="chip c-red" style="font-size:10px">File Missing ⚠️</span><div class="tiny muted" style="margin-top:4px">Editable by Legal only</div></td><td><span class="chip c-red" style="font-size:10px">File Missing ⚠️</span><div class="tiny muted" style="margin-top:4px">Editable by Legal only</div></td><td></td></tr>
 <tr><td class="fld">SLIK-PT Exec Summary</td><td class="editable ic-locked-field" data-raw="SLIK-PT performing (prototype)" style="white-space:normal;min-width:180px">SLIK-PT performing (prototype)</td><td class="editable ic-locked-field" data-raw="Sister entity — co-borrower on Aztech #1 tranche; SLIK-PT pending (prototype)" style="white-space:normal;min-width:180px">Sister entity — co-borrower on Aztech #1 tranche; SLIK-PT pending (prototype)</td><td></td></tr>
@@ -2904,149 +2910,60 @@ var PHASE_ORDER=['IC Review','Finance Split','Legal','Finance Disbursement'];
 function statusStage(code){var s=STAT_BY[code];return s?s.stage:'early';}
 function statusText(code){var s=STAT_BY[code];return s?s.t:code;}
 var LP_DATA=[
- {stage:'early',kp:'Kaisar Factory',project:'Kaisar Factory — Working Capital Lead',type:'Project',asset:'Asset A',amount:'IDR 1.200.000.000',analyst:'Ben Elberger',status:'Early Lead · added 2 Jul 2026'},
- {stage:'early',kp:'Geoff Max',project:'Geoff Max — Inventory Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 800.000.000',analyst:'Nila Layla Melinda',status:'Early Lead · added 28 Jun 2026'},
- {stage:'early',kp:'Regen',project:'Regen — Cold Brew Line',type:'Project',asset:'Asset A',amount:'IDR 1.750.000.000',analyst:'Ben Elberger',status:'Early Lead · call booked'},
- {stage:'funding',kp:'Twalen Spirits',project:'Twalen Spirits #1 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 900.000.000',analyst:'Ben Elberger',status:'DD in progress · SLIK pending'},
- {stage:'funding',kp:'Scuto',project:'Scuto #7 — Ciputat',type:'Project',asset:'Asset A',amount:'IDR 1.400.000.000',analyst:'Wesly Simatupang',status:'Funding Lead · diligence'},
- {stage:'ic',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #1',type:'PO/Invoice+Plafond',asset:'Asset B - PO',amount:'IDR 6.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'IC Review · Submitted 23 Oct 2025'},
- {stage:'ic',kp:'Cipta Usaha Media',project:'Cipta Usaha Media (#26) — PO Financing: Orang Tua',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 249.000.000',analyst:'Nila Layla Melinda',status:'IC Review · Submitted 31 Mar 2026'},
- {stage:'ic',kp:'Maju',project:'Maju #4 - Working Capital',type:'Project+Plafond',asset:'Asset D',amount:'IDR 1.800.000.000',analyst:'Nila Layla Melinda',secondary:'Wesly Simatupang',status:'IC Review · Submitted 2 Jun 2026',finType:'Fixed Return + Revenue Share'},
- {stage:'ic',kp:'Shushu',project:'Shushu (#1) — Branch Renovation',type:'Project',asset:'Asset A',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',status:'IC Review · Submitted 28 Mar 2026'},
- {stage:'ic',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Legal · Submitted 19 Feb 2026'},
- {stage:'ic',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo (#6) — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 1.500.000.000',analyst:'Ben Elberger',status:'Legal review · Submitted 5 Jul 2026'},
- {stage:'active',kp:'Kopi Bajawa Flores',project:'Kopi Bajawa Flores (#2) — Surabaya',type:'Project',asset:'Asset A',amount:'IDR 4.500.000.000',analyst:'Junaidi Junaidi',secondary:'Juang Angger Pamungkas',status:'Active · disbursed 10 Mar 2026'},
- {stage:'active',kp:'Dakota Mitra Tama',project:'Dakota (#2) — New Sewing Machines',type:'Project',asset:'Asset D',amount:'IDR 1.100.000.000',analyst:'Ben Elberger',status:'Active · monitoring',finType:'Fixed Return'},
- {stage:'active',kp:'Padel Rally Club',project:'Padel Rally Club (#1.1) — Otista Courts',type:'Project',asset:'Asset A',amount:'IDR 1.300.000.000',analyst:'Wesly Simatupang',status:'Active · disbursed'},
- {stage:'nonlead',kp:'Kirei',project:'Kirei — Shares Buyback',type:'Project',asset:'Asset A',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',status:'Non-Lead · rejected by IC'},
- {stage:'nonlead',kp:'Fragrant',project:'Fragrant — Reschedule',type:'Project',asset:'Asset A',amount:'IDR 500.000.000',analyst:'Ben Elberger',status:'Non-Lead · declined'},
- /* ===== Demo submissions — one per workflow phase & submission-type permutation (todo 10b) ===== */
- {stage:'ic',kp:'Twalen Spirits',project:'Twalen Spirits #1 — Working Capital · DEMO: awaiting Finance KF/KCF split',type:'Project',asset:'Asset A',amount:'IDR 900.000.000',analyst:'Ben Elberger',secondary:'Armeno Devan',status:'Finance Split · IC approved 15 Jul 2026',statusCode:'4.1',subTypes:['project']},
- {stage:'ic',kp:'Kirei',project:'Kirei #3 — Central Kitchen · DEMO: awaiting KP decision on term sheet (stale, 45 days)',type:'Project',asset:'Asset A',amount:'IDR 1.900.000.000',analyst:'Armeno Devan',secondary:'Sharfina Nindita',status:'KP Review · IC approved 2 Jun 2026',statusCode:'4.05',subTypes:['project'],icDecidedWhen:'2 Jun 2026',kpApprovalEnteredAt:'2026-06-02',termSheetVersions:[{v:1,amount:'IDR 1.900.000.000',note:'Initial terms',submittedDate:'2 Jun 2026',decision:'Pending',decidedDate:null,reason:null}]},
- {stage:'ic',kp:'Sirtanio',project:'Sirtanio #2 — Working Capital · DEMO: freshly IC-approved, awaiting KP (not stale)',type:'Project',asset:'Asset A',amount:'IDR 910.000.000',analyst:'Juang Angger Pamungkas',secondary:'Sharfina Nindita',status:'KP Review · IC approved 12 Jul 2026',statusCode:'4.05',subTypes:['project'],icDecidedWhen:'12 Jul 2026',kpApprovalEnteredAt:'2026-07-12',termSheetVersions:[{v:1,amount:'IDR 910.000.000',note:'Initial terms',submittedDate:'12 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
- {stage:'ic',kp:'Anomali',project:'Anomali #2 — Renovation · DEMO: resubmitted after KP counter (v2 pending, v1 countered)',type:'Project',asset:'Asset A',amount:'IDR 620.000.000',analyst:'Sharfina Nindita',secondary:'Wesly Simatupang',status:'KP Review · IC re-approved 14 Jul 2026',statusCode:'4.05',subTypes:['project'],icDecidedWhen:'14 Jul 2026',kpApprovalEnteredAt:'2026-07-14',termSheetVersions:[{v:1,amount:'IDR 490.000.000',note:'Initial terms',submittedDate:'1 Jul 2026',decision:'Countered',decidedDate:'6 Jul 2026',reason:'KP wants 8% rev share instead of 5%, and a 4-year term instead of 5'},{v:2,amount:'IDR 620.000.000',note:'KP wants 8% rev share instead of 5%, and a 4-year term instead of 5',submittedDate:'14 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
- {stage:'ic',kp:'Regen',project:'Regen — Cold Brew Line · DEMO: contracts signed, awaiting Finance disbursement',type:'Project',asset:'Asset A',amount:'IDR 1.750.000.000',analyst:'Ben Elberger',status:'Disbursement · contracts signed 14 Jul 2026',statusCode:'5',subTypes:['project'],kf:1050000000,kcf:700000000,signed:true},
- {stage:'ic',kp:'Cipta Usaha Media',project:'Cipta Usaha Media (#31) — Invoice Financing · DEMO: with Legal to sign contracts',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 420.000.000',analyst:'Nila Layla Melinda',status:'Legal · contract prep 16 Jul 2026',statusCode:'4.2',subTypes:['project'],kf:250000000,kcf:170000000},
- {stage:'ic',kp:'Scuto',project:'Scuto #7 — Ciputat · DEMO: Plafond-only submission (skips Finance/Legal after IC)',type:'Plafond',asset:'Asset A',amount:'IDR 3.000.000.000',analyst:'Wesly Simatupang',status:'IC Review · plafond-only',statusCode:'IC',subTypes:['plafond']},
- {stage:'ic',kp:'Kopi Bajawa Flores',project:'Kopi Bajawa Flores — DEMO: Buffer-only submission (skips Finance/Legal after IC)',type:'Buffer',asset:'Asset A',amount:'IDR 1.000.000.000',analyst:'Junaidi Junaidi',status:'IC Review · buffer-only',statusCode:'IC',subTypes:['buffer']},
- {stage:'active',kp:'Kopikina',project:'Kopikina — Cikini · DEMO: fully disbursed via workflow (KF/KCF booked)',type:'Project',asset:'Asset A',amount:'IDR 2.000.000.000',analyst:'Ben Elberger',status:'Active · disbursed 10 Jul 2026',statusCode:'7.0',subTypes:['project'],kf:1200000000,kcf:800000000,signed:true},
- /* ===== Item 27: additional coverage — deliberate Fin-Type/Asset warning, >IDR 6B IC vote threshold, Pull-Back-to-DD ===== */
- {stage:'ic',kp:'Kedai Mie Aceh',project:'Kedai Mie Aceh — Cikarang Expansion · DEMO: Financing Type mismatch warning (Asset A submitted as PO/Invoice → Daily Interest)',type:'PO/Invoice',asset:'Asset A',amount:'IDR 650.000.000',analyst:'Sharfina Nindita',secondary:'Wesly Simatupang',status:'IC Review · Submitted 8 Jul 2026',statusCode:'IC'},
- {stage:'ic',kp:'Solusi Musi Persada',project:'Solusi Musi Persada (#1.1) — PO Financing for COSL',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 7.872.000.000',analyst:'Junaidi Junaidi',status:'IC Review · Submitted 1 Jul 2026 · DEMO: >IDR 6B — all 3 IC votes required',statusCode:'IC'},
- {stage:'funding',kp:'Twalen Spirits',project:'Twalen Spirits #2 — Bar Renovation · DEMO: pulled back from IC to Due Diligence',type:'Project',asset:'Asset A',amount:'IDR 700.000.000',analyst:'Ben Elberger',status:'Due Diligence · pulled back from IC Review 12 Jul 2026',statusCode:'3'},
- {stage:'early',kp:'Kaisar Factory',project:'Kaisar Factory #1 — Equipment',type:'Project',asset:'Asset A',amount:'IDR 1.420.000.000',analyst:'Ben Elberger',secondary:'Hanny Aqmarina',status:'Early Lead · added 28 May 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Regen',project:'Regen #1 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 3.710.000.000',analyst:'Priska Ponggawa',secondary:'Nila Layla Melinda',status:'Early Lead · added 21 Jul 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Twalen Spirits',project:'Twalen Spirits #1 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 4.020.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Early Lead · added 5 May 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Scuto',project:'Scuto #1 — Equipment',type:'Project',asset:'Asset A',amount:'IDR 1.180.000.000',analyst:'Wesly Simatupang',secondary:'— None —',status:'Early Lead · added 28 Apr 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 2.770.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Early Lead · added 17 Jul 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Kopi Bajawa Flores',project:'Kopi Bajawa Flores #1 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 410.000.000',analyst:'Junaidi Junaidi',secondary:'— None —',status:'Early Lead · added 22 Jun 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Dakota Mitra Tama',project:'Dakota Mitra Tama #1 — Factory Equipment',type:'Project',asset:'Asset D',amount:'IDR 730.000.000',analyst:'Sharfina Nindita',secondary:'Junaidi Junaidi',status:'Early Lead · added 23 Jun 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Padel Rally Club',project:'Padel Rally Club #1 — Facility Expansion',type:'Project',asset:'Asset A',amount:'IDR 1.830.000.000',analyst:'Juang Angger Pamungkas',secondary:'Wesly Simatupang',status:'Early Lead · added 5 Apr 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Kirei',project:'Kirei #1 — New Store',type:'Project',asset:'Asset A',amount:'IDR 1.220.000.000',analyst:'Armeno Devan',secondary:'Sharfina Nindita',status:'Early Lead · added 6 Apr 2026',statusCode:'0',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Fragrant',project:'Fragrant #1 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 2.840.000.000',analyst:'Ben Elberger',secondary:'Hanny Aqmarina',status:'Early Lead · added 19 Jul 2026',statusCode:'0',subTypes:['project'],finType:'Revenue Share'},
- {stage:'early',kp:'Geoff Max',project:'Geoff Max #1 — Inventory Financing',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.700.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Early Lead · added 6 Apr 2026',statusCode:'0',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'early',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia #1 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.200.000.000',analyst:'Nila Layla Melinda',secondary:'Hanny Aqmarina',status:'Early Lead · added 4 May 2026',statusCode:'0',subTypes:['project'],finType:'Daily Interest'},
- {stage:'early',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Domestic Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.250.000.000',analyst:'Wesly Simatupang',secondary:'Hanny Aqmarina',status:'Early Lead · we\'ve met 14 Apr 2026',statusCode:'1',subTypes:['project'],finType:'Daily Interest'},
- {stage:'early',kp:'Kedai Mie Aceh',project:'Kedai Mie Aceh #1 — Working Capital',type:'Project+Plafond',asset:'Asset A',amount:'IDR 3.660.000.000',analyst:'Hanny Aqmarina',secondary:'Armeno Devan',status:'Early Lead · we\'ve met 22 Jul 2026',statusCode:'1',subTypes:['plafond','project'],finType:'Fixed Return'},
- {stage:'early',kp:'Solusi Musi Persada',project:'Solusi Musi Persada #1 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.810.000.000',analyst:'Junaidi Junaidi',secondary:'— None —',status:'Early Lead · we\'ve met 7 May 2026',statusCode:'1',subTypes:['project'],finType:'Daily Interest'},
- {stage:'early',kp:'Maju Manufaktur Indonesia',project:'Maju Manufaktur Indonesia #1 — Moveable Asset Financing',type:'Project',asset:'Asset D',amount:'IDR 3.740.000.000',analyst:'Sharfina Nindita',secondary:'Ben Elberger',status:'Early Lead · we\'ve met 16 May 2026',statusCode:'1',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow #1 — Central Kitchen',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.390.000.000',analyst:'Juang Angger Pamungkas',secondary:'Hanny Aqmarina',status:'Early Lead · we\'ve met 19 Apr 2026',statusCode:'1',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'early',kp:'Shushu',project:'Shushu #1 — Branch Expansion',type:'Project',asset:'Asset A',amount:'IDR 1.810.000.000',analyst:'Armeno Devan',secondary:'— None —',status:'Early Lead · we\'ve met 26 Apr 2026',statusCode:'1',subTypes:['project'],finType:'Revenue Share'},
- {stage:'early',kp:'Kopikina',project:'Kopikina #1 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 4.040.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Early Lead · we\'ve met 3 May 2026',statusCode:'1',subTypes:['project'],finType:'Revenue Share'},
- {stage:'early',kp:'Kopitagram',project:'Kopitagram #1 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 3.870.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Early Lead · we\'ve met 7 Apr 2026',statusCode:'1',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Palapa (PHL)',project:'Palapa (PHL) #1 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 1.600.000.000',analyst:'Nila Layla Melinda',secondary:'Priska Ponggawa',status:'Early Lead · we\'ve met 12 May 2026',statusCode:'1',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'PT Investo Medika Asia',project:'PT Investo Medika Asia #1 — Export Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.030.000.000',analyst:'Wesly Simatupang',secondary:'— None —',status:'Early Lead · we\'ve met 15 Jun 2026',statusCode:'1',subTypes:['project'],finType:'Daily Interest'},
- {stage:'early',kp:'PT. Semesta Energi Services',project:'PT. Semesta Energi Services #1 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.960.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Early Lead · we\'ve met 18 May 2026',statusCode:'1',subTypes:['project'],finType:'Daily Interest'},
- {stage:'early',kp:'The Houseplants Coffee',project:'The Houseplants Coffee #1 — Branch Expansion',type:'Project',asset:'Asset A',amount:'IDR 2.590.000.000',analyst:'Junaidi Junaidi',secondary:'Nila Layla Melinda',status:'Early Lead · we\'ve met 8 May 2026',statusCode:'1',subTypes:['project'],finType:'Revenue Share'},
- {stage:'early',kp:'Anomali',project:'Anomali #1 — Central Kitchen',type:'Project',asset:'Asset A',amount:'IDR 1.240.000.000',analyst:'Sharfina Nindita',secondary:'Wesly Simatupang',status:'Early Lead · we\'ve met 14 Apr 2026',statusCode:'1',subTypes:['project'],finType:'Revenue Share'},
- {stage:'early',kp:'Sirtanio',project:'Sirtanio #1 — Agri Plot Growing',type:'Project',asset:'Asset A',amount:'IDR 2.600.000.000',analyst:'Juang Angger Pamungkas',secondary:'— None —',status:'Early Lead · we\'ve met 13 Jul 2026',statusCode:'1',subTypes:['project'],finType:'Fixed Return'},
- {stage:'early',kp:'Kopi Kalyan',project:'Kopi Kalyan #1 — Branch Expansion',type:'Project',asset:'Asset A',amount:'IDR 3.630.000.000',analyst:'Armeno Devan',secondary:'Wesly Simatupang',status:'Early Lead · we\'ve met 21 Apr 2026',statusCode:'1',subTypes:['project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Sunyi Coffee',project:'Sunyi Coffee #1 — Renovation',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.260.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Funding Lead · diligence 24 Jul 2026',statusCode:'2',subTypes:['plafond','project'],finType:'Fixed Return'},
- {stage:'funding',kp:'Dokter Anggi Dental Clinic',project:'Dokter Anggi Dental Clinic #1 — Equipment Financing',type:'Project',asset:'Asset A',amount:'IDR 3.050.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Funding Lead · diligence 6 Mar 2026',statusCode:'2',subTypes:['project'],finType:'Fixed Return'},
- {stage:'funding',kp:'Kosambi Maternal & Children Center',project:'Kosambi Maternal & Children Center #1 — New Branch Clinic',type:'Project',asset:'Asset A',amount:'IDR 1.120.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Funding Lead · diligence 4 Feb 2026',statusCode:'2',subTypes:['project'],finType:'Fixed Return'},
- {stage:'funding',kp:'Rumah Tani',project:'Rumah Tani #1 — Agri Plot Growing',type:'Project',asset:'Asset A',amount:'IDR 2.510.000.000',analyst:'Wesly Simatupang',secondary:'— None —',status:'Funding Lead · diligence 26 May 2026',statusCode:'2',subTypes:['project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Sanobar',project:'Sanobar #1 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.600.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Funding Lead · diligence 20 Jul 2026',statusCode:'2',subTypes:['project'],finType:'Daily Interest'},
- {stage:'funding',kp:'Halmampol',project:'Halmampol #1 — Factory Equipment',type:'Project',asset:'Asset D',amount:'IDR 820.000.000',analyst:'Junaidi Junaidi',secondary:'— None —',status:'Funding Lead · diligence 26 May 2026',statusCode:'2',subTypes:['project'],finType:'Fixed Return'},
- {stage:'funding',kp:'Konsersium',project:'Konsersium #1 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.590.000.000',analyst:'Sharfina Nindita',secondary:'Nila Layla Melinda',status:'Funding Lead · diligence 17 Mar 2026',statusCode:'2',subTypes:['project'],finType:'Daily Interest'},
- {stage:'funding',kp:'Warung Nusantara',project:'Warung Nusantara #1 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 3.680.000.000',analyst:'Juang Angger Pamungkas',secondary:'— None —',status:'Funding Lead · diligence 22 Jun 2026',statusCode:'2',subTypes:['project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Batik Prawira',project:'Batik Prawira #1 — Inventory Financing',type:'Project',asset:'Asset A',amount:'IDR 2.990.000.000',analyst:'Armeno Devan',secondary:'Hanny Aqmarina',status:'Funding Lead · diligence 11 Jun 2026',statusCode:'2',subTypes:['project'],finType:'Fixed Return'},
- {stage:'funding',kp:'Sambal Bu Rudy Nusantara',project:'Sambal Bu Rudy Nusantara #1 — New Outlet',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.640.000.000',analyst:'Ben Elberger',secondary:'Hanny Aqmarina',status:'Funding Lead · diligence 21 Jun 2026',statusCode:'2',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Roti Manis Bandung',project:'Roti Manis Bandung #1 — Renovation',type:'Project',asset:'Asset A',amount:'IDR 2.500.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Funding Lead · diligence 2 Jul 2026',statusCode:'2',subTypes:['project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Teh Poci Sejahtera',project:'Teh Poci Sejahtera #1 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.780.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Funding Lead · diligence 16 Jun 2026',statusCode:'2',subTypes:['project'],finType:'Daily Interest'},
- {stage:'funding',kp:'Bengkel Auto Prima',project:'Bengkel Auto Prima #1 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 730.000.000',analyst:'Wesly Simatupang',secondary:'Armeno Devan',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Klinik Sehat Sentosa',project:'Klinik Sehat Sentosa #1 — New Branch Clinic',type:'Project',asset:'Asset A',amount:'IDR 1.430.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Toko Emas Mulia',project:'Toko Emas Mulia #1 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 570.000.000',analyst:'Junaidi Junaidi',secondary:'— None —',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Ayam Geprek Juara',project:'Ayam Geprek Juara #1 — New Outlet',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.050.000.000',analyst:'Sharfina Nindita',secondary:'Armeno Devan',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Es Teler Pelangi',project:'Es Teler Pelangi #1 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 2.290.000.000',analyst:'Juang Angger Pamungkas',secondary:'Junaidi Junaidi',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Fixed Return'},
- {stage:'funding',kp:'Furnitur Jati Makmur',project:'Furnitur Jati Makmur #1 — Factory Equipment',type:'Project',asset:'Asset D',amount:'IDR 2.120.000.000',analyst:'Armeno Devan',secondary:'— None —',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Fixed Return + Revenue Share'},
- {stage:'funding',kp:'Laundry Kilat Bersih',project:'Laundry Kilat Bersih #1 — Equipment',type:'Project',asset:'Asset A',amount:'IDR 2.420.000.000',analyst:'Ben Elberger',secondary:'Priska Ponggawa',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Fixed Return'},
- {stage:'funding',kp:'Optik Cemerlang',project:'Optik Cemerlang #1 — Export Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 740.000.000',analyst:'Priska Ponggawa',secondary:'Wesly Simatupang',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['project'],finType:'Daily Interest'},
- {stage:'funding',kp:'Bakmi Naga Mas',project:'Bakmi Naga Mas #1 — Central Kitchen',type:'Project+Plafond',asset:'Asset A',amount:'IDR 890.000.000',analyst:'Nila Layla Melinda',secondary:'Hanny Aqmarina',status:'DD in progress · SLIK pending',statusCode:'3',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'funding',kp:'Seafood Bahari Jaya',project:'Seafood Bahari Jaya #1 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.150.000.000',analyst:'Wesly Simatupang',secondary:'Hanny Aqmarina',status:'Due Diligence',statusCode:'3',subTypes:['project'],finType:'Daily Interest'},
- {stage:'funding',kp:'Percetakan Grafika Jaya',project:'Percetakan Grafika Jaya #1 — Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 3.330.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Due Diligence',statusCode:'3',subTypes:['project'],finType:'Daily Interest'},
- {stage:'ic',kp:'Kaisar Factory',project:'Kaisar Factory #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 3.390.000.000',analyst:'Ben Elberger',secondary:'Armeno Devan',status:'IC Review · Submitted 6 Mar 2026',statusCode:'IC',subTypes:['project'],finType:'Fixed Return'},
- {stage:'ic',kp:'Regen',project:'Regen #2 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 2.560.000.000',analyst:'Priska Ponggawa',secondary:'Armeno Devan',status:'IC Review · Submitted 18 May 2026',statusCode:'IC',subTypes:['project'],finType:'Revenue Share'},
- {stage:'ic',kp:'Twalen Spirits',project:'Twalen Spirits #2 — Central Kitchen',type:'Project',asset:'Asset A',amount:'IDR 2.210.000.000',analyst:'Nila Layla Melinda',secondary:'Wesly Simatupang',status:'IC Review · Submitted 17 Mar 2026',statusCode:'IC',subTypes:['project'],finType:'Fixed Return'},
- {stage:'ic',kp:'Scuto',project:'Scuto #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 2.360.000.000',analyst:'Wesly Simatupang',secondary:'— None —',status:'Finance Split · IC approved 3 Mar 2026',statusCode:'4.1',subTypes:['project'],finType:'Revenue Share',kf:1416000000,kcf:944000000},
- {stage:'ic',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #2 — Renovation',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.850.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Legal · contract prep 14 Apr 2026',statusCode:'4.2',subTypes:['plafond','project'],finType:'Revenue Share',kf:1110000000,kcf:740000000},
- {stage:'ic',kp:'Kopi Bajawa Flores',project:'Kopi Bajawa Flores #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 940.000.000',analyst:'Junaidi Junaidi',secondary:'Ben Elberger',status:'Disbursement · contracts signed 5 Feb 2026',statusCode:'5',subTypes:['project'],finType:'Revenue Share',kf:564000000,kcf:376000000,signed:true},
- {stage:'ic',kp:'Dakota Mitra Tama',project:'Dakota Mitra Tama #2 — Capex — New Machinery',type:'Project',asset:'Asset D',amount:'IDR 310.000.000',analyst:'Sharfina Nindita',secondary:'— None —',status:'Finance Split (2nd+ tranche) · 11 Apr 2026',statusCode:'6.1',subTypes:['project'],finType:'Fixed Return + Revenue Share',kf:186000000,kcf:124000000},
- {stage:'ic',kp:'Padel Rally Club',project:'Padel Rally Club #2 — Facility Expansion',type:'Project',asset:'Asset A',amount:'IDR 2.720.000.000',analyst:'Juang Angger Pamungkas',secondary:'— None —',status:'Legal (2nd+ tranche) · 5 Jun 2026',statusCode:'6.2',subTypes:['project'],finType:'Fixed Return',kf:1632000000,kcf:1088000000},
- {stage:'ic',kp:'Kirei',project:'Kirei #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 2.390.000.000',analyst:'Armeno Devan',secondary:'Ben Elberger',status:'Some tranches disbursed · 17 Mar 2026',statusCode:'6.5',subTypes:['project'],finType:'Revenue Share',kf:1434000000,kcf:956000000,signed:true},
- {stage:'active',kp:'Fragrant',project:'Fragrant #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 1.640.000.000',analyst:'Ben Elberger',secondary:'Nila Layla Melinda',status:'Active · disbursed 24 Jun 2024',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:984000000,kcf:656000000,signed:true},
- {stage:'active',kp:'Geoff Max',project:'Geoff Max #2 — Inventory Financing',type:'Project',asset:'Asset A',amount:'IDR 3.040.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Active · disbursed 26 May 2024',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return',kf:1824000000,kcf:1216000000,signed:true},
- {stage:'active',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia #2 — Export PO Financing',type:'PO/Invoice+Plafond',asset:'Asset B - PO',amount:'IDR 3.060.000.000',analyst:'Nila Layla Melinda',secondary:'Ben Elberger',status:'Active · disbursed 12 Mar 2024',statusCode:'7.0',subTypes:['plafond','project'],finType:'Daily Interest',kf:1836000000,kcf:1224000000,signed:true},
- {stage:'active',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #2 — Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 4.040.000.000',analyst:'Wesly Simatupang',secondary:'Junaidi Junaidi',status:'Active · disbursed 20 Jun 2026',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:2424000000,kcf:1616000000,signed:true},
- {stage:'active',kp:'Kedai Mie Aceh',project:'Kedai Mie Aceh #2 — Branch Expansion',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.130.000.000',analyst:'Hanny Aqmarina',secondary:'Nila Layla Melinda',status:'Active · disbursed 3 May 2024',statusCode:'7.0',subTypes:['plafond','project'],finType:'Revenue Share',kf:678000000,kcf:452000000,signed:true},
- {stage:'active',kp:'Solusi Musi Persada',project:'Solusi Musi Persada #2 — PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 510.000.000',analyst:'Junaidi Junaidi',secondary:'— None —',status:'Active · disbursed 20 May 2025',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:306000000,kcf:204000000,signed:true},
- {stage:'active',kp:'Maju Manufaktur Indonesia',project:'Maju Manufaktur Indonesia #2 — Moveable Asset Financing',type:'Project',asset:'Asset D',amount:'IDR 1.780.000.000',analyst:'Sharfina Nindita',secondary:'Hanny Aqmarina',status:'Active · disbursed 8 Mar 2026',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return + Revenue Share',kf:1068000000,kcf:712000000,signed:true},
- {stage:'active',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 4.050.000.000',analyst:'Juang Angger Pamungkas',secondary:'Hanny Aqmarina',status:'Active · disbursed 16 Sep 2024',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return',kf:2430000000,kcf:1620000000,signed:true},
- {stage:'active',kp:'Shushu',project:'Shushu #2 — Renovation',type:'Project',asset:'Asset A',amount:'IDR 760.000.000',analyst:'Armeno Devan',secondary:'— None —',status:'Active · disbursed 16 Apr 2024',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:456000000,kcf:304000000,signed:true},
- {stage:'active',kp:'Kopikina',project:'Kopikina #2 — New Outlet',type:'Project',asset:'Asset A',amount:'IDR 2.490.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Active · disbursed 3 Jan 2025',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return',kf:1494000000,kcf:996000000,signed:true},
- {stage:'active',kp:'Kopitagram',project:'Kopitagram #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 3.720.000.000',analyst:'Priska Ponggawa',secondary:'Nila Layla Melinda',status:'Active · disbursed 16 Nov 2024',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return',kf:2232000000,kcf:1488000000,signed:true},
- {stage:'active',kp:'Palapa (PHL)',project:'Palapa (PHL) #2 — Production Financing',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.140.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Active · disbursed 7 Apr 2025',statusCode:'7.0',subTypes:['plafond','project'],finType:'Fixed Return',kf:684000000,kcf:456000000,signed:true},
- {stage:'active',kp:'PT Investo Medika Asia',project:'PT Investo Medika Asia #2 — Invoice Financing',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 3.320.000.000',analyst:'Wesly Simatupang',secondary:'— None —',status:'Active · disbursed 20 Aug 2024',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:1992000000,kcf:1328000000,signed:true},
- {stage:'active',kp:'PT. Semesta Energi Services',project:'PT. Semesta Energi Services #2 — PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.890.000.000',analyst:'Hanny Aqmarina',secondary:'Sharfina Nindita',status:'Active · disbursed 5 Sep 2024',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:2334000000,kcf:1556000000,signed:true},
- {stage:'active',kp:'The Houseplants Coffee',project:'The Houseplants Coffee #2 — Working Capital',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.590.000.000',analyst:'Junaidi Junaidi',secondary:'Nila Layla Melinda',status:'Active · disbursed 12 May 2026',statusCode:'7.0',subTypes:['plafond','project'],finType:'Revenue Share',kf:1554000000,kcf:1036000000,signed:true},
- {stage:'active',kp:'Anomali',project:'Anomali #2 — Renovation',type:'Project',asset:'Asset A',amount:'IDR 490.000.000',analyst:'Sharfina Nindita',secondary:'— None —',status:'Active · disbursed 16 Jun 2025',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:294000000,kcf:196000000,signed:true},
- {stage:'active',kp:'Sirtanio',project:'Sirtanio #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 910.000.000',analyst:'Juang Angger Pamungkas',secondary:'Sharfina Nindita',status:'Active · disbursed 19 Jan 2025',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:546000000,kcf:364000000,signed:true},
- {stage:'active',kp:'Kopi Kalyan',project:'Kopi Kalyan #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 3.570.000.000',analyst:'Armeno Devan',secondary:'Hanny Aqmarina',status:'Active · disbursed 14 Oct 2024',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:2142000000,kcf:1428000000,signed:true},
- {stage:'active',kp:'Sunyi Coffee',project:'Sunyi Coffee #2 — Branch Expansion',type:'Project',asset:'Asset A',amount:'IDR 3.900.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Active · disbursed 3 Jan 2024',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return',kf:2340000000,kcf:1560000000,signed:true},
- {stage:'active',kp:'Dokter Anggi Dental Clinic',project:'Dokter Anggi Dental Clinic #2 — New Branch Clinic',type:'Project',asset:'Asset A',amount:'IDR 2.470.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Active · disbursed 13 Jul 2025',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:1482000000,kcf:988000000,signed:true},
- {stage:'active',kp:'Kosambi Maternal & Children Center',project:'Kosambi Maternal & Children Center #2 — Equipment Financing',type:'Project',asset:'Asset A',amount:'IDR 1.710.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Restructured · workout plan 12 May 2025',statusCode:'8.1',subTypes:['project'],finType:'Revenue Share',kf:1026000000,kcf:684000000,signed:true},
- {stage:'active',kp:'Rumah Tani',project:'Rumah Tani #2 — Harvest Financing',type:'Project',asset:'Asset A',amount:'IDR 1.700.000.000',analyst:'Wesly Simatupang',secondary:'Armeno Devan',status:'Restructured · workout plan 12 Nov 2025',statusCode:'8.1',subTypes:['project'],finType:'Fixed Return',kf:1020000000,kcf:680000000,signed:true},
- {stage:'active',kp:'Sanobar',project:'Sanobar #2 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.570.000.000',analyst:'Hanny Aqmarina',secondary:'Juang Angger Pamungkas',status:'Restructured · workout plan 8 Nov 2025',statusCode:'8.1',subTypes:['project'],finType:'Daily Interest',kf:2142000000,kcf:1428000000,signed:true},
- {stage:'active',kp:'Halmampol',project:'Halmampol #2 — Moveable Asset Financing',type:'Project',asset:'Asset D',amount:'IDR 2.350.000.000',analyst:'Junaidi Junaidi',secondary:'Hanny Aqmarina',status:'Restructured · workout plan 3 Apr 2026',statusCode:'8.1',subTypes:['project'],finType:'Fixed Return + Revenue Share',kf:1410000000,kcf:940000000,signed:true},
- {stage:'completed',kp:'Konsersium',project:'Konsersium #2 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.670.000.000',analyst:'Sharfina Nindita',secondary:'Armeno Devan',status:'Completed · fully repaid 17 Dec 2024',statusCode:'8',subTypes:['project'],finType:'Daily Interest',kf:1002000000,kcf:668000000,signed:true},
- {stage:'completed',kp:'Warung Nusantara',project:'Warung Nusantara #2 — Central Kitchen',type:'Project',asset:'Asset A',amount:'IDR 330.000.000',analyst:'Juang Angger Pamungkas',secondary:'Hanny Aqmarina',status:'Completed · fully repaid 17 Jun 2024',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:198000000,kcf:132000000,signed:true},
- {stage:'completed',kp:'Batik Prawira',project:'Batik Prawira #2 — Working Capital',type:'Project',asset:'Asset A',amount:'IDR 2.650.000.000',analyst:'Armeno Devan',secondary:'Sharfina Nindita',status:'Completed · fully repaid 28 May 2025',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:1590000000,kcf:1060000000,signed:true},
- {stage:'completed',kp:'Sambal Bu Rudy Nusantara',project:'Sambal Bu Rudy Nusantara #2 — Central Kitchen',type:'Project',asset:'Asset A',amount:'IDR 2.800.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Completed · fully repaid 12 Apr 2025',statusCode:'8',subTypes:['project'],finType:'Revenue Share',kf:1680000000,kcf:1120000000,signed:true},
- {stage:'completed',kp:'Roti Manis Bandung',project:'Roti Manis Bandung #2 — Renovation',type:'Project',asset:'Asset A',amount:'IDR 1.340.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Completed · fully repaid 13 Jan 2024',statusCode:'8',subTypes:['project'],finType:'Revenue Share',kf:804000000,kcf:536000000,signed:true},
- {stage:'completed',kp:'Teh Poci Sejahtera',project:'Teh Poci Sejahtera #2 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.790.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Completed · fully repaid 14 Jan 2024',statusCode:'8',subTypes:['project'],finType:'Daily Interest',kf:1074000000,kcf:716000000,signed:true},
- {stage:'completed',kp:'Bengkel Auto Prima',project:'Bengkel Auto Prima #2 — New Branch',type:'Project',asset:'Asset A',amount:'IDR 690.000.000',analyst:'Wesly Simatupang',secondary:'Junaidi Junaidi',status:'Completed · fully repaid 21 Feb 2024',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:414000000,kcf:276000000,signed:true},
- {stage:'completed',kp:'Klinik Sehat Sentosa',project:'Klinik Sehat Sentosa #2 — Rent Financing',type:'Project',asset:'Asset A',amount:'IDR 1.320.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'Completed · fully repaid 21 Dec 2024',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:792000000,kcf:528000000,signed:true},
- {stage:'nonlead',kp:'Toko Emas Mulia',project:'Toko Emas Mulia #2 — Working Capital',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.850.000.000',analyst:'Junaidi Junaidi',secondary:'Priska Ponggawa',status:'Non-Lead · they\'re not interested',statusCode:'-1',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'nonlead',kp:'Ayam Geprek Juara',project:'Ayam Geprek Juara #2 — Branch Expansion',type:'Project',asset:'Asset A',amount:'IDR 810.000.000',analyst:'Sharfina Nindita',secondary:'Juang Angger Pamungkas',status:'Non-Lead · rejected in DD',statusCode:'-3',subTypes:['project'],finType:'Fixed Return'},
- {stage:'nonlead',kp:'Es Teler Pelangi',project:'Es Teler Pelangi #2 — Central Kitchen',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.790.000.000',analyst:'Juang Angger Pamungkas',secondary:'Armeno Devan',status:'Non-Lead · entrepreneur rejected offer',statusCode:'-5',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'nonlead',kp:'Furnitur Jati Makmur',project:'Furnitur Jati Makmur #2 — Capex — New Machinery',type:'Project',asset:'Asset D',amount:'IDR 2.670.000.000',analyst:'Armeno Devan',secondary:'— None —',status:'Non-Lead · rejected funds after fundraise',statusCode:'-6',subTypes:['project'],finType:'Fixed Return + Revenue Share'},
- /* ===== Asset-class coverage across pipeline stages — one example each of Asset A (Project),
-    Asset B - PO (PO Financing), Asset B - I (Invoice Financing), Asset D (Working Capital), and a
-    Plafond-combo (Project+Plafond) at every stage that was missing one, so engineers can see how
-    validation/warnings differ by asset class at each step. ===== */
- {stage:'ic',kp:'Percetakan Grafika Jaya',project:'Percetakan Grafika Jaya #2 — Domestic Invoice Financing · DEMO: Asset B-I coverage at IC Review',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.450.000.000',analyst:'Hanny Aqmarina',secondary:'— None —',status:'IC Review · Submitted 10 Jul 2026',statusCode:'IC',subTypes:['project'],finType:'Daily Interest'},
- {stage:'ic',kp:'Konsersium',project:'Konsersium #3 — Domestic PO Financing · DEMO: Asset B-PO coverage at KP Approval',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.780.000.000',analyst:'Sharfina Nindita',secondary:'Nila Layla Melinda',status:'KP Review · IC approved 13 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Daily Interest',icDecidedWhen:'13 Jul 2026',kpApprovalEnteredAt:'2026-07-13',termSheetVersions:[{v:1,amount:'IDR 1.780.000.000',note:'Initial terms',submittedDate:'13 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
- {stage:'ic',kp:'Optik Cemerlang',project:'Optik Cemerlang #2 — Export Invoice Financing · DEMO: Asset B-I coverage at KP Approval',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 890.000.000',analyst:'Priska Ponggawa',secondary:'Wesly Simatupang',status:'KP Review · IC approved 11 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Daily Interest',icDecidedWhen:'11 Jul 2026',kpApprovalEnteredAt:'2026-07-11',termSheetVersions:[{v:1,amount:'IDR 890.000.000',note:'Initial terms',submittedDate:'11 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
- {stage:'ic',kp:'Halmampol',project:'Halmampol #3 — Factory Equipment · DEMO: Asset D coverage at KP Approval',type:'Project',asset:'Asset D',amount:'IDR 1.240.000.000',analyst:'Junaidi Junaidi',secondary:'— None —',status:'KP Review · IC approved 10 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Fixed Return',icDecidedWhen:'10 Jul 2026',kpApprovalEnteredAt:'2026-07-10',termSheetVersions:[{v:1,amount:'IDR 1.240.000.000',note:'Initial terms',submittedDate:'10 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
- {stage:'ic',kp:'Sunyi Coffee',project:'Sunyi Coffee #3 — Renovation · DEMO: Project+Plafond coverage at KP Approval',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.560.000.000',analyst:'Ben Elberger',secondary:'Hanny Aqmarina',status:'KP Review · IC approved 9 Jul 2026',statusCode:'4.05',subTypes:['plafond','project'],finType:'Revenue Share',icDecidedWhen:'9 Jul 2026',kpApprovalEnteredAt:'2026-07-09',termSheetVersions:[{v:1,amount:'IDR 1.560.000.000',note:'Initial terms',submittedDate:'9 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
- {stage:'ic',kp:'Sanobar',project:'Sanobar #3 — Export PO Financing · DEMO: Asset B-PO coverage at Finance Split',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.100.000.000',analyst:'Hanny Aqmarina',secondary:'Wesly Simatupang',status:'Finance Split · IC approved 8 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Daily Interest'},
- {stage:'ic',kp:'PT Investo Medika Asia',project:'PT Investo Medika Asia #3 — Export Invoice Financing · DEMO: Asset B-I coverage at Finance Split',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.330.000.000',analyst:'Wesly Simatupang',secondary:'— None —',status:'Finance Split · IC approved 7 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Daily Interest'},
- {stage:'ic',kp:'Ayam Geprek Juara',project:'Ayam Geprek Juara #3 — New Outlet · DEMO: Project+Plafond coverage at Finance Split',type:'Project+Plafond',asset:'Asset A',amount:'IDR 1.480.000.000',analyst:'Sharfina Nindita',secondary:'Armeno Devan',status:'Finance Split · IC approved 6 Jul 2026',statusCode:'4.1',subTypes:['plafond','project'],finType:'Revenue Share'},
- {stage:'ic',kp:'Teh Poci Sejahtera',project:'Teh Poci Sejahtera #3 — Export PO Financing · DEMO: Asset B-PO coverage at Legal',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.890.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Legal · contract prep 5 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Daily Interest'},
- {stage:'ic',kp:'Bengkel Auto Prima',project:'Bengkel Auto Prima #3 — Working Capital · DEMO: Asset D coverage at Legal',type:'Project',asset:'Asset D',amount:'IDR 760.000.000',analyst:'Wesly Simatupang',secondary:'Junaidi Junaidi',status:'Legal · contract prep 4 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Fixed Return'},
- {stage:'ic',kp:'Karya Logistik Prima',project:'Karya Logistik Prima #3 — PO Financing · DEMO: Asset B-PO coverage at Disbursement',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.450.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Disbursement · contracts signed 3 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Daily Interest',kf:1470000000,kcf:980000000,signed:true},
- {stage:'ic',kp:'PT. Semesta Energi Services',project:'PT. Semesta Energi Services #3 — Domestic PO Financing · DEMO: Asset B-I coverage at Disbursement',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 1.680.000.000',analyst:'Hanny Aqmarina',secondary:'Sharfina Nindita',status:'Disbursement · contracts signed 2 Jul 2026',statusCode:'6.3',subTypes:['project'],finType:'Daily Interest',kf:1008000000,kcf:672000000,signed:true},
- {stage:'ic',kp:'Maju Manufaktur Indonesia',project:'Maju Manufaktur Indonesia #3 — Moveable Asset Financing · DEMO: Asset D coverage at Disbursement',type:'Project',asset:'Asset D',amount:'IDR 1.920.000.000',analyst:'Sharfina Nindita',secondary:'Hanny Aqmarina',status:'Disbursement · contracts signed 1 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Fixed Return + Revenue Share',kf:1152000000,kcf:768000000,signed:true},
- {stage:'ic',kp:'Geoff Max',project:'Geoff Max #3 — Inventory Financing · DEMO: Project+Plafond coverage at Disbursement',type:'Project+Plafond',asset:'Asset A',amount:'IDR 2.230.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Disbursement · contracts signed 30 Jun 2026',statusCode:'5',subTypes:['plafond','project'],finType:'Fixed Return',kf:1338000000,kcf:892000000,signed:true}
+ {stage:'early',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow — Medan Expansion Lead',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Early Lead · added 15 Jun 2026',statusCode:'0',finType:'Revenue Share'},
+ {stage:'funding',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow — Medan Expansion',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Funding Lead · diligence 22 Jun 2026',statusCode:'2',finType:'Revenue Share'},
+ {stage:'dd',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Due Diligence · SLIK pending',statusCode:'3',finType:'Revenue Share'},
+ {stage:'ic',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'IC Review · Submitted 10 Jul 2026',statusCode:'IC',finType:'Revenue Share'},
+ {stage:'kpapproval',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan · DEMO: awaiting KP decision on term sheet',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'KP Review · IC approved 12 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Revenue Share',icDecidedWhen:'12 Jul 2026',kpApprovalEnteredAt:'2026-07-12',termSheetVersions:[{v:1,amount:'IDR 3.100.000.000',note:'Initial terms',submittedDate:'12 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'financesplit',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan · DEMO: awaiting Finance KF/KCF split',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Finance Split · IC approved 14 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Revenue Share'},
+ {stage:'legal',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Legal · Submitted 19 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Revenue Share',kf:1860000000,kcf:1240000000},
+ {stage:'disbursement',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Disbursement · contracts signed 20 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Revenue Share',kf:1860000000,kcf:1240000000,signed:true},
+ {stage:'active',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Active · disbursed 21 Jul 2026',statusCode:'7.0',finType:'Revenue Share',kf:1860000000,kcf:1240000000,signed:true},
+ {stage:'dd',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project+Plafond',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Due Diligence · new Plafond + first draw',statusCode:'3',finType:'Fixed Return'},
+ {stage:'ic',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project+Plafond',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'IC Review · Submitted 5 Jul 2026',statusCode:'IC',finType:'Fixed Return'},
+ {stage:'kpapproval',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project+Plafond',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'KP Review · IC approved 8 Jul 2026',statusCode:'4.05',subTypes:['project','plafond'],finType:'Fixed Return',icDecidedWhen:'8 Jul 2026',kpApprovalEnteredAt:'2026-07-08',termSheetVersions:[{v:1,amount:'IDR 300.000.000',note:'Plafond IDR 1.000.000.000 + first draw',submittedDate:'8 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'financesplit',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project+Plafond',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Finance Split · IC approved 10 Jul 2026',statusCode:'4.1',subTypes:['project','plafond'],finType:'Fixed Return'},
+ {stage:'legal',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project+Plafond',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Legal · Submitted 12 Jul 2026',statusCode:'4.2',subTypes:['project','plafond'],finType:'Fixed Return',kf:180000000,kcf:120000000},
+ {stage:'disbursement',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project+Plafond',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Disbursement · contracts signed 14 Jul 2026',statusCode:'5',subTypes:['project','plafond'],finType:'Fixed Return',kf:180000000,kcf:120000000,signed:true},
+ {stage:'active',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project+Plafond',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Active · disbursed 15 Jul 2026',statusCode:'7.0',finType:'Fixed Return',kf:180000000,kcf:120000000,signed:true},
+ {stage:'dd',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #2 — Working Capital Draw (existing Plafond)',type:'Project',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Due Diligence · draw against existing Plafond',statusCode:'3',finType:'Fixed Return'},
+ {stage:'ic',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #2 — Working Capital Draw (existing Plafond)',type:'Project',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'IC Review · Submitted 18 Jul 2026',statusCode:'IC',finType:'Fixed Return'},
+ {stage:'kpapproval',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #2 — Working Capital Draw (existing Plafond)',type:'Project',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'KP Review · IC approved 15 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Fixed Return',icDecidedWhen:'15 Jul 2026',kpApprovalEnteredAt:'2026-07-15',termSheetVersions:[{v:1,amount:'IDR 300.000.000',note:'Draw against existing Plafond (remaining IDR 700.000.000 before this draw)',submittedDate:'15 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'financesplit',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #2 — Working Capital Draw (existing Plafond)',type:'Project',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Finance Split · IC approved 21 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Fixed Return'},
+ {stage:'legal',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #2 — Working Capital Draw (existing Plafond)',type:'Project',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Legal · Submitted 22 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Fixed Return',kf:180000000,kcf:120000000},
+ {stage:'disbursement',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #2 — Working Capital Draw (existing Plafond) · DEMO: remaining Plafond IDR 400.000.000 after this draw',type:'Project',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Disbursement · contracts signed 22 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Fixed Return',kf:180000000,kcf:120000000,signed:true},
+ {stage:'dd',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Invoice Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - I',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Due Diligence · new Plafond + first draw',statusCode:'3',finType:'Daily Interest'},
+ {stage:'ic',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Invoice Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - I',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'IC Review · Submitted 8 Jul 2026',statusCode:'IC',finType:'Daily Interest'},
+ {stage:'kpapproval',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Invoice Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - I',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'KP Review · IC approved 10 Jul 2026',statusCode:'4.05',subTypes:['project','plafond'],finType:'Daily Interest',icDecidedWhen:'10 Jul 2026',kpApprovalEnteredAt:'2026-07-10',termSheetVersions:[{v:1,amount:'IDR 250.000.000',note:'Plafond IDR 900.000.000 + first invoice draw',submittedDate:'10 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'financesplit',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Invoice Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - I',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Finance Split · IC approved 12 Jul 2026',statusCode:'4.1',subTypes:['project','plafond'],finType:'Daily Interest'},
+ {stage:'legal',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Invoice Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - I',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Legal · Submitted 14 Jul 2026',statusCode:'4.2',subTypes:['project','plafond'],finType:'Daily Interest',kf:150000000,kcf:100000000},
+ {stage:'disbursement',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Invoice Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - I',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Disbursement · contracts signed 15 Jul 2026',statusCode:'5',subTypes:['project','plafond'],finType:'Daily Interest',kf:150000000,kcf:100000000,signed:true},
+ {stage:'active',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #1 — Invoice Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - I',amount:'IDR 250.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Active · disbursed 16 Jul 2026',statusCode:'7.0',finType:'Daily Interest',kf:150000000,kcf:100000000,signed:true},
+ {stage:'dd',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #2 — Domestic Invoice Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 249.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Due Diligence · draw against existing Plafond',statusCode:'3',finType:'Daily Interest'},
+ {stage:'ic',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #2 — Domestic Invoice Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 249.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'IC Review · Submitted 19 Jul 2026',statusCode:'IC',finType:'Daily Interest'},
+ {stage:'kpapproval',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #2 — Domestic Invoice Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 249.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'KP Review · IC approved 15 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Daily Interest',icDecidedWhen:'15 Jul 2026',kpApprovalEnteredAt:'2026-07-15',termSheetVersions:[{v:1,amount:'IDR 249.000.000',note:'Draw against existing Plafond (remaining IDR 650.000.000 before this draw)',submittedDate:'15 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'financesplit',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #2 — Domestic Invoice Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 249.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Finance Split · IC approved 21 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'legal',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #2 — Domestic Invoice Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 249.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Legal · Submitted 22 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Daily Interest',kf:149400000,kcf:99600000},
+ {stage:'disbursement',kp:'Cipta Usaha Media',project:'Cipta Usaha Media #2 — Domestic Invoice Financing (existing Plafond) · DEMO: remaining Plafond IDR 401.000.000 after this draw',type:'PO/Invoice',asset:'Asset B - I',amount:'IDR 249.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Disbursement · contracts signed 22 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Daily Interest',kf:149400000,kcf:99600000,signed:true},
+ {stage:'completed',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #1 — PO Plafond + First Draw',type:'PO/Invoice+Plafond',asset:'Asset B - PO',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Completed · fully repaid 15 Feb 2025',statusCode:'8',subTypes:['project','plafond'],finType:'Daily Interest',kf:1800000000,kcf:1200000000,signed:true},
+ {stage:'dd',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #7 — Domestic PO Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Due Diligence · draw against existing PO Sub-Limit',statusCode:'3',finType:'Daily Interest'},
+ {stage:'ic',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #7 — Domestic PO Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'IC Review · Submitted 15 Jul 2026',statusCode:'IC',finType:'Daily Interest'},
+ {stage:'kpapproval',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #7 — Domestic PO Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'KP Review · IC approved 17 Jul 2026',statusCode:'4.05',subTypes:['project'],finType:'Daily Interest',icDecidedWhen:'17 Jul 2026',kpApprovalEnteredAt:'2026-07-17',termSheetVersions:[{v:1,amount:'IDR 3.000.000.000',note:'Draw against existing PO Sub-Limit (remaining IDR 3.000.000.000 before this draw)',submittedDate:'17 Jul 2026',decision:'Pending',decidedDate:null,reason:null}]},
+ {stage:'financesplit',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #7 — Domestic PO Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Finance Split · IC approved 19 Jul 2026',statusCode:'4.1',subTypes:['project'],finType:'Daily Interest'},
+ {stage:'legal',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #7 — Domestic PO Financing (existing Plafond)',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Legal · Submitted 21 Jul 2026',statusCode:'4.2',subTypes:['project'],finType:'Daily Interest',kf:1800000000,kcf:1200000000},
+ {stage:'disbursement',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #7 — Domestic PO Financing (existing Plafond) · DEMO: PO Sub-Limit fully drawn after this',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Disbursement · contracts signed 22 Jul 2026',statusCode:'5',subTypes:['project'],finType:'Daily Interest',kf:1800000000,kcf:1200000000,signed:true},
+ {stage:'nonlead',kp:'Geoff Max',project:'Geoff Max — Inventory Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 800.000.000',analyst:'Nila Layla Melinda',secondary:'— None —',status:'Non-Lead · declined',statusCode:'-2'},
+ {stage:'nonlead',kp:'Kirei',project:'Kirei — Shares Buyback',type:'Project',asset:'Asset A',amount:'IDR 3.000.000.000',analyst:'Priska Ponggawa',secondary:'— None —',status:'Non-Lead · rejected by IC',statusCode:'-3'},
+ {stage:'restructured',kp:'Begor Pondok Suryo',project:'Begor Pondok Suryo #1 — Working Capital Plafond + First Draw',type:'Project',asset:'Asset D',amount:'IDR 300.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Restructured · workout plan 20 Jul 2026',statusCode:'8.1',subTypes:['project','plafond'],finType:'Fixed Return',kf:180000000,kcf:120000000,signed:true},
+ {stage:'completed',kp:'Steak Hotel by Holycow',project:'Steak Hotel by Holycow Medan',type:'Project',asset:'Asset A',amount:'IDR 3.100.000.000',analyst:'Priska Ponggawa',secondary:'Sharfina Nindita',status:'Completed · fully repaid 17 Dec 2024',statusCode:'8',subTypes:['project'],finType:'Revenue Share',kf:1860000000,kcf:1240000000,signed:true},
+ /* Cahaya Energi Asia — extra project history (#2-#6) so the Karmapreneur has a realistic
+    7-project track record, in ascending chronological order: #1 established the Plafond
+    (long since repaid), #2-#4 completed, #5-#6 active, #7 is the current in-flight draw. */
+ {stage:'completed',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #2 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.400.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Completed · fully repaid 5 Mar 2025',statusCode:'8',subTypes:['project'],finType:'Daily Interest',kf:1440000000,kcf:960000000,signed:true},
+ {stage:'completed',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #3 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.800.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Completed · fully repaid 20 Jul 2025',statusCode:'8',subTypes:['project'],finType:'Daily Interest',kf:1080000000,kcf:720000000,signed:true},
+ {stage:'completed',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #4 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 4.200.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Completed · fully repaid 10 Feb 2026',statusCode:'8',subTypes:['project'],finType:'Daily Interest',kf:2520000000,kcf:1680000000,signed:true},
+ {stage:'active',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #5 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Active · disbursed 2 May 2026',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:1200000000,kcf:800000000,signed:true},
+ {stage:'active',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #6 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.500.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Active · disbursed 30 Jun 2026',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:900000000,kcf:600000000,signed:true}
 ];
 var LP_STATUS=['0','0','1','3','2','IC','IC','IC','IC','4.2','4.2','7.0','7.0','7.0','-3','-2'];
 LP_DATA.forEach(function(x,i){x._id=i;if(!x.statusCode)x.statusCode=LP_STATUS[i]||'0';x.stage=statusStage(x.statusCode);if(x.secondary===undefined)x.secondary='— None —';});
@@ -3191,7 +3108,23 @@ function msToggle(el){
       return;
     }
   }
-  el.classList.toggle('sel');if(typeof updatePjTitleSub==='function')updatePjTitleSub();if(el.id==='msProj'){var on=el.classList.contains('sel');document.querySelectorAll('#page-los-project .proj-dep').forEach(function(x){x.style.display=on?'':'none';});if(typeof plfCalc==='function')plfCalc();}if(el.id==='msPlafond'){syncPlafProposed();updateApprovalRule();}if(typeof bufferGate==='function')bufferGate();}
+  el.classList.toggle('sel');if(typeof updatePjTitleSub==='function')updatePjTitleSub();if(el.id==='msProj'){var on=el.classList.contains('sel');document.querySelectorAll('#page-los-project .proj-dep').forEach(function(x){x.style.display=on?'':'none';});if(typeof plfCalc==='function')plfCalc();}if(el.id==='msPlafond'){syncPlafProposed();updateApprovalRule();}if(typeof bufferGate==='function')bufferGate();if(typeof assetClassGate==='function')assetClassGate();}
+function assetClassGate(){
+  var assetEl=document.getElementById('pjAssetFp');if(!assetEl)return;
+  var plafondEl=document.getElementById('msPlafond');
+  var isPlafond=plafondEl&&plafondEl.classList.contains('sel');
+  var allOpts=['Asset Class A','Asset Class B - I','Asset Class B - PO','Asset Class D'];
+  var opts=isPlafond?allOpts.filter(function(o){return o!=='Asset Class A';}):allOpts;
+  assetEl.setAttribute('data-fp-opts',opts.join('||'));
+  var cur=assetEl.getAttribute('data-fp-val');
+  if(opts.indexOf(cur)<0){
+    var next=opts[0];
+    assetEl.setAttribute('data-fp-val',next);
+    assetEl.innerHTML='<span class="pill"><span class="pill-t">'+next+'</span></span>';
+    assetEl.dispatchEvent(new CustomEvent('fp:change',{bubbles:true,detail:{value:next}}));
+  }
+}
+window.assetClassGate=assetClassGate;
 function syncPlafProposed(){var mp=document.getElementById('msPlafond');var on=mp&&mp.classList.contains('sel');document.querySelectorAll('#page-los-project tr.plaf-proposed').forEach(function(x){x.style.display=on?'':'none';});}
 function apParseRp(s){if(!s)return 0;var n=Number((''+s).replace(/[^0-9]/g,''));return isNaN(n)?0:n;}
 function plfCalc(){var inp=document.getElementById('plfTotal'),rec=document.getElementById('plfRec');if(!inp||!rec)return;var curEl=document.querySelector('#page-los-project .plafond-tbl tbody tr:not(.plaf-proposed):not(.sup) td:nth-child(2) .lim');var cur=curEl?apParseRp(curEl.textContent):0;if(!inp.value.trim()){rec.className='chip c-gray';rec.textContent='—';updateApprovalRule();return;}var val=apParseRp(inp.value);if(val>cur){rec.className='chip c-green';rec.textContent='Increase';}else if(val<cur){rec.className='chip c-red';rec.textContent='Decrease';}else{rec.className='chip c-gray';rec.textContent='Maintain';}updateApprovalRule();}
@@ -3299,7 +3232,7 @@ function pjDescEdit(){var t=document.getElementById('pjDescription'),v=document.
 pjDescShow();
 function syariahCount(){var t=document.getElementById('syariahNotes'),l=document.getElementById('syariahCountLbl');if(t&&l)l.textContent=t.value.length+' / 255';}
 function addRefSource(){var wrap=document.getElementById('pjRefList');if(!wrap)return;var btn=document.getElementById('pjRefAddBtn');var row=document.createElement('div');row.className='refc';row.style.flex='0 1 auto';row.style.maxWidth='280px';row.style.display='flex';row.style.alignItems='flex-start';row.style.gap='8px';row.innerHTML='<div style="flex:1"><div class="refc-name editable" data-raw="">New referral contact</div><div class="refc-sub editable" data-raw="">Karmapreneur / Node — double-click to edit</div></div><button class="link-btn" title="Remove" onclick="this.closest(\'.refc\').remove()">×</button>';wrap.insertBefore(row,btn);}
-var ANALYSTS=['Ben Elberger','Priska Ponggawa','Nila Layla Melinda','Wesly Simatupang','Hanny Aqmarina','Junaidi Junaidi','Sharfina Nindita','Juang Angger Pamungkas','Armeno Devan'];
+var ANALYSTS=['Ben Elberger','Priska Ponggawa','Nila Layla Melinda','Sharfina Nindita','Hanny Aqmarina'];
 /* ===== Term Sheet / Financials: link-file + Google Drive link ===== */
 function flReset(cur){cur.innerHTML='No file linked';cur.classList.add('muted');}
 function flShow(cur,label,href){cur.innerHTML='📄 <a href="'+(href||'#').replace(/"/g,'&quot;')+'" target="_blank" rel="noopener">'+esc(label)+' ↗</a> <button class="link-btn" title="Remove" onclick="flClear(this)">×</button>';cur.classList.remove('muted');}
@@ -3421,21 +3354,19 @@ window.lpAmtEdit=function(el,id,field){
    lets the pipeline-wide "ready for disbursement" table below compute headroom across all KPs). Figures
    are illustrative demo data consistent with the Plafond amounts already used elsewhere in the file. */
 var LP_LIMITS={
- 'Regen':{totalLimit:1500000000,poSubLimit:0,wcSubLimit:1500000000,totalUsedExclProposed:1600000000,poUsedExclProposed:0,wcUsedExclProposed:1600000000},
- 'Cahaya Energi Asia':{totalLimit:15000000000,poSubLimit:15000000000,wcSubLimit:0,totalUsedExclProposed:9000000000,poUsedExclProposed:9000000000,wcUsedExclProposed:0},
- 'Cipta Usaha Media':{totalLimit:900000000,poSubLimit:900000000,wcSubLimit:0,totalUsedExclProposed:500000000,poUsedExclProposed:500000000,wcUsedExclProposed:0},
- 'Geoff Max':{totalLimit:3700000000,poSubLimit:0,wcSubLimit:3700000000,totalUsedExclProposed:2500000000,poUsedExclProposed:0,wcUsedExclProposed:2500000000},
- 'Kedai Mie Aceh':{totalLimit:2900000000,poSubLimit:0,wcSubLimit:2900000000,totalUsedExclProposed:640000000,poUsedExclProposed:0,wcUsedExclProposed:640000000},
- 'Steak Hotel by Holycow':{totalLimit:1500000000,poSubLimit:0,wcSubLimit:1500000000,totalUsedExclProposed:700000000,poUsedExclProposed:0,wcUsedExclProposed:700000000},
- 'Sunyi Coffee':{totalLimit:4100000000,poSubLimit:0,wcSubLimit:4100000000,totalUsedExclProposed:1890000000,poUsedExclProposed:0,wcUsedExclProposed:1890000000},
- 'Sambal Bu Rudy Nusantara':{totalLimit:1800000000,poSubLimit:0,wcSubLimit:1800000000,totalUsedExclProposed:210000000,poUsedExclProposed:0,wcUsedExclProposed:210000000},
- 'Ayam Geprek Juara':{totalLimit:2800000000,poSubLimit:0,wcSubLimit:2800000000,totalUsedExclProposed:520000000,poUsedExclProposed:0,wcUsedExclProposed:520000000},
- 'Bakmi Naga Mas':{totalLimit:3700000000,poSubLimit:0,wcSubLimit:3700000000,totalUsedExclProposed:980000000,poUsedExclProposed:0,wcUsedExclProposed:980000000},
- 'Begor Pondok Suryo':{totalLimit:3500000000,poSubLimit:0,wcSubLimit:3500000000,totalUsedExclProposed:2700000000,poUsedExclProposed:0,wcUsedExclProposed:2700000000},
- 'Palapa (PHL)':{totalLimit:5400000000,poSubLimit:0,wcSubLimit:5400000000,totalUsedExclProposed:2750000000,poUsedExclProposed:0,wcUsedExclProposed:2750000000},
- 'The Houseplants Coffee':{totalLimit:1900000000,poSubLimit:0,wcSubLimit:1900000000,totalUsedExclProposed:870000000,poUsedExclProposed:0,wcUsedExclProposed:870000000},
- 'Toko Emas Mulia':{totalLimit:1800000000,poSubLimit:0,wcSubLimit:1800000000,totalUsedExclProposed:1150000000,poUsedExclProposed:0,wcUsedExclProposed:1150000000},
- 'Es Teler Pelangi':{totalLimit:3000000000,poSubLimit:0,wcSubLimit:3000000000,totalUsedExclProposed:1490000000,poUsedExclProposed:0,wcUsedExclProposed:1490000000}
+ /* Cahaya Energi Asia: Plafond grew over time (10B -> 15B, PO Sub-Limit 4B -> 6B) as the PO Sub-Limit
+    filled up — this review proposes growing it again (15B -> 18B, PO Sub-Limit 6B -> 8B). */
+ 'Cahaya Energi Asia':{totalLimit:15000000000,poSubLimit:6000000000,wcSubLimit:0,totalUsedExclProposed:6000000000,poUsedExclProposed:6000000000,wcUsedExclProposed:0,
+   supersededTotalLimit:10000000000,supersededPoSubLimit:4000000000,supersededWcSubLimit:0,supersededPeriod:'1 Jan 2023 – 30 Jun 2025',
+   proposedTotalLimit:18000000000,proposedPoSubLimit:8000000000,proposedWcSubLimit:0},
+ /* Cipta Usaha Media: Plafond was reduced at the last review (1.2B -> 900mio) after a risk
+    reassessment — this review proposes keeping it as-is. */
+ 'Cipta Usaha Media':{totalLimit:900000000,poSubLimit:0,wcSubLimit:900000000,totalUsedExclProposed:499000000,poUsedExclProposed:0,wcUsedExclProposed:499000000,
+   supersededTotalLimit:1200000000,supersededPoSubLimit:0,supersededWcSubLimit:1200000000,supersededPeriod:'1 Jul 2023 – 31 Dec 2025',
+   proposedTotalLimit:900000000,proposedPoSubLimit:0,proposedWcSubLimit:900000000},
+ /* Begor Pondok Suryo: brand-new Plafond (established alongside Project #1) — no prior limit to show. */
+ 'Begor Pondok Suryo':{totalLimit:1000000000,poSubLimit:0,wcSubLimit:1000000000,totalUsedExclProposed:600000000,poUsedExclProposed:0,wcUsedExclProposed:600000000,
+   proposedTotalLimit:1000000000,proposedPoSubLimit:0,proposedWcSubLimit:1000000000}
 };
 window.LP_LIMITS=LP_LIMITS;
 function lpLimitInfo(r){var L=LP_LIMITS[r.kp];if(!L)return null;return {totalRem:L.totalLimit-L.totalUsedExclProposed,poRem:L.poSubLimit-L.poUsedExclProposed,wcRem:L.wcSubLimit-L.wcUsedExclProposed};}
@@ -4542,8 +4473,10 @@ poRender();
   function parseN(s){var n=Number((s||'').replace(/[^0-9]/g,''));return isNaN(n)?0:n;}
   window.bufFmt=function(el){var v=parseN(el.value);el.value=el.value.trim()?v.toLocaleString('en-US'):'';};
   window.plfCalc=function(){
-    var CUR={total:12000000000,po:12000000000,wc:0};
-    var OUT_BASE={total:6000000000,po:6000000000,wc:0};
+    var _plfR=window.__curProjRow;
+    var _plfLim=(_plfR&&typeof LP_LIMITS!=='undefined')?LP_LIMITS[_plfR.kp]:null;
+    var CUR=_plfLim?{total:_plfLim.totalLimit,po:_plfLim.poSubLimit,wc:_plfLim.wcSubLimit}:{total:0,po:0,wc:0};
+    var OUT_BASE=_plfLim?{total:_plfLim.totalUsedExclProposed,po:_plfLim.poUsedExclProposed,wc:_plfLim.wcUsedExclProposed}:{total:0,po:0,wc:0};
     var projOn=(function(){var e=document.getElementById('msProj');return e&&e.classList.contains('sel');})();
     var projAmt=projOn?((typeof pjReqIDR!=='undefined')?pjReqIDR:0):0;
     function set(id,did,cur){var el=document.getElementById(id);if(!el)return 0;var v=parseN(el.value);if(el.value.trim())el.value=v.toLocaleString('en-US');var d=document.getElementById(did);if(d){if(!el.value.trim()){d.innerHTML='';}else{var t=v>cur?'Increase':(v<cur?'Decrease':'Keep');var c=v>cur?'c-blue':(v<cur?'c-red':'c-gray');d.innerHTML='<span class="chip '+c+'">'+t+'</span>';}}return v;}
@@ -4608,6 +4541,37 @@ poRender();
   });
   window.finTypeGate=finTypeGate;
   function init(){var a=document.getElementById('pjAssetFp');finTypeGate(a?a.getAttribute('data-fp-val'):'Asset Class A');}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+  setTimeout(init,800);
+})();
+/* ===== Financing Use: options constrained by Asset Class ===== */
+(function(){
+  var ASSET_A_USES=['Branch Opening/Expansion','Branch Renovation','Factory Expansion','Moveable Asset Financing','Rent-Only Financing'];
+  function finUseOptions(v){
+    if(/B - I/.test(v))return ['Domestic Invoice Financing','Export Invoice Financing'];
+    if(/B - PO/.test(v))return ['Domestic PO Financing','Export PO Financing'];
+    if(/Class D/.test(v))return ['Working Capital Financing','Temp Financing','Previous Investor Buyout'].concat(ASSET_A_USES);
+    return ASSET_A_USES;
+  }
+  function mirror(v){if(typeof window.mirrorFinUse==='function')window.mirrorFinUse();}
+  function finUseGate(v){
+    var el=document.getElementById('pjFinUse');if(!el)return;
+    var opts=finUseOptions(v);
+    el.setAttribute('data-fp-opts',opts.join('||'));
+    var cur=el.getAttribute('data-fp-val');
+    if(opts.indexOf(cur)<0){
+      var next=opts[0];
+      el.setAttribute('data-fp-val',next);
+      el.innerHTML='<span class="pill"><span class="pill-t">'+next+'</span></span>';
+    }
+    mirror();
+  }
+  document.addEventListener('fp:change',function(e){
+    if(e.target.id==='pjAssetFp')finUseGate(e.detail.value);
+  });
+  window.finUseGate=finUseGate;
+  window.finUseOptions=finUseOptions;
+  function init(){var a=document.getElementById('pjAssetFp');finUseGate(a?a.getAttribute('data-fp-val'):'Asset Class A');}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
   setTimeout(init,800);
 })();
@@ -5455,7 +5419,9 @@ poRender();
   function curTermSheetVersion(r){var v=r.termSheetVersions;return (v&&v.length)?v[v.length-1]:null;}
   window.kpApprovalDaysStale=function(r){
     if(!r.kpApprovalEnteredAt)return 0;
-    return Math.floor((DEMO_TODAY.getTime()-new Date(r.kpApprovalEnteredAt).getTime())/86400000);
+    var p=r.kpApprovalEnteredAt.split('-');
+    var entered=new Date(Number(p[0]),Number(p[1])-1,Number(p[2]));
+    return Math.max(0,Math.floor((DEMO_TODAY.getTime()-entered.getTime())/86400000));
   };
   window.termSheetVersionsHTML=function(r){
     var vers=r.termSheetVersions||[];
@@ -6430,8 +6396,7 @@ poRender();
 (function(){
   function setPill(id,v){var e=document.getElementById(id);if(!e)return;e.setAttribute('data-fp-val',v);e.innerHTML='<span class="pill"><span class="pill-t">'+esc(v)+'</span></span>';}
   function fire(id){var e=document.getElementById(id);if(e)e.dispatchEvent(new CustomEvent('fp:change',{bubbles:true,detail:{value:e.getAttribute('data-fp-val')}}));}
-  window.pjDetailsAmtFmt=function(el){var d=(el.value||'').replace(/[^0-9]/g,'');el.value=d?Number(d).toLocaleString('en-US'):'';};
-  window.pjDetailsCurToggle=function(){var el=document.getElementById('pjDetailsCur');if(!el)return;var c=el.textContent.trim()==='IDR'?'USD':'IDR';el.textContent=c;el.classList.toggle('usd',c==='USD');};
+  window.pjDetailsAmtFmt=function(el){var d=(el.value||'').replace(/[^0-9]/g,'');el.value=d?Number(d).toLocaleString('en-US'):'';if(typeof window.mirrorReqAmt==='function')window.mirrorReqAmt();};
   if(typeof renderProject==='function'){
     var _rpAsset=renderProject;
     window.renderProject=renderProject=function(id){
@@ -6439,17 +6404,285 @@ poRender();
       var r=(typeof LP_DATA!=='undefined')?LP_DATA[id]:null; if(!r)return;
       var assetVal=(r.asset||'Asset A').replace('Asset ','Asset Class ');
       setPill('pjAssetFp',assetVal);
+      var finUseEl=document.getElementById('pjFinUse');if(finUseEl)finUseEl.setAttribute('data-fp-val','');
       fire('pjAssetFp');
-      setPill('pjFinUse',projUse(r.type));
-      var curEl=document.getElementById('pjDetailsCur'),amtEl=document.getElementById('pjDetailsAmt');
-      if(curEl&&amtEl){
-        var isUsd=/USD/i.test(r.amount||'');
-        curEl.textContent=isUsd?'USD':'IDR';curEl.classList.toggle('usd',isUsd);
+      if(typeof assetClassGate==='function')assetClassGate();
+      var amtEl=document.getElementById('pjDetailsAmt');
+      var isUsd=/USD/i.test(r.amount||'');
+      setPill('pjDetailsCur',isUsd?'USD':'IDR');
+      if(amtEl){
         var digits=(r.amount||'').replace(/[^0-9]/g,'');
         amtEl.value=digits?Number(digits).toLocaleString('en-US'):'';
       }
+      syncPlafondCurrent(r);
+      syncKPProjectStats(r);
+      syncPTDetails(r);
+      syncKPContacts(r);
+      syncRecapIdentity(r);
+      syncRecapPast(r);
+      syncRecapSummary(r);
     };
   }
+  function mirrorFinUse(){var e=document.getElementById('pjFinUse');setText('recapFinUseChip',e?e.getAttribute('data-fp-val'):'');}
+  function mirrorReqAmt(){
+    var curEl=document.getElementById('pjDetailsCur'),amtEl=document.getElementById('pjDetailsAmt');
+    var cur=curEl?curEl.getAttribute('data-fp-val'):'IDR';
+    setText('recapReqAmtChip',cur+' '+((amtEl&&amtEl.value)||'0'));
+  }
+  window.mirrorFinUse=mirrorFinUse;
+  window.mirrorReqAmt=mirrorReqAmt;
+  document.addEventListener('fp:change',function(e){
+    if(e.target.id==='pjFinUse')mirrorFinUse();
+    if(e.target.id==='pjDetailsCur')mirrorReqAmt();
+  });
+  function syncRecapIdentity(r){
+    setText('recapProjHeader',r.project);
+    var pt=PT_DETAILS[r.kp]||{name:'PT '+r.kp};
+    setText('recapPtName',pt.name);
+    mirrorFinUse();
+    mirrorReqAmt();
+  }
+  var STAGE_RANK={early:0,funding:0,nonlead:0,dd:1,ic:2,kpapproval:3,financesplit:4,legal:5,disbursement:6,active:7,restructured:7,completed:8};
+  function projectCore(project){return project.split(' · ')[0];}
+  function projectCores(kp){
+    var seen={};
+    LP_DATA.forEach(function(x){
+      if(x.kp!==kp||x.stage==='early'||x.stage==='funding'||x.stage==='nonlead')return;
+      seen[projectCore(x.project)]=1;
+    });
+    return Object.keys(seen);
+  }
+  function mostAdvancedRow(kp,core){
+    var best=null,bestRank=-1;
+    LP_DATA.forEach(function(x){
+      if(x.kp!==kp||projectCore(x.project)!==core)return;
+      var rank=STAGE_RANK[x.stage]||0;
+      if(rank>bestRank){bestRank=rank;best=x;}
+    });
+    return best;
+  }
+  function projectNum(core){var m=core.match(/#(\d+)/);return m?Number(m[1]):null;}
+  function pastProjectFor(r){
+    var curCore=projectCore(r.project);
+    var curNum=projectNum(curCore);
+    var earlier=projectCores(r.kp).filter(function(c){
+      if(c===curCore)return false;
+      var n=projectNum(c);
+      if(curNum==null||n==null)return false;
+      return n<curNum;
+    });
+    if(!earlier.length)return null;
+    var candidates=earlier.map(function(c){return mostAdvancedRow(r.kp,c);}).filter(Boolean);
+    /* Prefer a project that's actually completed/active (a real performance reference for IC)
+       over just whichever project number happens to be immediately prior — a still-in-pipeline
+       prior project tells IC nothing about how this KP performs. Fall back to most recent by
+       number only if none have settled yet. */
+    var settled=candidates.filter(function(x){return x.stage==='completed'||x.stage==='active'||x.stage==='restructured';});
+    var pool=settled.length?settled:candidates;
+    pool.sort(function(a,b){return projectNum(projectCore(b.project))-projectNum(projectCore(a.project));});
+    return pool[0];
+  }
+  function syncRecapPast(r){
+    var headerEl=document.getElementById('recapPastHeader'),badgeEl=document.getElementById('recapPastBadge');
+    var orderFp=document.getElementById('pjProjOrderFp');
+    var past=pastProjectFor(r);
+    if(!past){
+      if(headerEl)headerEl.textContent='—';
+      if(badgeEl)badgeEl.textContent='N/A';
+      ['recapPastFinTypeChip','recapPastPtName','recapPastFinUseChip','recapPastReqAmtChip'].forEach(function(id){setText(id,'—');});
+      setText('recapPastPrincipal','—');
+      if(orderFp){orderFp.setAttribute('data-fp-val','1st Project');orderFp.innerHTML='<span class="pill"><span class="pill-t">1st Project</span></span>';}
+      return;
+    }
+    if(headerEl)headerEl.textContent=past.project;
+    if(badgeEl)badgeEl.textContent=(STAT_BY[past.statusCode]||{}).t||past.status||'Past';
+    setText('recapPastFinTypeChip',past.finType||'—');
+    var pt=PT_DETAILS[past.kp]||{name:'PT '+past.kp};
+    setText('recapPastPtName',pt.name);
+    var pastAssetVal=(past.asset||'Asset A').replace('Asset ','Asset Class ');
+    var pastUseOpts=(typeof window.finUseOptions==='function')?window.finUseOptions(pastAssetVal):[];
+    setText('recapPastFinUseChip',pastUseOpts[0]||'—');
+    var isUsd=/USD/i.test(past.amount||'');
+    var digits=(past.amount||'').replace(/[^0-9]/g,'');
+    setText('recapPastReqAmtChip',(isUsd?'USD':'IDR')+' '+(digits?Number(digits).toLocaleString('en-US'):'0'));
+    if(past.kf!=null&&past.kcf!=null){
+      setText('recapPastPrincipal',idr(past.kf+past.kcf)+' outstanding ('+(past.stage==='active'?'active':past.stage)+')');
+    }else{
+      setText('recapPastPrincipal','N/A — not yet disbursed');
+    }
+    if(orderFp){orderFp.setAttribute('data-fp-val','2nd+ Project');orderFp.innerHTML='<span class="pill"><span class="pill-t">2nd+ Project</span></span>';}
+  }
+  function parseAmt(s){var d=(s||'').replace(/[^0-9]/g,'');return d?Number(d):0;}
+  window.recapToggleAll=function(){
+    var body=document.getElementById('recapAllBody'),caret=document.getElementById('recapAllCaret');
+    if(!body)return;
+    var open=body.style.display!=='none';
+    body.style.display=open?'none':'block';
+    if(caret)caret.style.transform=open?'':'rotate(-90deg)';
+  };
+  function syncRecapSummary(r){
+    var mixEl=document.getElementById('recapProjectMix');if(!mixEl)return;
+    var cores=projectCores(r.kp);
+    var rows=cores.map(function(c){return mostAdvancedRow(r.kp,c);}).filter(Boolean);
+    var completed=0,active=0,inProgress=0,totalAmt=0,outstanding=0;
+    rows.forEach(function(row){
+      totalAmt+=parseAmt(row.amount);
+      if(row.stage==='completed')completed++;
+      else if(row.stage==='active'||row.stage==='restructured'){
+        active++;
+        if(row.kf!=null&&row.kcf!=null)outstanding+=(row.kf+row.kcf);
+      }else inProgress++;
+    });
+    setText('recapTotalAmt',idr(totalAmt));
+    setText('recapTotalAmtSub',rows.length+' project'+(rows.length===1?'':'s')+' total');
+    setText('recapOutstanding',idr(outstanding));
+    setText('recapOutstandingSub',active+' active project'+(active===1?'':'s'));
+    mixEl.innerHTML=completed+'× Completed<br>'+active+'× Active<br>'+inProgress+'× In Progress';
+    var curNum=projectNum(projectCore(r.project));
+    var noteEl=document.getElementById('recapProjNumNote');
+    if(noteEl){
+      noteEl.textContent=(curNum!=null?'This is Project #'+curNum+' for the KP':'This is a project for the KP')
+        +' — '+(rows.length>1?(rows.length-1)+' other project'+(rows.length-1===1?'':'s')+' on file.':'no past projects yet.');
+    }
+    var toggleLabel=document.getElementById('recapAllToggleLabel');
+    if(toggleLabel)toggleLabel.textContent='View all '+rows.length+' project'+(rows.length===1?'':'s');
+    if(document.getElementById('recapAllRows')){
+      rows.sort(function(a,b){return projectNum(projectCore(b.project))-projectNum(projectCore(a.project));});
+      window.__recapAllRows=rows;
+      window.__recapVisibleCount=3;
+      recapRenderRows();
+    }
+  }
+  var RECAP_PAGE_SIZE=3;
+  function recapRowChip(row){
+    if(row.stage==='completed')return '<span class="chip c-gray">Completed</span>';
+    if(row.stage==='active'||row.stage==='restructured')return '<span class="chip c-green">Active</span>';
+    return '<span class="chip c-blue">'+esc((STAT_BY[row.statusCode]||{}).t||row.stage)+'</span>';
+  }
+  function recapRenderRows(){
+    var wrap=document.getElementById('recapAllRows');if(!wrap)return;
+    var rows=window.__recapAllRows||[];
+    var n=Math.min(window.__recapVisibleCount||RECAP_PAGE_SIZE,rows.length);
+    wrap.innerHTML=rows.slice(0,n).map(function(row,i){
+      return '<div class="recap-proj-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0'+(i<n-1?';border-bottom:1px solid var(--line)':'')+'">'
+        +'<div><div style="font-weight:600;font-size:12.5px">'+esc(projectCore(row.project))+'</div>'
+        +'<div class="tiny muted" style="margin-top:2px">'+recapRowChip(row)+' <span style="margin-left:4px">'+esc(row.finType||'—')+' · '+esc(row.status||'—')+'</span></div></div>'
+        +'<div class="r" style="font-weight:600;font-size:12.5px;white-space:nowrap">'+esc(row.amount||'—')+'</div>'
+        +'</div>';
+    }).join('');
+    var moreWrap=document.getElementById('recapLoadMoreWrap'),btn=document.getElementById('recapLoadMoreBtn');
+    var remaining=rows.length-n;
+    if(moreWrap&&btn){
+      if(remaining>0){moreWrap.style.display='';btn.textContent='Load '+Math.min(RECAP_PAGE_SIZE,remaining)+' more ('+remaining+' remaining)';}
+      else if(rows.length>RECAP_PAGE_SIZE){moreWrap.style.display='';btn.textContent='Show less';}
+      else moreWrap.style.display='none';
+    }
+  }
+  window.recapLoadMore=function(){
+    var rows=window.__recapAllRows||[];
+    if((window.__recapVisibleCount||RECAP_PAGE_SIZE)>=rows.length)window.__recapVisibleCount=RECAP_PAGE_SIZE;
+    else window.__recapVisibleCount=Math.min(rows.length,(window.__recapVisibleCount||RECAP_PAGE_SIZE)+RECAP_PAGE_SIZE);
+    recapRenderRows();
+  };
+  function syncKPContacts(r){
+    if(typeof window.renderUboExposure==='function')window.renderUboExposure(r.kp);
+    var slug=r.kp.toLowerCase().replace(/[^a-z0-9]+/g,'').slice(0,20);
+    setText('pjContactEmail','finance@'+slug+'.co.id');
+    var emailEl=document.getElementById('pjContactEmail');if(emailEl)emailEl.setAttribute('data-raw','finance@'+slug+'.co.id');
+  }
+  var PT_DETAILS={
+    'Steak Hotel by Holycow':{name:'PT Steak Hotel by Holycow',bank:'BCA',account:'5200123456'},
+    'Begor Pondok Suryo':{name:'PT Begor Pondok Suryo',bank:'BNI',account:'0123456789'},
+    'Cipta Usaha Media':{name:'PT Cipta Usaha Media',bank:'BCA',account:'7788001122'},
+    'Cahaya Energi Asia':{name:'PT Cahaya Energi Asia',bank:'Mandiri',account:'1260011422085'}
+  };
+  function setText(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
+  function syncPTDetails(r){
+    var pt=PT_DETAILS[r.kp]||{name:'PT '+r.kp,bank:'—',account:'—'};
+    setText('ptName1',pt.name);
+    setText('ptBank1',pt.bank);
+    setText('ptAccount1',pt.account);
+    setText('ptHolder1',pt.name);
+    var projEl=document.getElementById('ptProj1');
+    if(projEl){var t=projEl.querySelector('.pill-t');if(t)t.textContent=r.project;projEl.setAttribute('data-fp-val',r.project);}
+  }
+  var BEFORE_IC_STAGES={early:1,funding:1,dd:1};
+  var PENDING_DISBURSE_STAGES={ic:1,kpapproval:1,financesplit:1,legal:1,disbursement:1};
+  function syncKPProjectStats(r){
+    var activeEl=document.getElementById('pjStatActive'),compEl=document.getElementById('pjStatCompleted'),
+        beforeEl=document.getElementById('pjStatBeforeIC'),pendEl=document.getElementById('pjStatPending');
+    if(!activeEl||typeof LP_DATA==='undefined')return;
+    var active=0,completed=0,beforeIC=0,pending=0;
+    LP_DATA.forEach(function(x){
+      if(x.kp!==r.kp)return;
+      if(x.stage==='active')active++;
+      else if(x.stage==='completed')completed++;
+      else if(BEFORE_IC_STAGES[x.stage])beforeIC++;
+      else if(PENDING_DISBURSE_STAGES[x.stage])pending++;
+    });
+    activeEl.textContent=active+' active';
+    compEl.textContent=completed+' completed';
+    beforeEl.textContent=beforeIC+' before IC';
+    pendEl.textContent=pending+' pending disbursement';
+  }
+  function syncPlafondCurrent(r){
+    var totalEl=document.getElementById('plfCurTotal');if(!totalEl)return;
+    var totalOutEl=document.getElementById('plfCurTotalOut'),totalRemEl=document.getElementById('plfCurTotalRem');
+    var poEl=document.getElementById('plfCurPO'),poRemEl=document.getElementById('plfCurPORem');
+    var wcEl=document.getElementById('plfCurWC'),wcRemEl=document.getElementById('plfCurWCRem');
+    var tagEl=document.getElementById('plfCurStatusTag'),periodEl=document.getElementById('plfCurPeriod');
+    var lim=(typeof LP_LIMITS!=='undefined')?LP_LIMITS[r.kp]:null;
+    if(lim){
+      var totalRem=lim.totalLimit-lim.totalUsedExclProposed;
+      var poRem=lim.poSubLimit-lim.poUsedExclProposed;
+      var wcRem=lim.wcSubLimit-lim.wcUsedExclProposed;
+      totalEl.textContent=idr(lim.totalLimit);
+      totalOutEl.textContent='Outstanding: '+idr(lim.totalUsedExclProposed);
+      totalRemEl.textContent='Remaining: '+idr(totalRem);
+      poEl.textContent=idr(lim.poSubLimit);
+      poRemEl.textContent='Remaining: '+idr(poRem);
+      wcEl.textContent=idr(lim.wcSubLimit);
+      wcRemEl.textContent='Remaining: '+idr(wcRem);
+      if(tagEl){tagEl.style.display='';tagEl.textContent='Active';}
+      if(periodEl)periodEl.textContent='Karmapreneur-level Plafond, reviewed periodically';
+    }else{
+      totalEl.textContent='Rp 0';
+      totalOutEl.textContent='No active Plafond for this Karmapreneur';
+      totalRemEl.textContent='';
+      poEl.textContent='Rp 0';
+      poRemEl.textContent='';
+      wcEl.textContent='Rp 0';
+      wcRemEl.textContent='';
+      if(tagEl){tagEl.style.display='none';}
+      if(periodEl)periodEl.textContent='—';
+    }
+    var supRow=document.getElementById('plfSupRow');
+    var supTotalEl=document.getElementById('plfSupTotal'),supPoEl=document.getElementById('plfSupPO'),supWcEl=document.getElementById('plfSupWC'),supPeriodEl=document.getElementById('plfSupPeriod');
+    if(lim&&lim.supersededTotalLimit!=null){
+      if(supRow)supRow.style.display='';
+      if(supTotalEl)supTotalEl.textContent=idr(lim.supersededTotalLimit);
+      if(supPoEl)supPoEl.textContent=idr(lim.supersededPoSubLimit);
+      if(supWcEl)supWcEl.textContent=idr(lim.supersededWcSubLimit);
+      if(supPeriodEl)supPeriodEl.textContent=lim.supersededPeriod||'';
+    }else{
+      if(supRow)supRow.style.display='none';
+    }
+    var isDD=!!(r&&(r.stage==='funding'||r.stage==='dd'));
+    if(!isDD){
+      var pTotal=document.getElementById('plfTotal'),pPO=document.getElementById('plfPO'),pWC=document.getElementById('plfWC');
+      if(lim&&lim.proposedTotalLimit!=null){
+        if(pTotal)pTotal.value=Number(lim.proposedTotalLimit).toLocaleString('en-US');
+        if(pPO)pPO.value=Number(lim.proposedPoSubLimit).toLocaleString('en-US');
+        if(pWC)pWC.value=Number(lim.proposedWcSubLimit).toLocaleString('en-US');
+      }else if(!lim){
+        if(pTotal)pTotal.value='';
+        if(pPO)pPO.value='';
+        if(pWC)pWC.value='';
+      }
+    }
+    if(typeof plfCalc==='function')plfCalc();
+  }
+  window.syncPlafondCurrent=syncPlafondCurrent;
 })();
 </script>
 <script>
@@ -6773,12 +7006,26 @@ poRender();
 (function(){
   var UBO_KP_EXPOSURE={'Cahaya Energi Asia':6000000000,'PT Semesta Energi Services':6846200000};
   function idrMn(n){return 'Rp '+(n/1000000).toLocaleString('en-US',{maximumFractionDigits:1})+' mn';}
-  function renderUboExposure(){
+  var EXPOSURE_STAGES={dd:1,ic:1,kpapproval:1,financesplit:1,legal:1,disbursement:1,active:1,restructured:1};
+  function kpExposure(kp){
+    var seen={},total=0;
+    (typeof LP_DATA!=='undefined'?LP_DATA:[]).forEach(function(x){
+      if(x.kp!==kp||!EXPOSURE_STAGES[x.stage])return;
+      var key=x.project.split(' · ')[0];
+      if(seen[key])return;
+      seen[key]=1;
+      var d=(x.amount||'').replace(/[^0-9]/g,'');
+      total+=d?Number(d):0;
+    });
+    var o={};o[kp]=total;return o;
+  }
+  function renderUboExposure(kp){
     var cell=document.getElementById('uboExposureCell'); if(!cell)return;
-    var names=Object.keys(UBO_KP_EXPOSURE);
+    var exposure=kp?kpExposure(kp):UBO_KP_EXPOSURE;
+    var names=Object.keys(exposure);
     if(!names.length){cell.innerHTML='<span class="muted">—</span>';return;}
-    var total=names.reduce(function(s,k){return s+UBO_KP_EXPOSURE[k];},0);
-    var rows=names.map(function(k){return '<div><span class="kp-link" data-open="los-kp" style="cursor:pointer;color:var(--primary);text-decoration:underline">'+esc(k)+'</span> — '+idrMn(UBO_KP_EXPOSURE[k])+'</div>';}).join('');
+    var total=names.reduce(function(s,k){return s+exposure[k];},0);
+    var rows=names.map(function(k){return '<div><span class="kp-link" data-open="los-kp" style="cursor:pointer;color:var(--primary);text-decoration:underline">'+esc(k)+'</span> — '+idrMn(exposure[k])+'</div>';}).join('');
     cell.innerHTML=rows+'<div class="tiny muted" style="margin-top:4px">Total outstanding: <b>'+idrMn(total)+'</b></div>';
   }
   window.renderUboExposure=renderUboExposure;
