@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PRD — KIT - Origination Pipeline v1.1</title>
+<style>
+  :root {
+    --text: #1a1a1a;
+    --muted: #5f5f5f;
+    --bg: #ffffff;
+    --bg-alt: #f6f7f8;
+    --border: #d8dbde;
+    --accent: #2451b0;
+    --ok: #157a3d;
+    --no: #b3261e;
+    --code-bg: #eef1f5;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --text: #e8e8e8;
+      --muted: #a3a3a3;
+      --bg: #14161a;
+      --bg-alt: #1c1f24;
+      --border: #33373d;
+      --accent: #7ea6ff;
+      --ok: #4ad17f;
+      --no: #ff6b64;
+      --code-bg: #22262c;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    line-height: 1.5;
+  }
+  .doc {
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 48px 24px 96px;
+  }
+  header.doc-header {
+    margin-bottom: 32px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid var(--border);
+  }
+  header.doc-header h1 {
+    margin: 0 0 4px;
+    font-size: 28px;
+  }
+  header.doc-header .subtitle {
+    color: var(--muted);
+    font-size: 15px;
+  }
+
+  nav.toc {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 40px;
+    font-size: 14px;
+  }
+  nav.toc .toc-label {
+    margin: 0 0 10px;
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .toc-bucket {
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+    margin: 14px 0 4px;
+  }
+  .toc-bucket:first-of-type { margin-top: 0; }
+  nav.toc ol {
+    margin: 0;
+    padding-left: 20px;
+  }
+  nav.toc a { color: var(--text); text-decoration: none; }
+  nav.toc a:hover { color: var(--accent); text-decoration: underline; }
+  .toc-single { margin: 14px 0 0; padding-top: 10px; border-top: 1px solid var(--border); }
+
+  /* three-tier layout: bucket (h2) > subject (h3) > detail (h4) */
+  .section-bucket { margin-bottom: 56px; }
+  .section-bucket:last-of-type { margin-bottom: 40px; }
+  .section-subject { margin-bottom: 32px; }
+  .section-subject:last-child { margin-bottom: 0; }
+  .section-sub { margin-top: 20px; }
+  .section-sub:first-of-type { margin-top: 16px; }
+
+  h2 {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--accent);
+    background: var(--bg-alt);
+    border-left: 4px solid var(--accent);
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin: 0 0 24px;
+    scroll-margin-top: 16px;
+  }
+  h3 {
+    font-size: 20px;
+    margin: 0 0 12px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+    scroll-margin-top: 16px;
+  }
+  h4 {
+    font-size: 15px;
+    color: var(--accent);
+    margin: 0 0 8px;
+    scroll-margin-top: 16px;
+  }
+  p { margin: 0 0 10px; }
+  ul { margin: 0 0 10px; padding-left: 22px; }
+  li { margin-bottom: 4px; }
+  strong { font-weight: 600; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 12px 0 18px;
+    font-size: 14px;
+  }
+  th, td {
+    border: 1px solid var(--border);
+    padding: 8px 10px;
+    text-align: left;
+    vertical-align: top;
+  }
+  th {
+    background: var(--bg-alt);
+    font-weight: 600;
+  }
+  tbody tr:nth-child(even) { background: var(--bg-alt); }
+
+  .story {
+    background: var(--bg-alt);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+  }
+  .story h4 { margin-bottom: 10px; }
+  .story .lede { margin-bottom: 10px; }
+  .story ul.criteria { list-style: none; padding-left: 0; }
+  .story ul.criteria li { padding-left: 1.6em; position: relative; }
+  .story ul.criteria li.ok::before { content: "✔"; color: var(--ok); position: absolute; left: 0; font-weight: 700; }
+  .story ul.criteria li.no::before { content: "✘"; color: var(--no); position: absolute; left: 0; font-weight: 700; }
+  .story .scenarios { margin-top: 10px; font-size: 14px; color: var(--muted); }
+  .story .scenarios strong { color: var(--text); }
+
+  code, .stage {
+    background: var(--code-bg);
+    border-radius: 4px;
+    padding: 1px 5px;
+    font-size: 0.92em;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+
+  footer.doc-footer {
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 13px;
+  }
+</style>
+</head>
+<body>
+<div class="doc">
+
+  <header class="doc-header">
+    <h1>KIT - Origination Pipeline</h1>
+    <div class="subtitle">Product Requirements Document · v1.1</div>
+  </header>
+
+  <nav class="toc" aria-label="Table of contents">
+    <p class="toc-label">Contents</p>
+
+    <p class="toc-bucket">I. Objective</p>
+    <ol>
+      <li><a href="#overview">Overview</a></li>
+      <li><a href="#why-we-build-it">Why We Build It</a></li>
+      <li><a href="#objective">Objective &amp; Key Results</a></li>
+      <li><a href="#scope">Scope</a></li>
+    </ol>
+
+    <p class="toc-bucket">II. Capability</p>
+    <ol>
+      <li><a href="#roles-access">Roles &amp; Access</a></li>
+      <li><a href="#data-model">Data Model</a></li>
+      <li><a href="#system-integration">System Integration &amp; Scope Boundary</a></li>
+    </ol>
+
+    <p class="toc-bucket">III. Details</p>
+    <ol>
+      <li><a href="#pipeline-stages">Pipeline Stages &amp; Workflow</a></li>
+      <li><a href="#submission-form">Submission Form Architecture</a></li>
+      <li><a href="#user-stories">User Stories &amp; Acceptance Criteria</a></li>
+    </ol>
+
+    <p class="toc-single"><a href="#dependencies">Dependencies</a></p>
+  </nav>
+
+  <!-- ============================================================ -->
+  <!-- I. OBJECTIVE                                                  -->
+  <!-- ============================================================ -->
+  <section class="section-bucket" id="bucket-objective">
+    <h2>I. Objective</h2>
+
+    <section class="section-subject" id="overview">
+      <h3>Overview</h3>
+      <p>Origination Pipeline is Karma's internal tools for originating project financing, a sequence through Due Diligence, Investment Committee (IC) review, Karmapreneur (KP) term-sheet agreement, Finance allocation, Legal contracting, and Disbursement. Its purpose is to replace Coda as the predecessor system.</p>
+      <p>Pipeline sits alongside CRM, Monitoring, and Credit Quality as capabilities within KIT (Karma's Internal Tools), the single platform Karma is building incrementally to replace today's disconnected tools. The Loan Management System (LMS) is the only external system: after disbursement. This PRD focuses on the Origination Pipeline; it describes the required capabilities and integration between systems.</p>
+    </section>
+
+    <section class="section-subject" id="why-we-build-it">
+      <h3>Why We Build It</h3>
+      <ul>
+        <li>Coda does not provide the development, testing, logging, or flexibility needed to improve the origination process</li>
+        <li>Important credit controls such as concentration limits are currently manual or formula-based. Pipeline will make these controls visible at the right time.</li>
+        <li>Origination is still heavily manual. A purpose-built workflow is needed to support higher project volume without losing consistency or auditability.</li>
+      </ul>
+    </section>
+
+    <section class="section-subject" id="objective">
+      <h3>Objective &amp; Key Results</h3>
+      <p>Origination in one system for moving a financing request from Due Diligence to Disbursement, with the right permissions at each stage and a complete history of important decisions.</p>
+      <ul>
+        <li><strong>KR1:</strong> 100% of new financing requests are created and progressed in these internal tools.</li>
+        <li><strong>KR2:</strong> All users (Analysts, IC members, Finance, and Legal users work in this tool for new and existing projects, without parallel Coda use.</li>
+        <li><strong>KR3:</strong> Every IC decision, Finance split, Legal sign-off, and disbursement records the actor, time, and reason or note where relevant.</li>
+        <li><strong>KR4:</strong> Pipeline captures entry and exit times for each stage so Karma can measure the median Due Diligence-to-Disbursement cycle time after launch.</li>
+      </ul>
+    </section>
+
+    <section class="section-subject" id="scope">
+      <h3>Scope</h3>
+
+      <section class="section-sub" id="in-scope">
+        <h4>In Scope</h4>
+        <ul>
+          <li>The full Pipeline lifecycle: Due Diligence → IC Review → KP Review → Finance Split → Legal Agreement → Finance Disbursement.</li>
+          <li>Permissions for Analyst, IC, Finance, and Legal users, including users with more than one role.</li>
+          <li>The submission form: its common sections, conditional sections, and stage-based editing rules.</li>
+          <li>Pipeline records for Projects, KPs, Contacts, PTs, Payors, Invoices/POs, notes, tasks, and Tranches.</li>
+          <li>Integration between CRM, Monitoring, LMS seamlessly with single source database</li>
+        </ul>
+      </section>
+
+      <section class="section-sub" id="out-of-scope">
+        <h4>Out of Scope</h4>
+        <table>
+          <thead>
+            <tr><th>Item</th><th>Reason</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>CRM lead intake and nurturing</td><td>Will be Handled in other PRD Spec</td></tr>
+            <tr><td>Monitoring after disbursement</td><td>Will be Handled in other PRD Spec</td></tr>
+            <tr><td>Credit Quality</td><td>Will be Handled in other PRD Spec</td></tr>
+            <tr><td>Credit Ops role</td><td>Will be Handled in other PRD Spec, together with credit quality and monitoring</td></tr>
+          </tbody>
+        </table>
+      </section>
+    </section>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- II. CAPABILITY                                                -->
+  <!-- ============================================================ -->
+  <section class="section-bucket" id="bucket-capability">
+    <h2>II. Capability</h2>
+
+    <section class="section-subject" id="roles-access">
+      <h3>Roles &amp; Access</h3>
+
+      <section class="section-sub" id="roles-permissions">
+        <h4>Roles &amp; Permissions</h4>
+        <p>People can hold more than one role. They use one active role at a time, and may switch only to roles assigned to them. For this release, a person who holds both Analyst and IC roles may review and vote on their own team's submission.</p>
+        <table>
+          <thead>
+            <tr><th>Role</th><th>What they can do</th><th>Boundaries</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Analyst</td>
+              <td>Create and complete a submission in Due Diligence; submit it to IC; edit Conditions before submission; revise and resubmit a Project returned by IC; request or edit a planned Tranche.</td>
+              <td>After submission to IC, all Analyst-editable fields are locked. Analysts cannot take IC, Finance, Legal, or Disbursement actions.</td>
+            </tr>
+            <tr>
+              <td>Investment Committee</td>
+              <td>Approve a Project or send it back to the Analyst with a required reason; edit Conditions Precedent and Subsequent during IC Review.</td>
+              <td>A send-back is not a permanent rejection; the Analyst may revise and resubmit. IC cannot take Finance, Legal, or Analyst actions.</td>
+            </tr>
+            <tr>
+              <td>Finance</td>
+              <td>Set the KF/KCF allocation, send a valid allocation to Legal, and confirm an eligible disbursement.</td>
+              <td>Finance cannot change upstream deal information or Legal records. A split cannot be changed after it is sent to Legal.</td>
+            </tr>
+            <tr>
+              <td>Legal</td>
+              <td>Confirm that the master agreement is signed and issue a disbursement note for each Tranche.</td>
+              <td>Legal cannot change upstream deal information or Finance allocations.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section-sub" id="authentication">
+        <h4>Authentication</h4>
+        <p>User will use Google Workspace sign-in. Until it is implemented, the current build uses a simulated signed-in user and only shows the roles assigned to that person.</p>
+      </section>
+    </section>
+
+    <section class="section-subject" id="data-model">
+      <h3>Data Model</h3>
+      <p>This object model is the shared foundation for KIT: CRM and future Monitoring and Credit Quality modules are expected to build on the same objects and relationships rather than maintain separate schemas.</p>
+
+      <section class="section-sub" id="objects">
+        <h4>Objects</h4>
+        <p>The Project is the central record: it is a financing request, sometimes also called a Card or submission. Other records belong to either the Project or its Karmapreneur.</p>
+        <table>
+          <thead>
+            <tr><th>Object</th><th>What it is</th><th>Relationship</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Project</td><td>One financing request. It may include Project, Plafond, and Buffer types.</td><td>Holds the stage, terms, amount, and analyst assignment.</td></tr>
+            <tr><td>Karmapreneur (KP)</td><td>The borrower or business receiving financing.</td><td>One KP may have many Projects, Contacts, and PTs.</td></tr>
+            <tr><td>Contact</td><td>A person connected to a KP, such as a signatory or referral source.</td><td>Belongs to a KP.</td></tr>
+            <tr><td>PT</td><td>The legal entity associated with a KP or Project.</td><td>Belongs to a KP.</td></tr>
+            <tr><td>Payor</td><td>The counterparty for an Asset B Invoice/PO Project.</td><td>Linked through the Invoice/PO.</td></tr>
+            <tr><td>Invoice / PO</td><td>The financed instrument for an Asset B Project.</td><td>Belongs to one Project.</td></tr>
+            <tr><td>Note / activity item</td><td>A Project or KP history item, including workflow events and decision notes.</td><td>Attached to a Project or KP.</td></tr>
+            <tr><td>Task</td><td>A follow-up item.</td><td>Attached to a Project or Contact.</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section-sub" id="object-relationships">
+        <h4>Object Relationships</h4>
+        <ul>
+          <li>A KP may have many Projects, Contacts, and PTs.</li>
+          <li>A Project may have many Tranches, except Asset B, which allows one disbursement only.</li>
+          <li>Asset B Projects use an Invoice or PO linked to a Payor.</li>
+          <li>Notes record Project or KP activity; Tasks record Project or Contact follow-ups.</li>
+        </ul>
+      </section>
+
+      <section class="section-sub" id="project-naming-numbering">
+        <h4>Project Naming &amp; Numbering</h4>
+        <p>Every Project has two identifiers that behave differently: a mutable display name set during Due Diligence, and an immutable sequence number assigned only once the Project is disbursed.</p>
+        <ul>
+          <li><strong>Project Name:</strong> Brand Name plus Project Name (free text — a branch, the project itself, or anything the Analyst chooses). Editable throughout Due Diligence; locks when the Project is submitted to IC Review, along with the other Analyst-editable fields.</li>
+          <li><strong>Sequence Number:</strong> assigned automatically the moment a Project records its first disbursement. The number is the count of that Karmapreneur's already-disbursed Projects, plus one — their 1st, 2nd, 3rd disbursed Project. A Project that is rejected, expires, or is cancelled before ever disbursing never receives a number, so no gaps are created.</li>
+          <li>All Tranches under one Project share that Project's single sequence number; a Tranche does not receive its own.</li>
+          <li>Because the number reflects actual disbursement order rather than creation or submission order, two Projects for the same Karmapreneur can receive numbers out of the order they were created in.</li>
+        </ul>
+      </section>
+    </section>
+
+    <section class="section-subject" id="system-integration">
+      <h3>System Integration &amp; Scope Boundary</h3>
+      <p>CRM passes a qualified lead into Pipeline. Pipeline owns origination until a disbursement is recorded. Monitoring becomes the internal-tools view for post-disbursement activity, while LMS becomes the servicing system of record.</p>
+
+      <section class="section-sub" id="crm-to-pipeline">
+        <h4>CRM → Pipeline</h4>
+        <p>CRM and Pipeline are being built in parallel. CRM hands off a qualified lead once it reaches the Due Diligence stage; the handoff requires only a Brand Name, and passes every other field CRM already has as optional. Project Name is optional at handoff but must be filled in before the Analyst can submit to IC.</p>
+        <table>
+          <thead>
+            <tr><th>Field</th><th>Requirement</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Brand Name</td><td>Required</td></tr>
+            <tr><td>Project Name</td><td>Optional at handoff — required before submission to IC</td></tr>
+            <tr><td>Asset Class</td><td>Optional</td></tr>
+            <tr><td>Sector</td><td>Optional</td></tr>
+            <tr><td>Sub-sector</td><td>Optional</td></tr>
+            <tr><td>Currency</td><td>Optional</td></tr>
+            <tr><td>Requested Amount</td><td>Optional</td></tr>
+            <tr><td>KP Contact(s)</td><td>Optional</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section-sub" id="pipeline-to-monitoring">
+        <h4>Pipeline → Monitoring</h4>
+        <p>Not every disbursed Project becomes visible to Monitoring — only the subset that matches one of Monitoring's tracked capabilities, evaluated from the Project's first disbursement onward:</p>
+        <ul>
+          <li><strong>Overdues Monitoring:</strong> flags a Project that is overdue.</li>
+          <li><strong>Branch Opening:</strong> tracks Asset A in particular, from disbursement to its due date.</li>
+          <li><strong>PVA Monitoring:</strong> tracks projected vs. actual for a branch or Project using a revenue-share scheme.</li>
+          <li><strong>Monitoring Visit:</strong> reminds Karma that a KP hasn't been monitored, visited, or contacted.</li>
+        </ul>
+        <p>Regardless of whether a Project surfaces in any of these, every confirmed disbursement is always reflected in LMS.</p>
+      </section>
+
+      <section class="section-sub" id="pipeline-to-lms">
+        <h4>Pipeline → LMS</h4>
+        <p>Pipeline sends a disbursement event for every confirmed Project or Tranche disbursement. The delivery is asynchronous: Pipeline records the decision immediately, then retries LMS delivery with backoff if needed. A failed event remains visible for manual retry.</p>
+      </section>
+    </section>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- III. DETAILS                                                  -->
+  <!-- ============================================================ -->
+  <section class="section-bucket" id="bucket-details">
+    <h2>III. Details</h2>
+
+    <section class="section-subject" id="pipeline-stages">
+      <h3>Pipeline Stages &amp; Workflow</h3>
+
+      <section class="section-sub" id="stage-overview">
+        <h4>Stage Overview (JTBD)</h4>
+        <p>KP Review is a permanent stage between IC Review and Finance Split. It may loop back to IC Review if the KP counters the term sheet. A term sheet expires after 30 days if the KP does not accept it.</p>
+        <table>
+          <thead>
+            <tr><th>Stage</th><th>Primary owner</th><th>Purpose</th><th>Main outcome</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Due Diligence</td><td>Analyst</td><td>Build a complete project proposal</td><td>Submit to IC Review</td></tr>
+            <tr><td>IC Review</td><td>IC</td><td>Decide whether to approve or reject the project submission</td><td>Approve to KP Review, or send back to Due Diligence</td></tr>
+            <tr><td>KP Review</td><td>KP / Analyst</td><td>Obtain the KP's response to IC-approved terms</td><td>Accept to Finance Split; counter back to IC; reject or expire</td></tr>
+            <tr><td>Finance Split</td><td>Finance</td><td>Allocate the approved amount between KF and KCF</td><td>Send to Legal</td></tr>
+            <tr><td>Legal Agreement</td><td>Legal</td><td>Confirm the master agreement is complete</td><td>Send to Waiting for Disbursement</td></tr>
+            <tr><td>Finance Disbursement</td><td>Finance</td><td>Release funds once requirements are complete</td><td>Record disbursement and hand off to Monitoring and LMS</td></tr>
+          </tbody>
+        </table>
+        <p>Finance Disbursement work, including every Tranche disbursement (see Story 6 and Story 7 under User Stories &amp; Acceptance Criteria), is one underlying record shown in two views: a Project-level list for deal context, and a cross-Project work queue for Finance and Legal.</p>
+      </section>
+
+      <section class="section-sub" id="workflow-states">
+        <h4>Formal State Machine</h4>
+        <table>
+          <thead>
+            <tr><th>State</th><th>What brings a Project here</th><th>What can happen next</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="stage">Due Diligence</span></td><td>The Analyst creates the Project, or IC sends it back</td><td>Submit to IC Review</td></tr>
+            <tr><td><span class="stage">IC Review</span></td><td>The Analyst submits a complete Project</td><td>Approve to KP Review, or send back to Due Diligence</td></tr>
+            <tr><td><span class="stage">KP Review</span></td><td>IC approval quorum is reached</td><td>Accept, counter, reject, or expire after 30 days</td></tr>
+            <tr><td><span class="stage">Finance Split</span></td><td>KP accepts the terms</td><td>Finance sends a valid split to Legal</td></tr>
+            <tr><td><span class="stage">Legal Agreement</span></td><td>Finance completes a valid split</td><td>Legal confirms the agreement</td></tr>
+            <tr><td><span class="stage">Waiting for Disbursement</span></td><td>Legal confirms the master agreement</td><td>Finance disburses</td></tr>
+            <tr><td><span class="stage">Active</span></td><td>At least one disbursement is confirmed</td><td>Remaining eligible Tranches can continue</td></tr>
+            <tr><td><span class="stage">Completed</span></td><td>All Tranches are disbursed and the financing is fully repaid</td><td>Terminal state</td></tr>
+            <tr><td><span class="stage">Expired</span></td><td>KP rejects the term sheet or the 30-day period ends</td><td>Terminal state; record the reason</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section-sub" id="stage-controls">
+        <h4>Stage Controls</h4>
+        <ul>
+          <li>A repeated action, such as a double-click, must not create a duplicate transition or history record</li>
+          <li>Every workflow action records who took it, when it happened, the previous and new stage, and any required note</li>
+        </ul>
+      </section>
+    </section>
+
+    <section class="section-subject" id="submission-form">
+      <h3>Submission Form Architecture</h3>
+      <table>
+        <thead>
+          <tr><th>Section</th><th>When it appears</th><th>Purpose</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Heading and PIC</td><td>Always</td><td>Shows the Project, analysts, status, and submission type.</td></tr>
+          <tr><td>Karmapreneur Details, Contacts, and PT Details</td><td>Always</td><td>Captures the borrower, relevant people, and legal entity.</td></tr>
+          <tr><td>Project Details</td><td>Always</td><td>Defines asset class, type, sector, financing type, use, and requested amount.</td></tr>
+          <tr><td>Plafond &amp; Financial Review</td><td>Only for Plafond submissions</td><td>Captures Plafond and financial-review information.</td></tr>
+          <tr><td>Proposed &amp; Past Projects Recap</td><td>When prior Projects exist</td><td>Shows prior KP history.</td></tr>
+          <tr><td>KP Credit Memo</td><td>Always</td><td>Captures the investment case.</td></tr>
+          <tr><td>Conditions Precedent &amp; Subsequent</td><td>Always</td><td>Analyst-owned before submission; IC-owned during IC Review — IC is the only one able to add Conditions Precedent and Subsequent, and only at that stage.</td></tr>
+          <tr><td>Project Terms, Project Credit Memo, Notes, Other</td><td>Always</td><td>Captures Project-specific information.</td></tr>
+          <tr><td>Branch Opening</td><td>Asset A and D</td><td>Captures whether revenue accrues at the Karmapreneur's HoldCo level or per-branch; if per-branch, captures each branch's opening details.</td></tr>
+          <tr><td>Diligence Scoring</td><td>Asset B-I and B-PO</td><td>Captures Asset B diligence.</td></tr>
+          <tr><td>Payor / PO / Invoice Financing</td><td>Asset B</td><td>Captures the financed instrument and Payor.</td></tr>
+        </tbody>
+      </table>
+      <p>Asset Classes A, B-I, B-PO, and D are in scope. Submission Type must include Project, Plafond, or both; Buffer may be added but cannot stand alone. Asset A is Project-only. Asset B allows only one disbursement. Asset B pricing-floor issues are warnings, not hard blocks.</p>
+
+      <section class="section-sub" id="submission-type-field-rules">
+        <h4>Submission Type Field Rules</h4>
+        <p>A submission can be Project-only, Plafond-only, or Project and Plafond together. Buffer is only selectable when Plafond is selected, and is cleared automatically if Plafond is turned off; Buffer cannot stand alone.</p>
+        <ul>
+          <li><strong>Always required, regardless of Submission Type:</strong> Project Description, Financing Use.</li>
+          <li><strong>Always shown, optional when Project is not included:</strong> Project Credit Memo, Notes, Other — this is the shared memo/notes container for either a Project or a Plafond proposal, so it must stay available even on a Plafond-only submission.</li>
+          <li><strong>Shown only when Project is included:</strong> the pricing Calculator, Requested Project Amount, Karma Carry / Monitoring Fee.</li>
+          <li>Funding Source (KF / KCF / KS vs. Members) is not part of this form. It is decided later, at Finance Split (see Story 3), for both Project and Plafond submissions.</li>
+        </ul>
+      </section>
+
+      <section class="section-sub" id="asset-class-rules">
+        <h4>Asset Class Rules</h4>
+        <p>Asset Class is A, B-I, B-PO, or D. Selecting Plafond removes Asset Class A from the options — Asset A is Project-only. Asset Class drives both the allowed Financing Type and the allowed Financing Use options.</p>
+        <table>
+          <thead>
+            <tr><th>Asset Class</th><th>Allowed Financing Type(s)</th><th>Allowed Financing Use option(s)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>A</td><td>Revenue Share, Fixed Return, Fixed Return + Revenue Share</td><td>Branch Opening/Expansion, Branch Renovation, Rent-Only Financing, Factory Expansion, Moveable Asset Financing, Temp Financing, Previous Investor Buyout, Agri Plot Growing, General Equity</td></tr>
+            <tr><td>D</td><td>Fixed Return, Fixed Return + Revenue Share</td><td>Same as Asset A, plus Working Capital Financing</td></tr>
+            <tr><td>B-I</td><td>Daily Interest only</td><td>Export Invoice Financing, Domestic Invoice Financing, General Equity</td></tr>
+            <tr><td>B-PO</td><td>Daily Interest only</td><td>Export PO Financing, Domestic PO Financing, General Equity</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Known implementation gap:</strong> the Financing Use filter in the current build does not correctly apply this table — a field-ID mismatch means it falls back to showing all options regardless of Asset Class. The table above is the intended behavior; engineering needs to fix the wiring.</p>
+      </section>
+
+      <section class="section-sub" id="branch-opening-detail">
+        <h4>Branch Opening Detail</h4>
+        <p>Shown only for Asset A or D. The Analyst first sets Source of Revenue Accrued to HoldCo or Branches.</p>
+        <ul>
+          <li><strong>HoldCo:</strong> no further detail is captured — revenue is tracked at the Karmapreneur's holding level.</li>
+          <li><strong>Branches:</strong> a per-branch table appears, one row per branch: Branch Name, Accruing? (is this branch currently generating revenue), Opened with Karma? (was this branch opened using Karma financing), Branch Opening Date, Branch Area, GMaps Link. The Analyst can add more branches as needed.</li>
+        </ul>
+      </section>
+
+      <section class="section-sub" id="payor-po-invoice-detail">
+        <h4>Payor / PO / Invoice Financing Detail</h4>
+        <p>Asset B submissions split into PO mode or Invoice mode depending on the Financing Use selected.</p>
+        <table>
+          <thead>
+            <tr><th></th><th>PO Mode</th><th>Invoice Mode</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Trigger (Financing Use)</td><td>Export PO Financing, Domestic PO Financing</td><td>Export Invoice Financing, Domestic Invoice Financing</td></tr>
+            <tr><td>Fields</td><td>PO Number, PO Issue Date, Expected Delivery Date, Expected Payment Date, PO Amount</td><td>Invoice Number, Invoice Issue Date, Due Date, Invoice Amount</td></tr>
+            <tr><td>Base pricing rate</td><td>1.7%</td><td>1.6%</td></tr>
+            <tr><td>Repayment due date</td><td>Expected Payment Date + 15 days</td><td>Invoice Due Date, as entered</td></tr>
+          </tbody>
+        </table>
+        <p>Shared fields, regardless of mode: Payer (lookup or create), Payer Notes, Payer Type, Strength of Payor (auto-derived from Payer Type), Payer's Payee Projects, History of Payer Paying On Time.</p>
+        <table>
+          <thead>
+            <tr><th>Payer Type</th><th>Strength of Payor</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Tier 1 BUMN, Tier 1 Conglomerate, National Government, Tier 1 Foreign Government</td><td>5: Tier 1 Payer</td></tr>
+            <tr><td>Regional Government, Tier 2 BUMN, Tier 2 Conglomerate, Tier 2 Foreign Government</td><td>4: Tier 2 Payer</td></tr>
+            <tr><td>KP SME, Other SME</td><td>3: Intermediate vendor</td></tr>
+          </tbody>
+        </table>
+        <p>Sector-based advance-rate overrides: "Assorted B2B Services &amp; Manufacturing" or "Agencies" sector → 85% (PO mode) / 90% (Invoice mode). "Commodities Trading" sector → 85% (PO mode) / 95% (Invoice mode). No override is coded for other sectors.</p>
+      </section>
+
+      <section class="section-sub" id="diligence-scoring-detail">
+        <h4>Diligence Scoring Detail</h4>
+        <table>
+          <thead>
+            <tr><th>Criterion</th><th>Applies to</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Existence &amp; Authenticity of Supporting Docs</td><td>B-I and B-PO</td></tr>
+            <tr><td>Authenticity &amp; Veracity of Invoice &amp; BAST</td><td>B-I only</td></tr>
+            <tr><td>Likelihood of Payer Changing Scope &amp; Timeline</td><td>B-PO only</td></tr>
+            <tr><td>Competency &amp; History of Karmapreneur</td><td>B-PO only</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section-sub" id="field-completeness-locking">
+        <h4>Field Completeness &amp; Locking</h4>
+        <ul>
+          <li>A Project can be submitted only when all fields that apply to its type and asset class are complete</li>
+          <li>Once submitted, all Analyst-editable fields — including the Project Name — lock. During IC Review, IC may edit only Conditions Precedent and Subsequent</li>
+          <li>Warnings — concentration, exposure, pricing-floor, and similar — appear inline next to the field or section they relate to. There is no single consolidated warnings panel; Analysts can view them, IC can act on them</li>
+        </ul>
+      </section>
+
+      <section class="section-sub" id="concentration-limits">
+        <h4>Concentration Limits</h4>
+        <p>Karma runs two separate concentration-limit regimes, and both are checked against a Project or Plafond's full requested (or approved) amount — not a KF/KCF-split portion. The KF/KCF split is decided later, manually by Finance, based on each entity's real-time bank balance at the time of disbursement or Tranche; it is not known at submission or IC Review time, so every Project or Plafond is checked against both regimes regardless of how it is eventually funded. <strong>Future improvement:</strong> automatically fetch each entity's balance and suggest the KF/KCF split, rather than relying on Finance to check and enter it manually.</p>
+        <p>These are warnings, not automatic blocks: IC may still approve after seeing the warning, except where a Stretch Maximum requires the entire IC to approve (see below).</p>
+
+        <p><strong>KarmaFood</strong> (Karma's own balance-sheet entity) — denominated as a percent of Karma's total consolidated equity (Net Assets), effective 7 July 2025, reset and adjusted every quarter.</p>
+        <table>
+          <thead>
+            <tr><th>Limit</th><th>Tier</th><th>% of Net Assets</th><th>Rp (as of May 2025 Net Assets)</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Project</td><td>Normal Maximum</td><td>3%</td><td>Rp 6 billion</td></tr>
+            <tr><td>Entrepreneur</td><td>Normal Maximum</td><td>5%</td><td>Rp 10.1 billion</td></tr>
+            <tr><td>Project / Entrepreneur</td><td>Stretch Maximum — requires the entire IC to approve</td><td>10%</td><td>Rp 20.2 billion</td></tr>
+            <tr><td>Ultimate Beneficiary Owner (UBO)</td><td>Stretch Maximum — requires the entire IC to approve</td><td>15%</td><td>Rp 30.3 billion</td></tr>
+          </tbody>
+        </table>
+        <p>UBO exposure is cumulative: it is the KP/Brand's existing exposure to Karma plus the newly proposed Project or Plafond. Approval must not push the combined total over the UBO threshold.</p>
+
+        <p><strong>KarmaCap Fund 1</strong> (off-balance-sheet fund; Karma has no risk-on exposure) — denominated as a percent of the fund's total committed capital, effective 19 July 2024, fixed at $3.85 million / Rp 62.357295 billion.</p>
+        <table>
+          <thead>
+            <tr><th>Limit</th><th>Meaning</th><th>IDR limit</th><th>USD limit</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Project limit</td><td>No more than 10% of the fund's total Capital Commitments may be deployed to one Project.</td><td>Rp6,235,729,500</td><td>$385,000</td></tr>
+            <tr><td>Entrepreneur / Brand limit</td><td>No more than 25% of the fund's total Capital Commitments may be deployed across Projects for one Entrepreneur.</td><td>Rp15,589,323,750</td><td>$962,500</td></tr>
+          </tbody>
+        </table>
+        <p>USD converts to IDR at JISDOR (T-1 working day) when the system needs to compare a deal in a different currency.</p>
+      </section>
+
+      <section class="section-sub" id="payor-exposure-limit">
+        <h4>Payor Exposure Limit</h4>
+        <p>Pipeline must also warn IC when combined exposure to the same Payor exceeds the Brand-limit threshold. This is always a warning, never a hard block, because appropriate exposure differs by Payor type.</p>
+        <p>Exposure is calculated from approved amounts and is released when the financing is fully repaid. Pipeline will need a repayment update from Monitoring or LMS to keep this calculation current after servicing begins.</p>
+        <p><strong>Open item:</strong> a planned Tranche that Finance never disburses has no release trigger in this release — it continues to reserve exposure indefinitely. This should be revisited once Tranche resolution beyond "stays pending" is defined.</p>
+      </section>
+    </section>
+
+    <section class="section-subject" id="user-stories">
+      <h3>User Stories &amp; Acceptance Criteria</h3>
+
+      <div class="story" id="story-1">
+        <h4>Story 1 — Analyst: Submit a Project for IC Review</h4>
+        <p class="lede"><strong>Story:</strong> As an Analyst, I want to submit a complete Project to IC so the committee can make a financing decision.</p>
+        <ul class="criteria">
+          <li class="ok">Analysts can edit applicable fields in Due Diligence.</li>
+          <li class="ok">Submission requires all applicable fields and a valid Submission Type.</li>
+          <li class="ok">Submission moves the Project to IC Review and locks Analyst-editable fields.</li>
+          <li class="no">A Project cannot be submitted if neither Project nor Plafond is selected.</li>
+        </ul>
+        <p class="scenarios"><strong>Key scenarios:</strong> A complete Project enters IC Review once; a repeated submission does not create a duplicate transition; an invalid Submission Type is blocked with a clear explanation.</p>
+      </div>
+
+      <div class="story" id="story-2">
+        <h4>Story 2 — IC: Decide on a submitted Project</h4>
+        <p class="lede"><strong>Story:</strong> As an IC member, I want to approve or send back a submitted Project so only appropriately reviewed financing requests proceed.</p>
+        <p><strong>IC Approval Logic:</strong> There are three IC members and no member hierarchy. A request of up to and including Rp4B needs one approval; a request above Rp4B and up to and including Rp6B needs two; a request above Rp6B needs three. The threshold is determined by the Project's requested amount or the Plafond total, whichever applies — neither a Project nor a Plafond request is exempt from this check. Each member can approve once per decision round and cannot change or withdraw. One IC send-back immediately returns the Project to Due Diligence and must include a note.</p>
+        <p><strong>IC Decision Rules:</strong></p>
+        <ul>
+          <li>IC has two outcomes: approve, or send back to Due Diligence. A negative IC decision never permanently closes a Project</li>
+          <li>A KP counter starts a new decision round. Previous IC votes are reset and the full quorum is required again</li>
+          <li>The system keeps a history of each decision round, including votes and send-back notes</li>
+        </ul>
+        <ul class="criteria">
+          <li class="ok">IC can approve once the required voting threshold is met.</li>
+          <li class="ok">One IC member can send a Project back with a required note.</li>
+          <li class="ok">A send-back returns the Project to Due Diligence and the Analyst can resubmit it.</li>
+          <li class="ok">IC can edit Conditions during IC Review.</li>
+          <li class="no">An Analyst-only user cannot take an IC action.</li>
+        </ul>
+        <p class="scenarios"><strong>Key scenarios:</strong> A two-vote Project proceeds after two distinct approvals; one send-back returns it to Due Diligence; a KP counter restarts the IC decision round.</p>
+      </div>
+
+      <div class="story" id="story-3">
+        <h4>Story 3 — Finance: Split approved financing into KF/KCF</h4>
+        <p class="lede"><strong>Story:</strong> As a Finance user, I want to allocate an approved amount between KF and KCF so Legal can prepare the agreement.</p>
+        <p><strong>Split Basis:</strong> For now, Finance determines the KF/KCF split manually, based on each entity's real-time bank balance at the time of this disbursement or Tranche. <strong>Future improvement:</strong> automatically fetch each entity's balance and suggest a split.</p>
+        <ul class="criteria">
+          <li class="ok">Finance can enter the KF/KCF amounts in Finance Split.</li>
+          <li class="ok">The two amounts must equal the approved amount before Finance can send the Project to Legal.</li>
+          <li class="no">An invalid split cannot be sent to Legal.</li>
+          <li class="no">Non-Finance users cannot edit the allocation.</li>
+        </ul>
+        <p class="scenarios"><strong>Key scenarios:</strong> A valid split proceeds to Legal; an invalid split clearly shows that the total does not match.</p>
+      </div>
+
+      <div class="story" id="story-4">
+        <h4>Story 4 — Legal: Confirm contracts signed</h4>
+        <p class="lede"><strong>Story:</strong> As a Legal user, I want to confirm the master agreement is signed so the Project can proceed to disbursement.</p>
+        <ul class="criteria">
+          <li class="ok">Legal can confirm signing in Legal Agreement.</li>
+          <li class="ok">Confirmation moves the Project to Waiting for Disbursement.</li>
+          <li class="ok">One sign-off is sufficient for this release; document checklists and e-signature tracking are not required.</li>
+          <li class="no">Non-Legal users cannot confirm signing.</li>
+        </ul>
+      </div>
+
+      <div class="story" id="story-5">
+        <h4>Story 5 — Finance: Disburse funds</h4>
+        <p class="lede"><strong>Story:</strong> As a Finance user, I want to confirm a completed disbursement so the KP receives financing and servicing can begin.</p>
+        <ul class="criteria">
+          <li class="ok">Finance can disburse once the Project is Waiting for Disbursement.</li>
+          <li class="ok">Pipeline records the disbursement, shows the Project in Monitoring, and sends an LMS event.</li>
+          <li class="ok">Plafond-headroom validation is automated before disbursement.</li>
+          <li class="no">A non-Finance user cannot disburse.</li>
+        </ul>
+      </div>
+
+      <div class="story" id="story-6">
+        <h4>Story 6 — Analyst: Request a Tranche</h4>
+        <p class="lede"><strong>Story:</strong> As an Analyst, I want to request a new Tranche on an Active Project so the KP can receive the next portion of financing.</p>
+        <p><strong>Tranche Rules:</strong> A Tranche is a partial payout from one approved Project. It uses the same IC decision, KP-accepted term sheet, and master legal agreement; it is not a new financing request. For example, a Rp3B approved Project may be paid as three Rp1B Tranches over time.</p>
+        <ul>
+          <li>A Project's first disbursement is its Tranche 1, using the same Finance Split → Legal → Ready for Disbursement → Disbursed flow as every later Tranche — there is no separate mechanism for a Project's first payout.</li>
+          <li>Finance completes a new KF/KCF split for every Tranche.</li>
+          <li>Only Tranche 1's Legal step includes signing the master agreement. Every Tranche's Legal step includes issuing a disbursement note; the master agreement is never re-signed after Tranche 1.</li>
+          <li>The sum of a Project's completed and planned Tranches cannot exceed its approved amount. This is a hard block, not a warning. Asset D's revolving Plafond is the exception, since repayments restore headroom there.</li>
+          <li>The Project shows both the remaining balance and a list of planned and completed Tranches.</li>
+          <li>Pipeline sends one LMS event for each confirmed Tranche.</li>
+          <li>Asset B is always single-disbursement. A second request is blocked.</li>
+          <li>Asset A may use Tranches but does not revolve after repayment.</li>
+          <li>Asset D may use Tranches. Its Plafond portion can revolve as repayments restore headroom; its Project portion does not.</li>
+          <li>There is no limit on the number or timing of Tranches for Asset A or D.</li>
+          <li>A Tranche shares its Project's sequence number; it does not receive its own (see Project Naming &amp; Numbering under Data Model).</li>
+          <li>Finance is the sole gate for disbursement. If a Tranche should not proceed — for example, the KP becomes unresponsive — Finance simply does not disburse it. There is no cancellation action in this release; an un-disbursed Tranche stays pending indefinitely.</li>
+        </ul>
+        <ul class="criteria">
+          <li class="ok">Analyst can request a Tranche once the Project is Active (Asset A or D only).</li>
+          <li class="ok">Analyst can edit a planned Tranche before Finance completes its split.</li>
+          <li class="no">A Tranche cannot be requested if it would push the Project's total Tranches over the approved amount, unless Asset D's revolving Plafond headroom allows it.</li>
+          <li class="no">An Asset B Project cannot request a second Tranche.</li>
+        </ul>
+        <p class="scenarios"><strong>Key scenarios:</strong> A Tranche within remaining headroom is accepted; a Tranche that would exceed the approved amount is blocked with a clear explanation; a second Tranche request on an Asset B Project is blocked.</p>
+      </div>
+
+      <div class="story" id="story-7">
+        <h4>Story 7 — Finance &amp; Legal: Process and disburse a Tranche</h4>
+        <p class="lede"><strong>Story:</strong> As a Finance user, I want to split and disburse a requested Tranche so the KP receives the next payout and servicing stays current.</p>
+        <p><strong>Tranche States:</strong></p>
+        <table>
+          <thead>
+            <tr><th>Status</th><th>Owner</th><th>Meaning</th></tr>
+          </thead>
+          <tbody>
+            <tr><td><span class="stage">Finance Split</span></td><td>Finance</td><td>The Analyst has requested a Tranche and Finance must allocate KF/KCF.</td></tr>
+            <tr><td><span class="stage">Legal</span></td><td>Legal</td><td>Finance has completed the allocation; Legal issues the disbursement note (and, for a Project's first Tranche only, signs the master agreement).</td></tr>
+            <tr><td><span class="stage">Ready for Disbursement</span></td><td>Finance</td><td>Allocation and Legal notes are complete.</td></tr>
+            <tr><td><span class="stage">Disbursed</span></td><td>Finance / system</td><td>The transfer is confirmed and Pipeline has created the LMS event.</td></tr>
+          </tbody>
+        </table>
+        <ul class="criteria">
+          <li class="ok">Finance can enter the KF/KCF amounts for the Tranche.</li>
+          <li class="ok">The two amounts must equal the Tranche amount before it can move to Legal.</li>
+          <li class="ok">Legal issues a disbursement note for the Tranche, and signs the master agreement only if it is the Project's first Tranche.</li>
+          <li class="ok">Finance can disburse once the Tranche is Ready for Disbursement; Pipeline records it and sends one LMS event.</li>
+          <li class="no">Finance is not required to disburse on any particular timeline — an un-disbursed Tranche simply stays pending, with no forced cancellation.</li>
+        </ul>
+        <p class="scenarios"><strong>Key scenarios:</strong> A valid Tranche split proceeds to Legal and disburses; an invalid split is blocked; a Tranche that never gets disbursed (for example, the KP becomes unresponsive) stays pending indefinitely.</p>
+      </div>
+    </section>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- Standalone appendix                                           -->
+  <!-- ============================================================ -->
+  <section class="section-subject" id="dependencies">
+    <h3>Dependencies</h3>
+    <table>
+      <thead>
+        <tr><th>Dependency</th><th>Status</th><th>Owner</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>CRM handoff</td><td>In progress; CRM and Pipeline are being built in parallel — see CRM → Pipeline handoff fields under System Integration &amp; Scope Boundary</td><td>Analyst</td></tr>
+        <tr><td>Pipeline-to-LMS disbursement events</td><td>Required; asynchronous with retry and visible failures</td><td>Analyst / Engineering</td></tr>
+        <tr><td>Repayment update into Pipeline</td><td>Needed to update exposure when financing is fully repaid</td><td>TBD</td></tr>
+        <tr><td>Foreign-exchange connector</td><td>Methodology confirmed: JISDOR reference rate, T-1 working day. Needed for IDR/USD concentration-limit comparisons.</td><td>TBD</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <footer class="doc-footer">
+    Origination Pipeline PRD v1.1 — internal Karma document.
+  </footer>
+
+</div>
+</body>
+</html>

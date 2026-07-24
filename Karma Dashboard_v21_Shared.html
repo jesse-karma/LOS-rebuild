@@ -629,7 +629,21 @@
   .pill-link .pill-t{cursor:pointer;}
   .pill-add{background:#fff;border:1px dashed var(--line);color:var(--ink-500);padding:3px 10px;}
   .pill-add:hover{border-color:var(--primary);color:var(--primary);}
-  .cond-row{margin-bottom:2px;}
+  .cond-row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-bottom:6px;transition:background .12s;}
+  .cond-row:hover{background:var(--canvas);}
+  .cond-text{flex:1;font-size:12.5px;line-height:1.45;color:var(--ink-700);position:relative;padding-left:14px;}
+  .cond-text::before{content:'';position:absolute;left:0;top:6px;width:6px;height:6px;border-radius:50%;background:var(--primary);}
+  .cond-actions{display:flex;gap:2px;flex:none;white-space:nowrap;padding-top:1px;}
+  .cond-actions .cond-edit-btn{padding:2px 7px;border-radius:5px;}
+  .cond-actions .cond-edit-btn:hover{background:var(--primary-light);}
+  .cond-actions .cond-remove-btn{color:var(--red-tx);}
+  .cond-actions .cond-remove-btn:hover{background:var(--red-bg);}
+  .cond-add-btn{display:inline-flex;align-items:center;gap:5px;width:100%;justify-content:center;border:1px dashed var(--line);border-radius:8px;padding:7px 10px;margin-top:2px;color:var(--ink-500);font-weight:600;background:transparent;}
+  .cond-add-btn:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
+  .cond-row.cond-auto{background:var(--canvas);}
+  .cond-row.cond-auto:hover{background:var(--canvas);}
+  .cond-row.cond-auto .cond-text::before{background:var(--ink-400);}
+  .cond-assignee-tag{display:inline-block;margin-left:6px;font-size:10.5px;font-weight:600;color:var(--primary);background:var(--primary-light);padding:1px 7px;border-radius:10px;white-space:nowrap;}
   /* ===== Phase C: role gating ===== */
   body:not(.role-ic) .hor-only{display:none!important;}
   body:not(.role-ic) .ic-only{display:none!important;}
@@ -1872,7 +1886,7 @@
 </div>
 </div>
 <div class="pd-desc-block">
-<div class="proj-dep" id="pjDescField"><textarea id="pjDescription" oninput="pjDescStore()" onkeydown="pjDescKey(event)" placeholder="Describe the project / PO / invoice being financed… (Enter to save, Shift+Enter for new line)" style="width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 12.5px; resize: vertical; margin-bottom: 0; display: none;" class="ic-locked-field"></textarea><div class="ipm" id="pjDescView" ondblclick="pjDescEdit()" style="white-space: pre-wrap; cursor: pointer; margin-bottom: 0; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas);" title="Double-click to edit">Gemini has told us</div></div>
+<div class="proj-dep" id="pjDescField"><textarea id="pjDescription" oninput="pjDescStore()" onkeydown="pjDescKey(event)" placeholder="Describe the project / PO / invoice being financed… (Enter to save, Shift+Enter for new line)" style="width: 100%; min-height: 70px; border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font-family: inherit; font-size: 12.5px; resize: vertical; margin-bottom: 0; display: none;" class="ic-locked-field"></textarea><div class="ipm editable" id="pjDescView" ondblclick="pjDescEdit()" style="white-space: pre-wrap; cursor: pointer; margin-bottom: 0; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; background: var(--canvas);" title="Double-click to edit">Gemini has told us</div></div>
 </div>
 </div>
 <div class="pd-cards">
@@ -1977,55 +1991,18 @@
 </div>
 </div>
 <div class="pd-card"><div class="los-sec-title pd-card-title">Proposed &amp; Past Projects Recap</div>
-<div class="tbl-scroll"><table class="recap-tbl" style="min-width:600px">
-<thead><tr>
-<th class="fld">FIELD</th>
-<th><span id="recapProjHeader">Cahaya Energi Asia - Aztech #1</span><div><span class="chip c-blue">Proposed</span></div></th>
-<th id="recapPastHeaderTh"><span id="recapPastHeader">—</span><div><span class="chip c-gray" id="recapPastBadge">N/A</span></div></th>
-</tr></thead>
-<tbody>
-<tr class="sec"><td colspan="3">A — Identity &amp; Structure</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Financing type</td><td><span class="chip c-orange" id="recapFinTypeChip">Fixed Return</span></td><td><span class="chip c-gray" id="recapPastFinTypeChip">—</span></td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">PT (legal entity)<div class="sub">Same PT = shared liability exposure</div></td><td id="recapPtName">PT Cahaya Energi Asia</td><td><span class="chip c-gray" id="recapPastPtName">—</span></td></tr>
-<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Financing Use <span class="finfo" title="Mirrors the Financing Use selected in Project Details above — not independently editable here.">i</span></td><td><span class="chip c-orange" id="recapFinUseChip">Domestic PO Financing</span></td><td><span class="chip c-gray" id="recapPastFinUseChip">—</span></td></tr>
-<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Requested Project Amount <span class="finfo" title="Mirrors the Requested Amount selected in Project Details above — not independently editable here.">i</span></td><td><span class="chip c-orange" id="recapReqAmtChip">IDR 6,000,000,000</span></td><td><span class="chip c-gray" id="recapPastReqAmtChip">—</span></td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Principal outstanding<div class="sub">N/A if not disbursed or fully repaid</div></td><td class="muted">N/A — not yet disbursed</td><td class="muted" id="recapPastPrincipal">—</td></tr>
-<tr class="sec"><td colspan="3">B — Return Structure</td></tr><tr data-rtypes="rev" style=""><td class="fld">Revenue Share<div class="sub">Pre-BEP / Post-BEP %</div></td><td class="muted">N/A <span class="sub">(not a revenue-share deal)</span></td><td class="muted">—</td></tr><tr data-rtypes="rev" style=""><td class="fld">Cap<div class="sub">Return / time cap</div></td><td class="muted">N/A</td><td class="muted">—</td></tr>
-<tr data-rtypes="fixed" style="display: none;"><td class="fld">Fixed amount / repayment<div class="sub">Fixed Return = full schedule · Daily Interest = interest accrual</div></td><td class="muted">— <span class="sub">(daily interest, not a fixed schedule)</span></td><td class="muted">—</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Target carry<div class="sub">Rate + type</div></td><td>0.6% per 30 days<div class="sub">service fee</div></td><td class="muted">—</td></tr>
-<tr class="proj-dep" data-rtypes="rev fixed daily"><td class="fld">Karma Carry / Monitoring Fee <span class="finfo" title="Karma&#39;s carry, as ROIC target — converted to revenue share, or fixed as % of disbursed and repaid for Invoice/PO/Working Capital financing. Minimum negotiable rate depends on amount raised and whether this is a 1st or 2nd+ project for the Karmapreneur&#39;s Brand.">i</span></td><td><span id="pjCarry">6.5%</span> <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="1st Project||2nd+ Project" data-fp-val="1st Project" data-fpd="1" id="pjProjOrderFp"><span class="pill"><span class="pill-t">1st Project</span></span></span><div class="fg-flag warn tiny" id="warnCarry" style="display:none;margin-top:6px;padding:5px 8px"></div></td><td class="muted">—</td></tr>
-<tr data-rtypes="fixed daily" style="display: none;"><td class="fld">Fixed payment investor ROIC<div class="sub">⚠️ Unit differs by type — Daily Interest shown per 30 days</div></td><td>1.6% per 30 days<div class="sub">to investors</div></td><td class="muted">—</td></tr>
-<tr data-rtypes="fixed daily" style="display: none;"><td class="fld">Fixed payment total implied ROIC<div class="sub">Investor rate + carry · same unit caveat</div></td><td>2.2% per 30 days<div class="sub">investor + service fee</div></td><td class="muted">—</td></tr>
-<tr class="sec"><td colspan="3">C — Timeline &amp; Operations</td></tr><tr data-rtypes="rev fixed" style=""><td class="fld">Branch Opening<div class="sub">Scheduled / actual vs disbursement</div></td><td class="muted">N/A <span class="sub">(no branch component)</span></td><td class="muted">—</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Term<div class="sub">Months for Rev Share / Fixed · Days for Daily Interest</div></td><td id="pjTerm">90 days<div class="fg-flag warn tiny" id="warnTenor" style="display: block; margin-top: 6px; padding: 5px 8px;">⚠️ target Tenor is 3–5 years (current: undefined).</div></td><td class="muted">—</td></tr>
-
-<tr data-rtypes="daily" style="display: none;"><td class="fld">Minimum payment period<div class="sub">Shown if any project in this set is Daily Interest</div></td><td>45 days</td><td class="muted">—</td></tr>
-<tr class="sec"><td colspan="3">D — Performance Metrics</td></tr><tr data-rtypes="rev fixed" style=""><td class="fld">PvA<div class="sub">Projected vs actual revenue</div></td><td class="muted">N/A — not yet started</td><td class="muted">—</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">IRR<div class="sub">OTF and original projected</div></td><td class="muted" id="pjIRR">OTF N/A — not yet started<div class="pos">18.5% projected</div><div class="fg-flag warn tiny" id="warnIRR" style="display:none;margin-top:6px;padding:5px 8px"></div></td><td class="muted">—</td></tr>
-
-<tr data-rtypes="rev fixed daily"><td class="fld">MOIC<div class="sub">OTF and original projected · OTF not available from LMS</div></td><td class="muted">OTF N/A<div>1.05x projected</div></td><td class="muted">—</td></tr>
-<tr data-rtypes="rev fixed" style=""><td class="fld">BEP<div class="sub">N/A for Daily Interest instruments</div></td><td id="pjBEPDisplay">Month 2 projected<div class="fg-flag warn tiny" id="warnBEP" style="display:none;margin-top:6px;padding:5px 8px"></div></td><td class="muted">—</td></tr>
-
-<tr data-rtypes="rev fixed daily"><td class="fld">DPD<div class="sub">Max days ever past due + incident history</div></td><td class="muted">N/A — not yet disbursed</td><td class="muted">—</td></tr>
-<tr class="sec"><td colspan="3">F — Payment Mechanics</td></tr><tr data-rtypes="rev" style=""><td class="fld">Revenue Projections<div class="sub">Avg / peak / floor per month</div></td><td class="muted">N/A</td><td class="muted">—</td></tr><tr data-rtypes="rev" style=""><td class="fld">Source of Revenue Accrued</td><td class="muted">N/A</td><td class="muted">—</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Payment frequency<div class="sub">Rev Share: 3 sub-lines · Fixed: monthly only</div></td><td>At maturity (bullet repayment)</td><td class="muted">—</td></tr>
-<tr data-rtypes="rev fixed daily"><td class="fld">Late fee<div class="sub">⚠️ Basis · Grace · Rate to investor / ASN</div></td><td>Basis: Overdue Amount <span class="sub" style="color:var(--yellow-tx)">(⚠ differs from default Outstanding Principal)</span><div class="sub" style="color:var(--yellow-tx)">Grace: 5 days (⚠ default 0 for this type)</div><div class="sub">To investors 0.1%/day · To ASN 0.0%/day</div></td><td class="muted">—</td></tr>
-</tbody>
+<div class="tbl-scroll"><table class="recap-tbl" id="recapMultiTbl" style="min-width:600px">
+<thead><tr id="recapMultiHead"><th class="fld">FIELD</th></tr></thead>
+<tbody id="recapMultiBody"></tbody>
 </table></div>
+<div id="recapLoadMoreWrap" style="text-align:center;margin:10px 0;display:none"><button class="btn btn-sm" id="recapLoadMoreBtn" onclick="recapLoadMore()">Load more</button></div>
 <div class="kvgrid" style="grid-template-columns:repeat(4,1fr);margin-top:12px">
 <div class="kv-box"><div class="k">Total Amount</div><div class="v" id="recapTotalAmt">Rp 0</div><div class="s" id="recapTotalAmtSub"></div></div>
 <div class="kv-box"><div class="k">Outstanding</div><div class="v" id="recapOutstanding">Rp 0</div><div class="s" id="recapOutstandingSub"></div></div>
 <div class="kv-box"><div class="k">Avg OTF IRR (Completed)</div><div class="v muted" id="recapAvgIRR">—</div><div class="s" id="recapAvgIRRSub">0 projects with OTF IRR</div></div>
 <div class="kv-box"><div class="k">Project Mix</div><div class="v" id="recapProjectMix" style="font-size:12.5px">—</div></div>
 </div>
-<div class="card" id="recapAllWrap" style="margin-top:10px">
-<div style="padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:6px;font-weight:600;font-size:12.5px;color:var(--ink-700)" onclick="recapToggleAll()"><span class="ptp-car" id="recapAllCaret">▾</span><span id="recapAllToggleLabel">View all projects</span></div>
-<div id="recapAllBody" style="display:none;border-top:1px solid var(--line);padding:2px 14px 10px">
-<div id="recapAllRows"></div>
-<div id="recapLoadMoreWrap" style="text-align:center;margin-top:6px;display:none"><button class="btn btn-sm" id="recapLoadMoreBtn" onclick="recapLoadMore()">Load more</button></div>
-</div>
-</div>
-<div class="footnote">⚠️ OTF MOIC and PvA are not currently available from the LMS Reporting Layer. Rows sorted: Proposed first, then by IC approval date (newest first). <span id="recapProjNumNote">This is Project #1 for the KP — no past projects yet.</span></div>
+<div class="footnote">⚠️ OTF MOIC and PvA are not currently available from the LMS Reporting Layer. Columns sorted: Proposed first, then Active (latest first), then Completed (latest first). <span id="recapProjNumNote">This is Project #1 for the KP — no past projects yet.</span></div>
 <div class="pd-card" id="poSection" style="display: none;"><div class="los-sec-title pd-card-title">Payor / PO / Invoice Financing <span class="tiny muted">(Asset B only)</span></div>
 <div id="poInvoiceWrap"><div class="tbl-scroll"><table class="po-tbl" style="min-width:460px"><thead><tr><th class="fld">FIELD</th><th>PO 1</th></tr></thead><tbody><tr><td class="fld">PO Number <span class="finfo" data-tip="Reference number of the po being financed, from the underlying document.">i</span></td><td><input value="PO-AZTECH-DOM-2025-8841" onchange="poSet(0,&#39;num&#39;,this.value)"></td></tr><tr><td class="fld">PO Issue Date <span class="finfo" data-tip="Date the po was issued — start of the cashflow gap used in pricing.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;issue&quot;)">2025-10-15 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Expected Delivery Date <span class="finfo" data-tip="Expected delivery date of goods/services under the PO.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;delivery&quot;)">2026-01-20 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Expected Payment Date <span class="finfo" data-tip="Date the payer is expected to pay. Repayment due date defaults to this + 15 days.">i</span></td><td><span class="ap-chip po-date-chip" onclick="poDateMenu(event,0,&quot;payment&quot;)">2026-02-12 <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">PO Amount <span class="finfo" data-tip="Face value of the po. Karma finances up to the advance rate of this amount, capped by the Payer Limit.">i</span></td><td><span class="cur-pill" onclick="poCcyMenu(event,0)">IDR <span class="ptp-car">▾</span></span> <input value="6.000.000.000" onchange="poSet(0,&#39;amount&#39;,this.value)"></td></tr><tr><td class="fld">Payer (lookup — search or create) <span class="finfo" data-tip="The obligor who ultimately pays. Type a new name to add a payer to the lookup.">i</span></td><td><span class="ap-chip po-payer-chip" onclick="poPayerMenu(event,0)">Aztech Industries Berhad <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Payer Notes <span class="finfo" data-tip="Diligence notes on the payer — anchor relationship, documentation location, etc.">i</span></td><td><input value="Corporate PO anchor; diligence pack in GDrive." onchange="poSet(0,&#39;payerNotes&#39;,this.value)"></td></tr><tr><td class="fld">Payer Type <span class="finfo" data-tip="Payer category drives risk scoring. Tier-2 payers and regional governments add a pricing premium.">i</span></td><td><select onchange="poSet(0,&#39;payerType&#39;,this.value)"><option></option><option>Tier 1 BUMN</option><option selected="">Tier 1 Conglomerate/Private Company</option><option>National Government</option><option>Regional Government</option><option>Tier 2 BUMN</option><option>Tier 2 Conglomerate/Private Company</option><option>KP SME</option><option>Other SME</option><option>Tier 1 Foreign Government/Multi-Laterals</option><option>Tier 2 Foreign Government/Multi-Laterals</option></select></td></tr><tr><td class="fld">Strength of Payor <span class="finfo" data-tip="Auto-derived from Payer Type — Strength of Payor tiering used in pricing.">i</span></td><td><span class="ro">5: Tier 1 Payer</span></td></tr><tr><td class="fld">Payer's Payee Projects <span class="finfo" data-tip="Read-only — projects of the borrower (payee) this payer is linked to.">i</span></td><td><span class="ro po-payee-projects"><span class="tiny">Cahaya Energi Asia — Aztech #1 <span class="muted">(no linked submission on file)</span></span></span></td></tr><tr><td class="fld">History of Payer Paying On Time <span class="finfo" data-tip="Track record of this payer paying Karmapreneurs on time. Recurring on-time history lowers the rate; no history raises it.">i</span></td><td><span class="ap-chip po-hist-chip" onclick="poHistMenu(event,0)">1: No prior payment history from payer to Karmapreneur <span class="ptp-car">▾</span></span></td></tr><tr><td class="fld">Payer Limit<div class="sub">uneditable — set in Payer Limit box below</div></td><td class="ro">Rp 20.000.000.000</td></tr><tr><td class="fld">PO Already Used<div class="sub">calculated</div></td><td class="calc">Rp 0</td></tr><tr><td class="fld">Remaining PO Financing Available<div class="sub">calculated</div></td><td class="avail-bad">Rp 4.800.000.000<div class="sub" style="color:var(--red-tx)">requested Rp 6.000.000.000 exceeds available</div></td></tr><tr><td class="fld">Repayment Due Date<div class="sub">default = expected payment/last payment + 15 days; editable</div></td><td><input type="date" value="2026-02-27" onchange="poSet(0,&#39;repayDue&#39;,this.value)" style=""></td></tr></tbody></table></div><button class="btn btn-sm po-add" onclick="poAddLine()">＋ Add PO (new column)</button><div class="po-limits"><div class="lrow">Payer Limit: <input value="Rp 20.000.000.000" onchange="poSetG(&#39;payerLimit&#39;,this.value)"> <span>(Rp 0 already used)</span><span>(Rp 20.000.000.000 remaining)</span> <span class="muted">{ total exposure to this payer across all projects: <b>Rp 0</b> }</span></div><div class="lrow">PO Limit: <input value="80" onchange="poSetG(&#39;advanceRate&#39;,this.value)" style="width:60px">% advance rate <span>(Rp 0 already used)</span><span>(Rp 4.800.000.000 remaining)</span> <span class="tiny muted">(PO limit: Rp 4.800.000.000)</span></div></div><div class="po-price"><b>Suggested investor pricing</b> <span class="tiny muted">per 30 days of principal outstanding, pro-rated daily</span><div class="adj">Standard starting rate (PO)<span class="d">1.70% /30d</span></div><label class="adj"><input type="checkbox" onchange="poAdj(&quot;karmaserve&quot;,this.checked)" title="Manually toggle"> KarmaServe + CFO-as-a-service<span class="d">-0.10% /30d</span></label><label class="adj"><input type="checkbox" disabled="" title="Auto-computed — locked"> Strength of Payer = 5: Tier 1 Payer <span class="tiny muted">— auto</span><span class="d">+0.10% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled="" title="Auto-computed — locked"> Expected cashflow gaps until due = Standard 2 <span class="tiny muted">— auto</span><span class="d">+0.15% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled="" title="Auto-computed — locked"> No prior payment history (Standard 1) <span class="tiny muted">— auto</span><span class="d">+0.10% /30d</span></label><label class="adj"><input type="checkbox" disabled="" title="Auto-computed — locked"> Recurring monthly, 3+ on-time (Standard 5) <span class="tiny muted">— auto</span><span class="d">-0.10% /30d</span></label><label class="adj"><input type="checkbox" checked="" disabled=""> Large PO Risk (≥ Rp 5 bn) — auto<span class="d">+0.15% /30d or kicker</span></label><div class="rate">≈ 2.10% per 30 days <span class="tiny muted">(min 1.7%)</span></div></div><div class="fg-flag warn">Large-ticket po (&gt; Rp 1 bn): enhanced payer diligence required before approval.</div><div class="fg-flag warn"><b>Large PO Risk</b> — this po is ≥ Rp 5 bn (applies even if Karma funds less). Payers apply extra scrutiny / audits on large pos, raising delay/default risk. Apply the risk premium via a higher rate (+0.15%/30d) <b>or</b> warrants/equity kicker — if a kicker, it is paid to ASN, not investors.</div><div class="footnote">1 repayment date is set · partial payment allowed before/on/after · interest charged only on the outstanding amount. Due date = expected last payment date on the po + 15 days. Partial payment is required earlier if any part of the po is paid earlier than due (see Denda).</div></div>
 </div>
@@ -2065,11 +2042,11 @@
 <tr><td class="noedit"><b>Bank vs Sales</b><div class="sub">What is the variance of bank statements vs sales reports?<br>What was compared (specific branches, whole company)?</div></td><td class="editable ic-locked-field" data-raw=""></td></tr>
 </tbody></table>
 </div>
-<div class="pd-card proj-dep"><div class="los-sec-title pd-card-title">Project Credit Memo <span class="tiny muted">(shown when Project is selected — questions depend on Submission Type &amp; Asset Class)</span></div>
-<div class="proj-dep" id="pjMemoHost"><table class="kpmemo-tbl" data-memo="A"><thead><tr><th>Project Credit Memo</th><th>Project</th></tr></thead><tbody><tr><td class="noedit">What is the project for / branch(es) to be opened?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_what" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Project Financial Analysis</td></tr><tr><td class="noedit">What is the estimated steady state revenue at Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rev12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is the amount the Karmapreneur will need to pay Investors+Karma in Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_pay12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is Net Income before Depreciation after paying Investors+Karma in Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_ni12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is the lowest revenue the Karmapreneur needs to be able to pay Investors+Karma and profit = 0?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_lowrev" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Rent Contract (for the branch we're doing revenue share for)</td></tr><tr><td class="noedit">What is the rent contract length?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rentlen" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Does the entrepreneur have a contractual right to extend? If not, who is the landlord and what is relationship to entrepreneur?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rentext" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Space</td></tr><tr><td class="noedit">How many parking spaces will there be?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_parking" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">How many seats/beds/etc. will there be in the branch?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_seats" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Licenses (for the branch we're doing revenue share for)</td></tr><tr><td class="noedit">Does new branch require izin (medical, alcohol, etc)?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_izin" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Do they have the license yet?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_haslic" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Location/Target Buyer Analysis</td></tr><tr><td class="noedit">What is the analysts' assessment of the new location?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_locassess" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Activation Plan and Dependencies</td></tr><tr><td class="noedit">What is marketing plan for the new branch?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_marketing" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Are there any key dependencies not yet covered above critical to the project's success?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_deps" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Post-Funding Promises</td></tr><tr><td class="noedit">Is the entrepreneur willing to give us log-in to their POS?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_pos" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr></tbody></table></div>
+<div class="pd-card"><div class="los-sec-title pd-card-title">Project Credit Memo <span class="tiny muted">(always available — questions depend on Submission Type &amp; Asset Class)</span></div>
+<div id="pjMemoHost"><table class="kpmemo-tbl" data-memo="A"><thead><tr><th>Project Credit Memo</th><th>Project</th></tr></thead><tbody><tr><td class="noedit">What is the project for / branch(es) to be opened?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_what" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Project Financial Analysis</td></tr><tr><td class="noedit">What is the estimated steady state revenue at Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rev12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is the amount the Karmapreneur will need to pay Investors+Karma in Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_pay12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is Net Income before Depreciation after paying Investors+Karma in Month 12?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_ni12" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">What is the lowest revenue the Karmapreneur needs to be able to pay Investors+Karma and profit = 0?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_lowrev" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Rent Contract (for the branch we're doing revenue share for)</td></tr><tr><td class="noedit">What is the rent contract length?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rentlen" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Does the entrepreneur have a contractual right to extend? If not, who is the landlord and what is relationship to entrepreneur?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_rentext" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Space</td></tr><tr><td class="noedit">How many parking spaces will there be?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_parking" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">How many seats/beds/etc. will there be in the branch?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_seats" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Licenses (for the branch we're doing revenue share for)</td></tr><tr><td class="noedit">Does new branch require izin (medical, alcohol, etc)?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_izin" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Do they have the license yet?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_haslic" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Location/Target Buyer Analysis</td></tr><tr><td class="noedit">What is the analysts' assessment of the new location?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_locassess" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Activation Plan and Dependencies</td></tr><tr><td class="noedit">What is marketing plan for the new branch?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_marketing" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td class="noedit">Are there any key dependencies not yet covered above critical to the project's success?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_deps" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr><tr><td colspan="2" style="background:var(--canvas);font-weight:700;font-size:10.3px;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-500)">Post-Funding Promises</td></tr><tr><td class="noedit">Is the entrepreneur willing to give us log-in to their POS?</td><td class="editable block ic-locked-field" data-raw="" data-qid="a_pos" ondblclick="event.stopPropagation();pjMemoEdit(this)"></td></tr></tbody></table></div>
 </div>
-<div class="pd-card proj-dep"><div class="los-sec-title pd-card-title">Notes</div>
-<div class="proj-dep">
+<div class="pd-card"><div class="los-sec-title pd-card-title">Notes</div>
+<div>
 <div class="nf-tabs" id="pjNfTabs" style="display: none;"><button class="nf-tab on ic-locked-field" onclick="nfTab(&#39;all&#39;,this)">All</button><button class="nf-tab ic-locked-field" onclick="nfTab(&#39;kp&#39;,this)">KP</button><button class="nf-tab ic-locked-field" onclick="nfTab(&#39;project&#39;,this)">Project/PO/Invoice</button></div>
 <div class="note-box" style="margin-bottom:10px">
 <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
@@ -2103,27 +2080,30 @@
 <div class="ec-hint" style="margin-top:4px">Double-click any cell to edit · ✎ edit · – delete. Flags: Accountholder Name ≠ PT Name, and Account Number differing from prior projects.</div>
 </div>
 <div class="pd-card proj-dep"><div class="los-sec-title pd-card-title">Other</div>
-<div class="ipm proj-dep">Funding Source: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="KF/KCF/KS||Members" data-fp-val="KF/KCF/KS" data-fpd="1"><span class="pill"><span class="pill-t">KF/KCF/KS</span></span></span> &nbsp;·&nbsp; Tax Withholdings: <span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Karmapreneur will withhold||Karmapreneur will NOT withhold" data-fp-val="Karmapreneur will withhold" data-fpd="1"><span class="pill"><span class="pill-t">Karmapreneur will withhold</span></span></span></div>
 <div class="los-form-grid proj-dep" style="margin-top:10px">
+<div class="dl"><div class="k">Funding Source</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="KF/KCF/KS||Members" data-fp-val="KF/KCF/KS" data-fpd="1"><span class="pill"><span class="pill-t">KF/KCF/KS</span></span></span></div></div>
+<div class="dl"><div class="k">Tax Withholdings</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="Karmapreneur will withhold||Karmapreneur will NOT withhold" data-fp-val="Karmapreneur will withhold" data-fpd="1"><span class="pill"><span class="pill-t">Karmapreneur will withhold</span></span></span></div></div>
 <div class="dl"><div class="k">GDrive</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="link" data-fp-empty="＋ Create folder" data-fp-href="https://drive.google.com" data-fp-label="Project Folder ↗" data-fp-val="Project Folder ↗" data-fpd="1"><span class="pill pill-link"><span class="pill-t">Project Folder ↗</span><span class="pill-x">×</span></span></span></div></div>
 <div class="dl"><div class="k">Term Sheet <span class="finfo" data-tip="Attach the signed term sheet: link an existing Google Drive file, or paste a Drive URL. A signed term sheet is a condition precedent to disbursement.">i</span></div><div class="v"><div class="filelink" data-fl="termsheet"><div class="fl-row"><input class="fl-url ic-locked-field" onchange="flSetUrl(this)" placeholder="Paste Google Drive link…" type="url"><button class="btn btn-sm ic-locked-field" onclick="flLinkFile(this,&#39;Term Sheet&#39;)">🔗 Link file</button></div><div class="fl-current muted">No file linked</div></div></div></div>
 <div class="dl"><div class="k">Financials <span class="finfo" data-tip="Attach financial statements / model: link an existing Google Drive file, or paste a Drive URL.">i</span></div><div class="v"><div class="filelink" data-fl="financials"><div class="fl-row"><input class="fl-url ic-locked-field" onchange="flSetUrl(this)" placeholder="Paste Google Drive link…" type="url"><button class="btn btn-sm ic-locked-field" onclick="flLinkFile(this,&#39;Financials&#39;)">🔗 Link file</button></div><div class="fl-current muted">No file linked</div></div></div></div>
 </div>
-<div class="los-form-grid sor-wrap" style="margin-top: 10px;">
+<div class="fg-flag warn" id="icLockHint" style="margin-top: 12px; display: block;">🔒 This deal has been submitted — all fields above Approval are locked for every role. Only Conditions Precedent/Subsequent (IC, during IC Review) can still change here; anything else requires sending the deal back to Due Diligence.</div>
+</div>
+<div class="pd-card" id="branchOpeningSec" style="display:none"><div class="los-sec-title pd-card-title">Branch Opening <span class="tiny muted">(Asset A and D only)</span></div>
+<div class="los-form-grid" style="margin-top:10px">
 <div class="dl"><div class="k">Source of Revenue Accrued</div><div class="v"><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="HoldCo||Branches" data-fp-val="HoldCo" data-fpd="1" id="sorFp"><span class="pill"><span class="pill-t">HoldCo</span></span></span></div></div>
 </div>
-<div class="sor-wrap" id="sorBranchWrap" style="display: none;">
+<div id="sorBranchWrap" style="display: none;margin-top:10px">
 <div class="tbl-scroll"><table class="pterms-tbl" style="min-width:760px"><thead><tr><th>Branch Name</th><th>Accruing?</th><th>Opened with Karma?</th><th>Branch Opening Date</th><th>Branch Area</th><th>GMaps Link</th></tr></thead><tbody>
 <tr><td class="editable ic-locked-field" data-raw="Branch 1">Branch 1</td><td><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="No||Yes" data-fp-val="No" data-fpd="1"><span class="pill"><span class="pill-t">No</span></span></span></td><td><span class="pillfield-inline ic-locked-field" data-fp="single" data-fp-opts="No||Yes" data-fp-val="No" data-fpd="1"><span class="pill"><span class="pill-t">No</span></span></span></td><td class="editable ic-locked-field" data-raw="">—</td><td class="editable ic-locked-field" data-raw="">—</td><td class="editable ic-locked-field" data-raw="">—</td></tr>
 </tbody></table></div>
 <button class="btn btn-sm ic-locked-field" style="margin-top:6px">＋ Add branch</button>
 </div>
-<div class="fg-flag warn" id="icLockHint" style="margin-top: 12px; display: block;">🔒 Acting as Head of Risk / IC Member — fields above Approval are locked. Switch Role to Analyst to edit them.</div>
 </div>
 <div class="pd-card"><div class="los-sec-title pd-card-title" id="condSec">Conditions Precedent &amp; Subsequent <span class="finfo" data-tip="Before this deal is submitted to IC, the primary analyst can add, edit, or remove conditions. Once submitted to IC Credit Review, only the Head of Risk (Principal) can edit them — analysts see a read-only view of what was submitted.">i</span></div>
 <div class="ipm" id="condHint" style="margin-bottom:8px;background:var(--canvas);border-radius:8px;padding:7px 10px">⚖️ This deal is with IC — as Head of Risk (Principal) you can add, edit, or remove conditions.</div>
-<div class="dl" style="margin-top:10px"><div class="k">Conditions Precedent</div><div class="v tiny"><div id="cpItems"><div class="cond-row"><span class="cond-text">• Signed term sheet on file before disbursement</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• SLIK &amp; SLIK-PT checks cleared</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><span id="cpAutoBank"></span><span id="cpAutoToken"></span></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;cpItems&#39;)">+ Add condition</button></div></div>
-<div class="dl" style="margin-top:10px"><div class="k">Conditions Subsequent</div><div class="v tiny"><div id="csItems"><div class="cond-row"><span class="cond-text">• Execute PO / underlying invoice documentation before first disbursement</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div><div class="cond-row"><span class="cond-text">• Confirm plafond registry update in Coda after IC approval</span> <button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button> <button class="link-btn cond-edit-btn" onclick="icRemoveCond(this)">Remove</button></div></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;csItems&#39;)">+ Add condition</button></div></div>
+<div class="dl" style="margin-top:10px"><div class="k">Conditions Precedent</div><div class="v tiny"><div id="cpItems"><div class="cond-row"><span class="cond-text">Signed term sheet on file before disbursement</span><div class="cond-actions"><button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button><button class="link-btn cond-edit-btn cond-remove-btn" onclick="icRemoveCond(this)">Remove</button></div></div><div class="cond-row"><span class="cond-text">SLIK &amp; SLIK-PT checks cleared</span><div class="cond-actions"><button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button><button class="link-btn cond-edit-btn cond-remove-btn" onclick="icRemoveCond(this)">Remove</button></div></div><span id="cpAutoBank"></span><span id="cpAutoToken"></span></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;cpItems&#39;)">+ Add condition</button></div></div>
+<div class="dl" style="margin-top:10px"><div class="k">Conditions Subsequent</div><div class="v tiny"><div id="csItems"><div class="cond-row"><span class="cond-text">Execute PO / underlying invoice documentation before first disbursement</span><div class="cond-actions"><button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button><button class="link-btn cond-edit-btn cond-remove-btn" onclick="icRemoveCond(this)">Remove</button></div></div><div class="cond-row"><span class="cond-text">Confirm plafond registry update in Coda after IC approval</span><div class="cond-actions"><button class="link-btn cond-edit-btn" onclick="icEditCond(this)">Edit</button><button class="link-btn cond-edit-btn cond-remove-btn" onclick="icRemoveCond(this)">Remove</button></div></div></div><button class="link-btn cond-edit-btn cond-add-btn" onclick="icAddCond(this,&#39;csItems&#39;)">+ Add condition</button></div></div>
 <div id="apprWrap">
 </div>
 <div class="pd-card"><div class="los-sec-title pd-card-title" id="apprSec">Approval</div>
@@ -2444,6 +2424,27 @@
 <div class="modal-foot"><button class="btn" onclick="closeModal(&#39;addTaskModal&#39;)">Cancel</button><button class="btn btn-primary" onclick="submitAddTask()">Create Task</button></div>
 </div>
 </div>
+<!-- ============ MODAL: ADD / EDIT CONDITION ============ -->
+<div class="overlay" id="condModal" onclick="if(event.target===this)closeModal(&#39;condModal&#39;)">
+<div class="modal" style="max-width:480px">
+<div class="modal-head"><h3 id="condModalTitle">Add Condition</h3><button class="modal-x" onclick="closeModal(&#39;condModal&#39;)">✕</button></div>
+<div class="modal-body">
+<div class="field"><label>Condition</label><textarea id="condModalText" placeholder="Describe the condition…"></textarea></div>
+<div class="field"><label>Assign to <span class="tiny muted">(optional)</span></label><select id="condModalAssignee" data-nopill><option value="">— None —</option></select></div>
+</div>
+<div class="modal-foot"><button class="btn" onclick="closeModal(&#39;condModal&#39;)">Cancel</button><button class="btn btn-primary" id="condModalSubmitBtn" onclick="submitCondModal()">Add Condition</button></div>
+</div>
+</div>
+<!-- ============ MODAL: GENERIC STAGE-TRANSITION CONFIRM ============ -->
+<div class="overlay" id="confirmModal" onclick="if(event.target===this)closeModal(&#39;confirmModal&#39;)">
+<div class="modal" style="max-width:440px">
+<div class="modal-head"><h3 id="confirmModalTitle">Confirm</h3><button class="modal-x" onclick="closeModal(&#39;confirmModal&#39;)">✕</button></div>
+<div class="modal-body">
+<div id="confirmModalBody" style="font-size:12.5px;color:var(--ink-700);line-height:1.5"></div>
+</div>
+<div class="modal-foot"><button class="btn" onclick="closeModal(&#39;confirmModal&#39;)">Cancel</button><button class="btn btn-primary" id="confirmModalOkBtn" onclick="confirmModalOk()">Confirm</button></div>
+</div>
+</div>
 <!-- ============ MODAL: ADD OBJECT (Contact / Company / Payor / PT / Invoice-PO) ============ -->
 <div class="overlay" id="addObjModal" onclick="if(event.target===this)closeModal(&#39;addObjModal&#39;)">
 <div class="modal" style="max-width:560px">
@@ -2654,6 +2655,26 @@ function createFollowupTask(e, kp){
 }
 function openModal(id){ document.getElementById(id).classList.add('open'); }
 function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+/* Generic centered confirm, replacing native confirm() for stage-transition actions (Submit to
+   IC, Approve, Reject, Push Back, etc.) so users get the app's own modal instead of a browser
+   dialog. opts: {title, body (html), okLabel, danger, onConfirm}. */
+window.__confirmModalCb=null;
+window.confirmModal=function(opts){
+  opts=opts||{};
+  document.getElementById('confirmModalTitle').textContent=opts.title||'Confirm';
+  document.getElementById('confirmModalBody').innerHTML=opts.body||'';
+  var okBtn=document.getElementById('confirmModalOkBtn');
+  okBtn.textContent=opts.okLabel||'Confirm';
+  okBtn.className='btn '+(opts.danger?'btn-red':'btn-primary');
+  window.__confirmModalCb=typeof opts.onConfirm==='function'?opts.onConfirm:null;
+  openModal('confirmModal');
+};
+window.confirmModalOk=function(){
+  var cb=window.__confirmModalCb;
+  window.__confirmModalCb=null;
+  closeModal('confirmModal');
+  if(cb)cb();
+};
 function addTags(containerId, names){
   const box = document.getElementById(containerId);
   const input = box.querySelector('input');
@@ -2963,7 +2984,25 @@ var LP_DATA=[
  {stage:'completed',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #3 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.800.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Completed · fully repaid 20 Jul 2025',statusCode:'8',subTypes:['project'],finType:'Daily Interest',kf:1080000000,kcf:720000000,signed:true},
  {stage:'completed',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #4 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 4.200.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Completed · fully repaid 10 Feb 2026',statusCode:'8',subTypes:['project'],finType:'Daily Interest',kf:2520000000,kcf:1680000000,signed:true},
  {stage:'active',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #5 — Domestic PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 2.000.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Active · disbursed 2 May 2026',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:1200000000,kcf:800000000,signed:true},
- {stage:'active',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #6 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.500.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Active · disbursed 30 Jun 2026',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:900000000,kcf:600000000,signed:true}
+ {stage:'active',kp:'Cahaya Energi Asia',project:'Cahaya Energi Asia - Aztech #6 — Export PO Financing',type:'PO/Invoice',asset:'Asset B - PO',amount:'IDR 1.500.000.000',analyst:'Priska Ponggawa',secondary:'Hanny Aqmarina',status:'Active · disbursed 30 Jun 2026',statusCode:'7.0',subTypes:['project'],finType:'Daily Interest',kf:900000000,kcf:600000000,signed:true},
+ /* Kopi Anggrek — Asset A track record: #1-#4 completed, #5-#6 active, #7 currently in IC Review (Proposed). */
+ {stage:'completed',kp:'Kopi Anggrek',project:'Kopi Anggrek #1 — Branch Opening',type:'Project',asset:'Asset A',amount:'IDR 1.200.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'Completed · fully repaid 10 Jan 2025',statusCode:'8',subTypes:['project'],finType:'Revenue Share',kf:720000000,kcf:480000000,signed:true},
+ {stage:'completed',kp:'Kopi Anggrek',project:'Kopi Anggrek #2 — Branch Renovation',type:'Project',asset:'Asset A',amount:'IDR 900.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'Completed · fully repaid 22 Apr 2025',statusCode:'8',subTypes:['project'],finType:'Revenue Share',kf:540000000,kcf:360000000,signed:true},
+ {stage:'completed',kp:'Kopi Anggrek',project:'Kopi Anggrek #3 — Branch Opening',type:'Project',asset:'Asset A',amount:'IDR 1.500.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'Completed · fully repaid 8 Sep 2025',statusCode:'8',subTypes:['project'],finType:'Revenue Share',kf:900000000,kcf:600000000,signed:true},
+ {stage:'completed',kp:'Kopi Anggrek',project:'Kopi Anggrek #4 — Branch Opening',type:'Project',asset:'Asset A',amount:'IDR 1.800.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'Completed · fully repaid 30 Jan 2026',statusCode:'8',subTypes:['project'],finType:'Revenue Share',kf:1080000000,kcf:720000000,signed:true},
+ {stage:'active',kp:'Kopi Anggrek',project:'Kopi Anggrek #5 — Branch Opening',type:'Project',asset:'Asset A',amount:'IDR 2.000.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'Active · disbursed 12 Apr 2026',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:1200000000,kcf:800000000,signed:true},
+ {stage:'active',kp:'Kopi Anggrek',project:'Kopi Anggrek #6 — Branch Renovation',type:'Project',asset:'Asset A',amount:'IDR 1.100.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'Active · disbursed 20 Jun 2026',statusCode:'7.0',subTypes:['project'],finType:'Revenue Share',kf:660000000,kcf:440000000,signed:true},
+ {stage:'dd',kp:'Kopi Anggrek',project:'Kopi Anggrek #7 — Branch Opening',type:'Project',asset:'Asset A',amount:'IDR 2.400.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'Due Diligence · new branch proposal',statusCode:'3',finType:'Revenue Share'},
+ {stage:'ic',kp:'Kopi Anggrek',project:'Kopi Anggrek #7 — Branch Opening',type:'Project',asset:'Asset A',amount:'IDR 2.400.000.000',analyst:'Sharfina Nindita',secondary:'Priska Ponggawa',status:'IC Review · Submitted 18 Jul 2026',statusCode:'IC',finType:'Revenue Share'},
+ /* Bengkel Jaya Perkasa — Asset D track record: #1-#4 completed, #5-#6 active, #7 currently in IC Review (Proposed). */
+ {stage:'completed',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #1 — Equipment Financing',type:'Project',asset:'Asset D',amount:'IDR 500.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Completed · fully repaid 15 Feb 2025',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:300000000,kcf:200000000,signed:true},
+ {stage:'completed',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #2 — Working Capital Financing',type:'Project',asset:'Asset D',amount:'IDR 350.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Completed · fully repaid 18 Jun 2025',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:210000000,kcf:140000000,signed:true},
+ {stage:'completed',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #3 — Working Capital Financing',type:'Project',asset:'Asset D',amount:'IDR 400.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Completed · fully repaid 2 Nov 2025',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:240000000,kcf:160000000,signed:true},
+ {stage:'completed',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #4 — Working Capital Financing',type:'Project',asset:'Asset D',amount:'IDR 450.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Completed · fully repaid 25 Feb 2026',statusCode:'8',subTypes:['project'],finType:'Fixed Return',kf:270000000,kcf:180000000,signed:true},
+ {stage:'active',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #5 — Working Capital Financing',type:'Project',asset:'Asset D',amount:'IDR 500.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Active · disbursed 10 May 2026',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return',kf:300000000,kcf:200000000,signed:true},
+ {stage:'active',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #6 — Working Capital Financing',type:'Project',asset:'Asset D',amount:'IDR 380.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Active · disbursed 3 Jul 2026',statusCode:'7.0',subTypes:['project'],finType:'Fixed Return',kf:228000000,kcf:152000000,signed:true},
+ {stage:'dd',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #7 — Working Capital Financing',type:'Project',asset:'Asset D',amount:'IDR 420.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'Due Diligence · draw against existing Plafond',statusCode:'3',finType:'Fixed Return'},
+ {stage:'ic',kp:'Bengkel Jaya Perkasa',project:'Bengkel Jaya Perkasa #7 — Working Capital Financing',type:'Project',asset:'Asset D',amount:'IDR 420.000.000',analyst:'Ben Elberger',secondary:'— None —',status:'IC Review · Submitted 20 Jul 2026',statusCode:'IC',finType:'Fixed Return'}
 ];
 var LP_STATUS=['0','0','1','3','2','IC','IC','IC','IC','4.2','4.2','7.0','7.0','7.0','-3','-2'];
 LP_DATA.forEach(function(x,i){x._id=i;if(!x.statusCode)x.statusCode=LP_STATUS[i]||'0';x.stage=statusStage(x.statusCode);if(x.secondary===undefined)x.secondary='— None —';});
@@ -3558,7 +3597,7 @@ function statusMenu(e,id){e.stopPropagation();closePtpMenu();var m=document.crea
  document.body.appendChild(m);var tg=(e.target.closest&&e.target.closest('.st-chip'))||e.target;var r=tg.getBoundingClientRect();var left=Math.min(r.left+window.scrollX,window.scrollX+window.innerWidth-340);m.style.left=Math.max(8,left)+'px';m.style.top=(r.bottom+window.scrollY+4)+'px';
  setTimeout(function(){document.addEventListener('click',closePtpMenu,{once:true});},0);}
 function lpSetStatus(id,code){if(!LP_DATA[id])return;LP_DATA[id].statusCode=code;LP_DATA[id].stage=statusStage(code);lpRender();}
-function lpSubmitIC(id){if(!LP_DATA[id])return;if(typeof effRole==='function'&&effRole()!=='Analyst'){if(typeof wfToast==='function')wfToast('Not permitted','Only the primary analyst can submit a deal to IC.');return;}if(!confirm('Submit "'+LP_DATA[id].kp+'" to IC Credit Review?'))return;lpSetStatus(id,'IC');}
+function lpSubmitIC(id){if(!LP_DATA[id])return;if(typeof effRole==='function'&&effRole()!=='Analyst'){if(typeof wfToast==='function')wfToast('Not permitted','Only the primary analyst can submit a deal to IC.');return;}var kpName=LP_DATA[id].kp;confirmModal({title:'Submit to IC?',body:'Submit <b>'+esc(kpName)+'</b> to IC Credit Review?',okLabel:'Submit to IC',onConfirm:function(){lpSetStatus(id,'IC');}});}
 /* Users can hold more than one role/capability (e.g. Ben is both an Analyst and on the
    Investment Committee). "roles[0]" is the default active role on switching to that user;
    the top-bar role pill only appears (and only offers) a user's own roles when they have
@@ -4234,21 +4273,78 @@ poRender();
     var row=btn.closest('.cond-row');if(row)row.remove();
     if(typeof window.icCondSyncGate==='function')window.icCondSyncGate();
   };
+  function condPopulateAssigneeSelect(){
+    var sel=document.getElementById('condModalAssignee');
+    if(!sel||sel.__populated)return;
+    sel.__populated=true;
+    (typeof USERS!=='undefined'?USERS:[]).forEach(function(u){
+      var opt=document.createElement('option');opt.value=u.n;opt.textContent=u.n;sel.appendChild(opt);
+    });
+  }
+  function condRowSetAssignee(row,name){
+    row.setAttribute('data-assignee',name||'');
+    var span=row.querySelector('.cond-text');if(!span)return;
+    var tag=span.querySelector('.cond-assignee-tag');
+    if(name){
+      if(!tag){tag=document.createElement('span');tag.className='cond-assignee-tag';span.appendChild(tag);}
+      tag.textContent='\ud83d\udc64 '+name;
+    } else if(tag){
+      tag.remove();
+    }
+  }
+  function condRowText(row){
+    var span=row.querySelector('.cond-text');if(!span)return '';
+    var clone=span.cloneNode(true);
+    var tag=clone.querySelector('.cond-assignee-tag');if(tag)tag.remove();
+    return clone.textContent.trim();
+  }
+  function condBuildRow(text,assignee){
+    var row=document.createElement('div');row.className='cond-row';
+    var span=document.createElement('span');span.className='cond-text';span.textContent=text;row.appendChild(span);
+    var actions=document.createElement('div');actions.className='cond-actions';
+    var editBtn=document.createElement('button');editBtn.className='link-btn cond-edit-btn';editBtn.textContent='Edit';editBtn.onclick=function(){icEditCond(editBtn);};actions.appendChild(editBtn);
+    var rmBtn=document.createElement('button');rmBtn.className='link-btn cond-edit-btn cond-remove-btn';rmBtn.textContent='Remove';rmBtn.onclick=function(){icRemoveCond(rmBtn);};actions.appendChild(rmBtn);
+    row.appendChild(actions);
+    condRowSetAssignee(row,assignee);
+    return row;
+  }
   window.icEditCond=function(btn){
     if(typeof window.icCondCanEdit==='function'&&!window.icCondCanEdit()){alert('Conditions are locked at this stage.');return;}
-    var row=btn.closest('.cond-row');var span=row&&row.querySelector('.cond-text');if(!span)return;
-    var old=span.textContent.replace(/^\u2022\s*/,'');
-    var text=prompt('Edit condition text:',old);if(text===null||!text.trim())return;
-    span.textContent='\u2022 '+text.trim();
+    var row=btn.closest('.cond-row');if(!row)return;
+    condPopulateAssigneeSelect();
+    window.__condModalMode='edit';
+    window.__condModalRow=row;
+    document.getElementById('condModalTitle').textContent='Edit Condition';
+    document.getElementById('condModalSubmitBtn').textContent='Save Changes';
+    document.getElementById('condModalText').value=condRowText(row);
+    document.getElementById('condModalAssignee').value=row.getAttribute('data-assignee')||'';
+    if(window.openModal)openModal('condModal');
   };
   window.icAddCond=function(e,containerId){
     if(typeof window.icCondCanEdit==='function'&&!window.icCondCanEdit()){alert('Conditions are locked at this stage.');return;}
-    var text=prompt('New condition text:');if(!text||!text.trim())return;var c=document.getElementById(containerId);if(!c)return;
-    var row=document.createElement('div');row.className='cond-row';
-    var span=document.createElement('span');span.className='cond-text';span.textContent='\u2022 '+text.trim();row.appendChild(span);row.appendChild(document.createTextNode(' '));
-    var editBtn=document.createElement('button');editBtn.className='link-btn cond-edit-btn';editBtn.textContent='Edit';editBtn.onclick=function(){icEditCond(editBtn);};row.appendChild(editBtn);
-    var rmBtn=document.createElement('button');rmBtn.className='link-btn cond-edit-btn';rmBtn.textContent='Remove';rmBtn.onclick=function(){icRemoveCond(rmBtn);};row.appendChild(rmBtn);
-    c.insertBefore(row,c.lastElementChild&&c.lastElementChild.id==='cpAutoBank'?c.lastElementChild:null);
+    condPopulateAssigneeSelect();
+    window.__condModalMode='add';
+    window.__condModalContainerId=containerId;
+    document.getElementById('condModalTitle').textContent='Add Condition';
+    document.getElementById('condModalSubmitBtn').textContent='Add Condition';
+    document.getElementById('condModalText').value='';
+    document.getElementById('condModalAssignee').value='';
+    if(window.openModal)openModal('condModal');
+  };
+  window.submitCondModal=function(){
+    var text=(document.getElementById('condModalText').value||'').trim();
+    if(!text){alert('Enter condition text.');return;}
+    var assignee=document.getElementById('condModalAssignee').value||'';
+    if(window.__condModalMode==='edit'&&window.__condModalRow){
+      var span=window.__condModalRow.querySelector('.cond-text');
+      if(span)span.textContent=text;
+      condRowSetAssignee(window.__condModalRow,assignee);
+    } else {
+      var c=document.getElementById(window.__condModalContainerId);if(!c)return;
+      var row=condBuildRow(text,assignee);
+      c.insertBefore(row,c.lastElementChild&&c.lastElementChild.id==='cpAutoBank'?c.lastElementChild:null);
+    }
+    closeModal('condModal');
     if(typeof window.icCondSyncGate==='function')window.icCondSyncGate();
   };
   /* role switch */
@@ -4504,7 +4600,22 @@ poRender();
 /* ===== Phase E (batch 5b): scoring + source-of-revenue gating ===== */
 (function(){
   function scoringGate(v){var sec=document.getElementById('scoringSec'),grid=document.getElementById('scoringGrid');if(!sec||!grid)return;var bi=/B - I/.test(v),bpo=/B - PO/.test(v),any=bi||bpo;sec.style.display=any?'':'none';grid.style.display=any?'':'none';grid.querySelectorAll('.dl').forEach(function(e){var show=(e.classList.contains('scr-bi')&&bi)||(e.classList.contains('scr-bpo')&&bpo);e.style.display=show?'':'none';});}
-  function sorGate(v){var ad=/Class A|Class D/.test(v);document.querySelectorAll('#page-los-project .sor-wrap').forEach(function(e){if(e.id==='sorBranchWrap'){var sf=document.getElementById('sorFp');e.style.display=(ad&&sf&&sf.getAttribute('data-fp-val')==='Branches')?'':'none';}else{e.style.display=ad?'':'none';}});}
+  function sorGate(v){
+    var ad=/Class A|Class D/.test(v);
+    var sec=document.getElementById('branchOpeningSec');
+    if(sec)sec.style.display=ad?'':'none';
+    var bw=document.getElementById('sorBranchWrap');
+    if(bw){var sf=document.getElementById('sorFp');bw.style.display=(ad&&sf&&sf.getAttribute('data-fp-val')==='Branches')?'':'none';}
+  }
+  window.sorGate=sorGate;
+  /* Re-run on every project open too (not just fp:change/init), matching how poSection stays
+     correct across navigation — relying only on fp:change left this stale when switching
+     straight from one project to another without touching the Asset Class pill in between. */
+  if(typeof renderProject==='function'&&!renderProject.__sorHooked){
+    var _rpSor=renderProject;
+    window.renderProject=renderProject=function(id){_rpSor(id);var r=(typeof LP_DATA!=='undefined')?LP_DATA[id]:null;if(r)sorGate('Asset Class '+(r.asset||'').replace(/^Asset\s*/,''));};
+    renderProject.__sorHooked=true;
+  }
   document.addEventListener('fp:change',function(e){
     if(e.target.id==='pjAssetFp'){scoringGate(e.detail.value);sorGate(e.detail.value);}
     if(e.target.id==='sorFp'){var bw=document.getElementById('sorBranchWrap');var a=document.getElementById('pjAssetFp');var ad=a&&/Class A|Class D/.test(a.getAttribute('data-fp-val'));if(bw)bw.style.display=(ad&&e.detail.value==='Branches')?'':'none';}
@@ -4677,10 +4788,15 @@ poRender();
        Committee (e.g. right after clicking + New Submission while acting as IC). */
     var curRow=window.__curProjRow||((window.__wfCurId!=null&&typeof LP_DATA!=='undefined')?LP_DATA[window.__wfCurId]:null);
     var pastIC=curRow&&['ic','kpapproval','financesplit','legal','disbursement','active','restructured','completed'].indexOf(curRow.stage)>=0;
-    var locked=(window.PJ_ROLE==='Investment Committee')&&pastIC;
+    /* Once a deal is submitted (past Due Diligence), everything above Approval locks for every
+       role, not just IC — the Analyst who submitted it can't quietly edit it either. The only
+       ways to change anything here are: Conditions Precedent/Subsequent (IC, via its own gate —
+       icCondSyncGate, excluded below) and each stage's own action (Finance Split/Legal/Disbursement
+       controls, which live after apprSec in the DOM and are excluded by isBeforeAppr). */
+    var locked=pastIC;
     var hint=document.getElementById('icLockHint');
     if(hint)hint.style.display=locked?'block':'none';
-    var candidates=page.querySelectorAll('input,textarea,select,button,[data-fp],.editable,.tagval,.pillfield');
+    var candidates=page.querySelectorAll('input,textarea,select,button,[data-fp],.editable,.tagval,.pillfield,.ms-opt,.ap-chip,.cur-pill');
     candidates.forEach(function(el){
       if(el.closest('#apprSec'))return;
       /* Page-chrome/navigation controls (back to list, collapse/expand all) aren't submission
@@ -5200,7 +5316,7 @@ poRender();
     var text=amt<=1000000000
       ?'Bank Account Controls (Limit 0\u20131 bio): dedicated bank account for receipt of payment; Karma has view access.'
       :'Bank Account Controls (Limit Rp 1.001 bio+): dedicated bank account for receipt of payment; Karma is sole authorizer on disbursing funds out OR a post-dated check is required.';
-    host.innerHTML='\u2022 '+text+' <span class="tiny muted">(auto \u2014 Bank Account Controls)</span><br>';
+    host.innerHTML='<div class="cond-row cond-auto"><span class="cond-text">'+text+'</span><div class="cond-actions"><span class="chip c-gray" style="font-size:10px" title="Automatically applied \u2014 not user-editable">Auto</span></div></div>';
   }
   window.updateBankConditionPrecedent=update;
   document.addEventListener('fp:change',function(e){if(e.target&&e.target.id==='pjAssetFp')update();});
@@ -5396,11 +5512,12 @@ poRender();
 
   window.wfSubmitIC=function(id){var r=LP_DATA[id];if(!r)return;
     if(effRole()!=='Analyst'){wfToast('Not permitted','Only the primary analyst can submit a deal to IC.');return;}
-    if(!confirm('Submit "'+r.kp+'" to IC Credit Review?'))return;
-    markPushBackResubmitted(r);
-    setStatus(id,'IC','IC Review · submitted '+today());refresh(id);
-    wfToast('Submitted to IC','<b>'+esc(r.kp)+'</b> is now at IC Credit Review. The Head of Risk has been notified to vote.');
-    notify('IC','New deal for IC review','<b>'+esc(r.kp)+'</b> submitted to IC Credit Review — awaiting your decision.');
+    confirmModal({title:'Submit to IC?',body:'Submit <b>'+esc(r.kp)+'</b> to IC Credit Review?',okLabel:'Submit to IC',onConfirm:function(){
+      markPushBackResubmitted(r);
+      setStatus(id,'IC','IC Review · submitted '+today());refresh(id);
+      wfToast('Submitted to IC','<b>'+esc(r.kp)+'</b> is now at IC Credit Review. The Head of Risk has been notified to vote.');
+      notify('IC','New deal for IC review','<b>'+esc(r.kp)+'</b> submitted to IC Credit Review — awaiting your decision.');
+    }});
   };
   var DEMO_TODAY=new Date(2026,6,17);
   /* ===== Term Sheet versioning: one version per IC-approval round that goes to the KP. A new
@@ -5480,11 +5597,12 @@ poRender();
   };
   window.wfKPAccept=function(id){var r=LP_DATA[id];if(!r)return;
     if(effRole()!=='Analyst'){wfToast('Not permitted','Only the primary analyst records the KP\'s decision.');return;}
-    if(!confirm('Confirm the KP accepted the term sheet for "'+r.kp+'"?'))return;
-    var ver=curTermSheetVersion(r);if(ver){ver.decision='Accepted';ver.decidedDate=today();}
-    setStatus(id,'4.1','Finance Split · KP accepted term sheet '+today());refresh(id);
-    wfToast('→ Finance','<b>'+esc(r.kp)+'</b> accepted the term sheet. Sent to Finance to split the amount across KF and KCF.');
-    notify('Finance','Approved — needs KF/KCF split','<b>'+esc(r.kp)+'</b> — KP accepted. Split '+idr(dealAmt(r))+' across KF and KCF, then send to Legal.');
+    confirmModal({title:'Confirm KP acceptance',body:'Confirm the KP accepted the term sheet for <b>'+esc(r.kp)+'</b>?',okLabel:'Confirm',onConfirm:function(){
+      var ver=curTermSheetVersion(r);if(ver){ver.decision='Accepted';ver.decidedDate=today();}
+      setStatus(id,'4.1','Finance Split · KP accepted term sheet '+today());refresh(id);
+      wfToast('→ Finance','<b>'+esc(r.kp)+'</b> accepted the term sheet. Sent to Finance to split the amount across KF and KCF.');
+      notify('Finance','Approved — needs KF/KCF split','<b>'+esc(r.kp)+'</b> — KP accepted. Split '+idr(dealAmt(r))+' across KF and KCF, then send to Legal.');
+    }});
   };
   window.wfKPCounter=function(id){var r=LP_DATA[id];if(!r)return;
     if(effRole()!=='Analyst'){wfToast('Not permitted','Only the primary analyst records the KP\'s decision.');return;}
@@ -5503,18 +5621,20 @@ poRender();
     var reason=prompt('Why is this closing out? (required — e.g. "KP rejected outright" or "No response in 30 days")');
     if(reason===null)return; reason=reason.trim();
     if(!reason){wfToast('Reason required','Record why this is being closed out before rejecting.');return;}
-    if(!confirm('Reject "'+r.kp+'" — this sets status to Rejected in Due Diligence and is final.'))return;
-    var ver=curTermSheetVersion(r);if(ver){ver.decision='Rejected';ver.decidedDate=today();ver.reason=reason;}
-    r.icDecidedWhen=null;
-    setStatus(id,'-3','Rejected — KP rejected/ghosted at term sheet stage '+today());refresh(id);
-    wfToast('Rejected','<b>'+esc(r.kp)+'</b> — KP rejected or went unresponsive. Status set to Rejected in Due Diligence.');
+    confirmModal({title:'Reject this deal?',body:'Reject <b>'+esc(r.kp)+'</b> — this sets status to Rejected in Due Diligence and is final.',okLabel:'Reject',danger:true,onConfirm:function(){
+      var ver=curTermSheetVersion(r);if(ver){ver.decision='Rejected';ver.decidedDate=today();ver.reason=reason;}
+      r.icDecidedWhen=null;
+      setStatus(id,'-3','Rejected — KP rejected/ghosted at term sheet stage '+today());refresh(id);
+      wfToast('Rejected','<b>'+esc(r.kp)+'</b> — KP rejected or went unresponsive. Status set to Rejected in Due Diligence.');
+    }});
   };
   window.wfReject=function(id){var r=LP_DATA[id];if(!r)return;
     if(effRole()!=='IC'){wfToast('Not permitted','Only Investment Committee members (or the Head of Risk) can reject at IC.');return;}
-    if(!confirm('Reject \''+r.kp+'\' outright?\n\nThis sets status to Rejected in Due Diligence. This is final and more terminal than Push Back — use Push Back instead if the deal just needs more diligence work.'))return;
-    r.icDecidedWhen=null;
-    setStatus(id,'-3','Rejected at IC Credit Review '+today());refresh(id);
-    wfToast('Rejected','<b>'+esc(r.kp)+'</b> was rejected at IC Credit Review \u2014 status set to <b>Rejected in Due Diligence</b>.');
+    confirmModal({title:'Reject this deal?',body:'Reject <b>'+esc(r.kp)+'</b> outright?<br><br>This sets status to Rejected in Due Diligence. This is final and more terminal than Push Back \u2014 use Push Back instead if the deal just needs more diligence work.',okLabel:'Reject',danger:true,onConfirm:function(){
+      r.icDecidedWhen=null;
+      setStatus(id,'-3','Rejected at IC Credit Review '+today());refresh(id);
+      wfToast('Rejected','<b>'+esc(r.kp)+'</b> was rejected at IC Credit Review \u2014 status set to <b>Rejected in Due Diligence</b>.');
+    }});
   };
   /* ===== Item 22: Push Back \u2014 invoked by IC/Head of Risk directly from the IC Review decision
      box. Sends the deal back to Due Diligence (not terminal) for further diligence work, clearing
@@ -5527,7 +5647,7 @@ poRender();
     var reason=prompt('Why is this going back to Due Diligence? (required \u2014 the analyst will see this)');
     if(reason===null)return; reason=reason.trim();
     if(!reason){wfToast('Reason required','Describe why this deal needs more diligence work before pushing back.');return;}
-    if(!confirm('Push back \''+r.kp+'\' to Due Diligence?\n\nThis clears the IC decision, KF/KCF split, and signed-contract flags \u2014 the deal will need to be re-submitted to IC.'))return;
+    confirmModal({title:'Push back to Due Diligence?',body:'Push back <b>'+esc(r.kp)+'</b> to Due Diligence?<br><br>This clears the IC decision, KF/KCF split, and signed-contract flags \u2014 the deal will need to be re-submitted to IC.',okLabel:'Push Back',danger:true,onConfirm:function(){
     newPushBackVersion(r,reason);
     setStatus(id,'3','Due Diligence \u00b7 pushed back from IC '+today());
     r.icDecidedWhen=null;r.kf=null;r.kcf=null;r.signed=false;
@@ -5535,6 +5655,7 @@ poRender();
     var sum=document.getElementById('icApprovalSummary');if(sum)sum.style.display='none';
     var body=document.getElementById('icApprovalBody');if(body)body.style.display='';
     wfToast('Pushed back','<b>'+esc(r.kp)+'</b> was pushed back to <b>Due Diligence</b> \u2014 '+esc(reason)+'.');
+    }});
   };
   window.wfSplitCalc=function(id){var r=LP_DATA[id];if(!r)return;
     var kfEl=document.getElementById('wfKf'),kcfEl=document.getElementById('wfKcf'),sumEl=document.getElementById('wfSplitSum'),btn=document.getElementById('wfSendLegalBtn');
@@ -6250,7 +6371,7 @@ poRender();
     var status=window.getKPTokenStatus(kp);
     var needsToken=isBIPO&&(status==='No'||status==='Yes, view');
     if(!needsToken){host.innerHTML='';return;}
-    host.innerHTML='\u2022 Get auth token <span class="tiny muted">(auto \u2014 Asset Class B-I/B-PO requires an auth token; KP token status: '+esc(status)+')</span><br>';
+    host.innerHTML='<div class="cond-row cond-auto"><span class="cond-text">Get auth token <span class="tiny muted">(Asset Class B-I/B-PO requires an auth token; KP token status: '+esc(status)+')</span></span><div class="cond-actions"><span class="chip c-gray" style="font-size:10px" title="Automatically applied \u2014 not user-editable">Auto</span></div></div>';
   }
   window.updateTokenConditionPrecedent=updateTokenCond;
   document.addEventListener('fp:change',function(e){
@@ -6544,31 +6665,122 @@ poRender();
       noteEl.textContent=(curNum!=null?'This is Project #'+curNum+' for the KP':'This is a project for the KP')
         +' — '+(rows.length>1?(rows.length-1)+' other project'+(rows.length-1===1?'':'s')+' on file.':'no past projects yet.');
     }
-    var toggleLabel=document.getElementById('recapAllToggleLabel');
-    if(toggleLabel)toggleLabel.textContent='View all '+rows.length+' project'+(rows.length===1?'':'s');
-    if(document.getElementById('recapAllRows')){
-      rows.sort(function(a,b){return projectNum(projectCore(b.project))-projectNum(projectCore(a.project));});
+    if(document.getElementById('recapMultiHead')){
+      function recapBucket(row){
+        if(row.stage==='completed')return 2;
+        if(row.stage==='active'||row.stage==='restructured')return 1;
+        return 0;
+      }
+      rows.sort(function(a,b){
+        var ba=recapBucket(a),bb=recapBucket(b);
+        if(ba!==bb)return ba-bb;
+        return projectNum(projectCore(b.project))-projectNum(projectCore(a.project));
+      });
       window.__recapAllRows=rows;
-      window.__recapVisibleCount=3;
+      window.__recapVisibleCount=RECAP_PAGE_SIZE;
       recapRenderRows();
     }
   }
-  var RECAP_PAGE_SIZE=3;
+  var RECAP_PAGE_SIZE=5;
   function recapRowChip(row){
     if(row.stage==='completed')return '<span class="chip c-gray">Completed</span>';
     if(row.stage==='active'||row.stage==='restructured')return '<span class="chip c-green">Active</span>';
-    return '<span class="chip c-blue">'+esc((STAT_BY[row.statusCode]||{}).t||row.stage)+'</span>';
+    return '<span class="chip c-blue">Proposed</span>';
+  }
+  /* Deterministic per-project detail values for the full A-F recap table — seeded off the
+     project's own name so every column shows real, differentiated data (not just the handful
+     of fields the old 2-column table actually wired up), while staying stable across re-renders. */
+  function recapDetailFor(row){
+    var core=projectCore(row.project);
+    var seed=0;for(var i=0;i<core.length;i++)seed=(seed*31+core.charCodeAt(i))%991;
+    var fin=row.finType||'';
+    var isRev=/Revenue Share/.test(fin);
+    var isFixed=/Fixed Return/.test(fin);
+    var isDaily=/Daily Interest/.test(fin);
+    var isMixed=/Fixed Return \+ Revenue Share/.test(fin);
+    var settled=row.stage==='completed'||row.stage==='active'||row.stage==='restructured';
+    var completed=row.stage==='completed';
+    var termMonths=12+(seed%36);
+    var termDays=30+(seed%90);
+    var investorRoic=1.2+(seed%8)/10;
+    var d={};
+    d.revShare=(isRev||isMixed)?('Pre-BEP '+(12+seed%8)+'% / Post-BEP '+(6+seed%5)+'%'):'N/A (not a revenue-share deal)';
+    d.cap=(isRev||isMixed)?((18+seed%10)+'% return cap over '+termMonths+' months'):'N/A';
+    d.fixedRepay=(isFixed||isMixed)?('Full schedule · '+termMonths+'-month amortizing'):(isDaily?'Interest accrual, bullet principal at maturity':'N/A (not a fixed/daily deal)');
+    d.targetCarry=(0.4+(seed%5)/10).toFixed(1)+'% per 30 days (service fee)';
+    d.karmaCarry=(5+seed%4)+'.5%';
+    d.fixedROIC=(isFixed||isDaily||isMixed)?(investorRoic.toFixed(1)+'% per 30 days to investors'):'N/A (not a fixed/daily deal)';
+    d.fixedTotalROIC=(isFixed||isDaily||isMixed)?((investorRoic+0.6).toFixed(1)+'% per 30 days investor + carry'):'N/A';
+    d.branchOpening=(isRev||isFixed)?('Scheduled '+(settled?'and actual within 5 days of disbursement':'pending disbursement')):'N/A (no branch component)';
+    d.term=isDaily?(termDays+' days'):(termMonths+' months');
+    d.minPayPeriod=isDaily?((30+seed%20)+' days'):'N/A (not Daily Interest)';
+    d.pva=(isRev||isFixed)?(settled?((92+seed%22)+'% of projection'):'N/A — not yet started'):'N/A';
+    d.irr=completed?('OTF '+(14+seed%10)+'.'+(seed%9)+'% · '+(12+seed%8)+'% originally projected'):(row.stage==='active'?('OTF N/A (in progress) · '+(12+seed%8)+'% projected'):('N/A — not yet started · '+(12+seed%8)+'% projected'));
+    d.moic=completed?('OTF '+(1+(seed%25)/100).toFixed(2)+'x · '+(1+(seed%15)/100).toFixed(2)+'x projected'):('OTF N/A · '+(1+(seed%15)/100).toFixed(2)+'x projected');
+    d.bep=(isRev||isFixed)?(completed?('Month '+(1+seed%4)+' actual (projected Month '+(1+seed%4)+')'):('Month '+(1+seed%5)+' projected')):'N/A (Daily Interest)';
+    d.dpd=settled?(seed%9===0?('Max '+(5+seed%20)+' days (1 incident, cured)'):'0 days · no incidents'):'N/A — not yet disbursed';
+    d.revProjections=isRev?('Avg '+(300+seed%400)+'M/mo · Peak '+(500+seed%600)+'M · Floor '+(150+seed%200)+'M'):'N/A';
+    d.sourceOfRev=isRev?'Branch POS + delivery aggregators':'N/A';
+    d.paymentFrequency=isRev?'Monthly (3 sub-lines)':'At maturity (bullet repayment)';
+    d.lateFee='Basis: Overdue Amount · Grace 5 days · To investors 0.1%/day · To ASN 0.0%/day';
+    return d;
+  }
+  var RECAP_FIELDS=[
+    {sec:'A — Identity &amp; Structure'},
+    {label:'Financing type',key:'finType'},
+    {label:'PT (legal entity)',key:'pt'},
+    {label:'Financing Use',key:'finUse'},
+    {label:'Requested Project Amount',key:'amount'},
+    {label:'Principal outstanding',key:'principal'},
+    {sec:'B — Return Structure'},
+    {label:'Revenue Share',key:'revShare'},
+    {label:'Cap',key:'cap'},
+    {label:'Fixed amount / repayment',key:'fixedRepay'},
+    {label:'Target carry',key:'targetCarry'},
+    {label:'Karma Carry / Monitoring Fee',key:'karmaCarry'},
+    {label:'Fixed payment investor ROIC',key:'fixedROIC'},
+    {label:'Fixed payment total implied ROIC',key:'fixedTotalROIC'},
+    {sec:'C — Timeline &amp; Operations'},
+    {label:'Branch Opening',key:'branchOpening'},
+    {label:'Term',key:'term'},
+    {label:'Minimum payment period',key:'minPayPeriod'},
+    {sec:'D — Performance Metrics'},
+    {label:'PvA',key:'pva'},
+    {label:'IRR',key:'irr'},
+    {label:'MOIC',key:'moic'},
+    {label:'BEP',key:'bep'},
+    {label:'DPD',key:'dpd'},
+    {sec:'F — Payment Mechanics'},
+    {label:'Revenue Projections',key:'revProjections'},
+    {label:'Source of Revenue Accrued',key:'sourceOfRev'},
+    {label:'Payment frequency',key:'paymentFrequency'},
+    {label:'Late fee',key:'lateFee'}
+  ];
+  function recapProjectColumn(row){
+    var pt=PT_DETAILS[row.kp]||{name:'PT '+row.kp};
+    var principal=(row.kf!=null&&row.kcf!=null)?(idr(row.kf+row.kcf)+' outstanding ('+row.stage+')'):'N/A — not yet disbursed';
+    var finUseMatch=/—\s*([^—]+)$/.exec(row.project);
+    var d=recapDetailFor(row);
+    d.finType=row.finType||'—';
+    d.pt=pt.name;
+    d.finUse=row.finUse||(finUseMatch?finUseMatch[1].trim():'—');
+    d.amount=row.amount||'—';
+    d.principal=principal;
+    return d;
   }
   function recapRenderRows(){
-    var wrap=document.getElementById('recapAllRows');if(!wrap)return;
+    var head=document.getElementById('recapMultiHead'),body=document.getElementById('recapMultiBody');
+    if(!head||!body)return;
     var rows=window.__recapAllRows||[];
     var n=Math.min(window.__recapVisibleCount||RECAP_PAGE_SIZE,rows.length);
-    wrap.innerHTML=rows.slice(0,n).map(function(row,i){
-      return '<div class="recap-proj-row" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:9px 0'+(i<n-1?';border-bottom:1px solid var(--line)':'')+'">'
-        +'<div><div style="font-weight:600;font-size:12.5px">'+esc(projectCore(row.project))+'</div>'
-        +'<div class="tiny muted" style="margin-top:2px">'+recapRowChip(row)+' <span style="margin-left:4px">'+esc(row.finType||'—')+' · '+esc(row.status||'—')+'</span></div></div>'
-        +'<div class="r" style="font-weight:600;font-size:12.5px;white-space:nowrap">'+esc(row.amount||'—')+'</div>'
-        +'</div>';
+    var visible=rows.slice(0,n);
+    head.innerHTML='<th class="fld">FIELD</th>'+visible.map(function(row){
+      return '<th><span>'+esc(projectCore(row.project))+'</span><div>'+recapRowChip(row)+'</div></th>';
+    }).join('');
+    var cols=visible.map(recapProjectColumn);
+    body.innerHTML=RECAP_FIELDS.map(function(f){
+      if(f.sec)return '<tr class="sec"><td colspan="'+(1+visible.length)+'">'+f.sec+'</td></tr>';
+      return '<tr><td class="fld">'+esc(f.label)+'</td>'+cols.map(function(c){return '<td>'+esc(c[f.key]||'—')+'</td>';}).join('')+'</tr>';
     }).join('');
     var moreWrap=document.getElementById('recapLoadMoreWrap'),btn=document.getElementById('recapLoadMoreBtn');
     var remaining=rows.length-n;
@@ -6594,7 +6806,9 @@ poRender();
     'Steak Hotel by Holycow':{name:'PT Steak Hotel by Holycow',bank:'BCA',account:'5200123456'},
     'Begor Pondok Suryo':{name:'PT Begor Pondok Suryo',bank:'BNI',account:'0123456789'},
     'Cipta Usaha Media':{name:'PT Cipta Usaha Media',bank:'BCA',account:'7788001122'},
-    'Cahaya Energi Asia':{name:'PT Cahaya Energi Asia',bank:'Mandiri',account:'1260011422085'}
+    'Cahaya Energi Asia':{name:'PT Cahaya Energi Asia',bank:'Mandiri',account:'1260011422085'},
+    'Kopi Anggrek':{name:'PT Kopi Anggrek Nusantara',bank:'BCA',account:'4410098765'},
+    'Bengkel Jaya Perkasa':{name:'PT Bengkel Jaya Perkasa',bank:'BNI',account:'0099887766'}
   };
   function setText(id,v){var e=document.getElementById(id);if(e)e.textContent=v;}
   function syncPTDetails(r){
