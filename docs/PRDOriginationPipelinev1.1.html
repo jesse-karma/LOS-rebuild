@@ -296,23 +296,23 @@
           <tbody>
             <tr>
               <td>Analyst</td>
-              <td>Create and complete a submission in Due Diligence; submit it to IC; edit Conditions before submission; revise and resubmit a Project returned by IC; request or edit a planned Tranche.</td>
-              <td>After submission to IC, all Analyst-editable fields are locked. Analysts cannot take IC, Finance, Legal, or Disbursement actions.</td>
+              <td>Create and complete a submission in Due Diligence; submit it to IC; edit Conditions before submission; edit Payor / PO / Invoice Financing; revise and resubmit a Project returned by IC; request or edit a planned Tranche.</td>
+              <td>After submission to IC, all Analyst-editable fields are locked, including Payor / PO / Invoice Financing. Analysts cannot take IC, Finance, Legal, or Disbursement actions. No other role may edit Payor / PO / Invoice Financing at any stage, including before submission.</td>
             </tr>
             <tr>
               <td>Investment Committee</td>
-              <td>Approve a Project or send it back to the Analyst with a required reason; edit Conditions Precedent and Subsequent during IC Review.</td>
-              <td>A send-back is not a permanent rejection; the Analyst may revise and resubmit. IC cannot take Finance, Legal, or Analyst actions.</td>
+              <td>Approve a Project, push it back to the Analyst with a required note, or reject it outright with a required note; edit Conditions Precedent and Subsequent during IC Review.</td>
+              <td>A push-back is not a permanent rejection; the Analyst may revise and resubmit. A reject is terminal. IC cannot take Finance, Legal, or Analyst actions.</td>
             </tr>
             <tr>
               <td>Finance</td>
               <td>Set the KF/KCF allocation, send a valid allocation to Legal, and confirm an eligible disbursement.</td>
-              <td>Finance cannot change upstream deal information or Legal records. A split cannot be changed after it is sent to Legal.</td>
+              <td>Finance cannot change upstream deal information or Legal records. A split cannot be changed after it is sent to Legal. Disbursement cannot be confirmed without attaching proof of the bank transfer.</td>
             </tr>
             <tr>
               <td>Legal</td>
-              <td>Confirm that the master agreement is signed and issue a disbursement note for each Tranche.</td>
-              <td>Legal cannot change upstream deal information or Finance allocations.</td>
+              <td>Confirm that the master agreement is signed and issue a disbursement note for each Tranche; record the Umbrella Agreement as a link, an uploaded file, or both.</td>
+              <td>Legal cannot change upstream deal information or Finance allocations. Neither an Umbrella Agreement link nor a file is required to confirm signing — whether the link or Karma's document management system becomes the system of record is still undecided.</td>
             </tr>
           </tbody>
         </table>
@@ -449,11 +449,12 @@
           </thead>
           <tbody>
             <tr><td><span class="stage">Due Diligence</span></td><td>The Analyst creates the Project, or IC sends it back</td><td>Submit to IC Review</td></tr>
-            <tr><td><span class="stage">IC Review</span></td><td>The Analyst submits a complete Project</td><td>Approve to KP Review, or send back to Due Diligence</td></tr>
+            <tr><td><span class="stage">IC Review</span></td><td>The Analyst submits a complete Project</td><td>Approve to KP Review, push back to Due Diligence, or reject outright</td></tr>
+            <tr><td><span class="stage">Rejected</span></td><td>IC rejects the Project outright during IC Review</td><td>Terminal state; the required note stays visible in the decision log</td></tr>
             <tr><td><span class="stage">KP Review</span></td><td>IC approval quorum is reached</td><td>Accept, counter, reject, or expire after 30 days</td></tr>
             <tr><td><span class="stage">Finance Split</span></td><td>KP accepts the terms</td><td>Finance sends a valid split to Legal</td></tr>
-            <tr><td><span class="stage">Legal Agreement</span></td><td>Finance completes a valid split</td><td>Legal confirms the agreement</td></tr>
-            <tr><td><span class="stage">Waiting for Disbursement</span></td><td>Legal confirms the master agreement</td><td>Finance disburses</td></tr>
+            <tr><td><span class="stage">Legal Agreement</span></td><td>Finance completes a valid split</td><td>Legal confirms the agreement, and records the Umbrella Agreement link and/or file</td></tr>
+            <tr><td><span class="stage">Waiting for Disbursement</span></td><td>Legal confirms the master agreement</td><td>Finance attaches proof of the bank transfer and disburses</td></tr>
             <tr><td><span class="stage">Active</span></td><td>At least one disbursement is confirmed</td><td>Remaining eligible Tranches can continue</td></tr>
             <tr><td><span class="stage">Completed</span></td><td>All Tranches are disbursed and the financing is fully repaid</td><td>Terminal state</td></tr>
             <tr><td><span class="stage">Expired</span></td><td>KP rejects the term sheet or the 30-day period ends</td><td>Terminal state; record the reason</td></tr>
@@ -531,6 +532,7 @@
 
       <section class="section-sub" id="payor-po-invoice-detail">
         <h4>Payor / PO / Invoice Financing Detail</h4>
+        <p>Only the Analyst may edit this section, and only before submission to IC (see Roles &amp; Permissions) — no other role can edit it at any stage, and it locks for the Analyst too once the Project reaches IC Review.</p>
         <p>Asset B submissions split into PO mode or Invoice mode depending on the Financing Use selected.</p>
         <table>
           <thead>
@@ -559,6 +561,7 @@
 
       <section class="section-sub" id="diligence-scoring-detail">
         <h4>Diligence Scoring Detail</h4>
+        <p>Every criterion that applies to the Project's asset class must be scored before the Analyst can submit to IC (see Field Completeness &amp; Locking) — none may be left blank.</p>
         <table>
           <thead>
             <tr><th>Criterion</th><th>Applies to</th></tr>
@@ -575,8 +578,10 @@
       <section class="section-sub" id="field-completeness-locking">
         <h4>Field Completeness &amp; Locking</h4>
         <ul>
-          <li>A Project can be submitted only when all fields that apply to its type and asset class are complete</li>
+          <li>A Project can be submitted only when all fields that apply to its type and asset class are complete, including every applicable Diligence Scoring criterion (Asset B-I/B-PO) — a criterion left blank blocks submission, so IC is never left guessing whether it was assessed as weak or simply skipped</li>
           <li>Once submitted, all Analyst-editable fields — including the Project Name — lock. During IC Review, IC may edit only Conditions Precedent and Subsequent</li>
+          <li>Status is never editable by hand, at any stage, by any role. It only changes as a side effect of a workflow action (submit, approve, push back, reject, split, sign, disburse, and so on) — Pipeline is a strict one-way flow, not a field a user can freely reset</li>
+          <li>Locking blocks editing only, not viewing — read-only or reference controls (for example, paging through additional rows of Proposed &amp; Past Projects Recap) stay usable at every stage and for every role</li>
           <li>Warnings — concentration, exposure, pricing-floor, and similar — appear inline next to the field or section they relate to. There is no single consolidated warnings panel; Analysts can view them, IC can act on them</li>
         </ul>
       </section>
@@ -638,22 +643,23 @@
 
       <div class="story" id="story-2">
         <h4>Story 2 — IC: Decide on a submitted Project</h4>
-        <p class="lede"><strong>Story:</strong> As an IC member, I want to approve or send back a submitted Project so only appropriately reviewed financing requests proceed.</p>
-        <p><strong>IC Approval Logic:</strong> There are three IC members and no member hierarchy. A request of up to and including Rp4B needs one approval; a request above Rp4B and up to and including Rp6B needs two; a request above Rp6B needs three. The threshold is determined by the Project's requested amount or the Plafond total, whichever applies — neither a Project nor a Plafond request is exempt from this check. Each member can approve once per decision round and cannot change or withdraw. One IC send-back immediately returns the Project to Due Diligence and must include a note.</p>
+        <p class="lede"><strong>Story:</strong> As an IC member, I want to approve, push back, or reject a submitted Project so only appropriately reviewed financing requests proceed, with a clear record of why.</p>
+        <p><strong>IC Approval Logic:</strong> There are three IC members and no member hierarchy. A request of up to and including Rp4B needs one approval; a request above Rp4B and up to and including Rp6B needs two; a request above Rp6B needs three. The threshold is determined by the Project's requested amount or the Plafond total, whichever applies — neither a Project nor a Plafond request is exempt from this check. Each member can approve once per decision round and cannot change or withdraw. One IC push-back immediately returns the Project to Due Diligence and must include a note.</p>
         <p><strong>IC Decision Rules:</strong></p>
         <ul>
-          <li>IC has two outcomes: approve, or send back to Due Diligence. A negative IC decision never permanently closes a Project</li>
+          <li>IC has three outcomes: approve, push back to Due Diligence, or reject outright. A push-back never permanently closes a Project; a reject is terminal</li>
           <li>A KP counter starts a new decision round. Previous IC votes are reset and the full quorum is required again</li>
-          <li>The system keeps a history of each decision round, including votes and send-back notes</li>
+          <li>Every decision — approve, push back, or reject — is recorded with a note (required for push-back and reject; optional for approve) and tagged with the review cycle it belongs to, since a Project can loop back through IC more than once. The full decision log stays visible in the Approval section for the life of the Project, including after it moves past IC Review or is rejected — an approval note also shows directly under the approving member's name, not only in the log</li>
         </ul>
         <ul class="criteria">
           <li class="ok">IC can approve once the required voting threshold is met.</li>
-          <li class="ok">One IC member can send a Project back with a required note.</li>
-          <li class="ok">A send-back returns the Project to Due Diligence and the Analyst can resubmit it.</li>
+          <li class="ok">IC can push a Project back to Due Diligence, or reject it outright; both require a note.</li>
+          <li class="ok">A push-back returns the Project to Due Diligence and the Analyst can resubmit it; a reject is terminal.</li>
+          <li class="ok">Every decision's note and review cycle stays visible regardless of what stage the Project later reaches.</li>
           <li class="ok">IC can edit Conditions during IC Review.</li>
           <li class="no">An Analyst-only user cannot take an IC action.</li>
         </ul>
-        <p class="scenarios"><strong>Key scenarios:</strong> A two-vote Project proceeds after two distinct approvals; one send-back returns it to Due Diligence; a KP counter restarts the IC decision round.</p>
+        <p class="scenarios"><strong>Key scenarios:</strong> A two-vote Project proceeds after two distinct approvals; one push-back returns it to Due Diligence; a KP counter restarts the IC decision round; a Project pushed back twice and then approved shows all three cycles' notes in order; a rejected Project still shows its full decision history.</p>
       </div>
 
       <div class="story" id="story-3">
@@ -674,10 +680,13 @@
         <p class="lede"><strong>Story:</strong> As a Legal user, I want to confirm the master agreement is signed so the Project can proceed to disbursement.</p>
         <ul class="criteria">
           <li class="ok">Legal can confirm signing in Legal Agreement.</li>
+          <li class="ok">Legal can record the Umbrella Agreement as a link, an uploaded file, or both.</li>
           <li class="ok">Confirmation moves the Project to Waiting for Disbursement.</li>
           <li class="ok">One sign-off is sufficient for this release; document checklists and e-signature tracking are not required.</li>
           <li class="no">Non-Legal users cannot confirm signing.</li>
+          <li class="no">Neither the Umbrella Agreement link nor the file is required to confirm signing.</li>
         </ul>
+        <p class="scenarios"><strong>Open item:</strong> whether the link or an upload into Karma's document management system becomes the system of record for the Umbrella Agreement is undecided; both are captured for now.</p>
       </div>
 
       <div class="story" id="story-5">
@@ -688,6 +697,7 @@
           <li class="ok">Pipeline records the disbursement, shows the Project in Monitoring, and sends an LMS event.</li>
           <li class="ok">Plafond-headroom validation is automated before disbursement.</li>
           <li class="no">A non-Finance user cannot disburse.</li>
+          <li class="no">Finance cannot confirm a disbursement without attaching proof of the bank transfer.</li>
         </ul>
       </div>
 
@@ -739,6 +749,7 @@
           <li class="ok">Legal issues a disbursement note for the Tranche, and signs the master agreement only if it is the Project's first Tranche.</li>
           <li class="ok">Finance can disburse once the Tranche is Ready for Disbursement; Pipeline records it and sends one LMS event.</li>
           <li class="no">Finance is not required to disburse on any particular timeline — an un-disbursed Tranche simply stays pending, with no forced cancellation.</li>
+          <li class="no">Finance cannot confirm a Tranche disbursement without attaching proof of the bank transfer.</li>
         </ul>
         <p class="scenarios"><strong>Key scenarios:</strong> A valid Tranche split proceeds to Legal and disburses; an invalid split is blocked; a Tranche that never gets disbursed (for example, the KP becomes unresponsive) stays pending indefinitely.</p>
       </div>
